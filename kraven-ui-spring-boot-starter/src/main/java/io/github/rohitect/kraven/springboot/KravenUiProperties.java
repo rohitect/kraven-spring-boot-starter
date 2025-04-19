@@ -1,24 +1,24 @@
-package io.github.rohitect.novaDocs.springboot;
+package io.github.rohitect.kraven.springboot;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * Configuration properties for NovaDocs UI.
+ * Configuration properties for Kraven UI.
  */
 @Data
-@ConfigurationProperties(prefix = "novadocs.ui")
-public class NovaDocsUiProperties {
+@ConfigurationProperties(prefix = "kraven.ui")
+public class KravenUiProperties {
 
     /**
-     * Enable or disable NovaDocs UI.
+     * Enable or disable Kraven UI.
      */
     private boolean enabled = true;
 
     /**
-     * The path where the NovaDocs UI will be served.
+     * The path where the Kraven UI will be served.
      */
-    private String path = "/novadocs";
+    private String path = "/kraven";
 
     /**
      * Get the normalized path with a leading slash.
@@ -43,10 +43,10 @@ public class NovaDocsUiProperties {
     private Theme theme = new Theme();
 
     /**
-     * The version of NovaDocs UI.
-     * This is automatically set from the novadocs.ui.version property.
+     * The version of Kraven UI.
+     * This is automatically set from the kraven.ui.version property.
      */
-    private String version = "0.1.0";
+    private String version = "0.1.38";
 
     /**
      * Layout configuration options.

@@ -893,14 +893,26 @@ export class ApiDocsComponent implements OnInit {
    * Select an endpoint to display in the center pane
    */
   selectEndpoint(endpoint: any): void {
+    // Check if we're selecting a different endpoint
+    const isNewEndpoint = !this.selectedEndpoint ||
+                         this.selectedEndpoint.path !== endpoint.path ||
+                         this.selectedEndpoint.method.type !== endpoint.method.type;
+
     this.selectedEndpoint = endpoint;
     this.showingApiInfo = false;
+
+    if (isNewEndpoint) {
+      // Clear previous response samples when selecting a new endpoint
+      this.responseSamples = {};
+      this.selectedResponseCode = null;
+      console.log('Cleared response samples for new endpoint');
+    }
 
     // Get the responses for this endpoint
     const responses = this.getResponsesForSelectedEndpoint();
 
     // Select the first response by default
-    if (responses.length > 0 && !this.selectedResponseCode) {
+    if (responses.length > 0) {
       this.selectResponse(responses[0].code);
     }
 
@@ -1347,6 +1359,16 @@ export class ApiDocsComponent implements OnInit {
       this.generateResponseSample(code);
     }
 
+    // Reset the JSON viewer expanded state to ensure proper rendering
+    this.jsonViewerExpanded = false;
+    setTimeout(() => {
+      this.jsonViewerExpanded = true;
+      // Force Angular change detection by accessing the JSON viewer
+      if (this.jsonViewer) {
+        console.log('Refreshing JSON viewer for response code:', code);
+      }
+    }, 50);
+
     // Switch to the response-samples tab when a response is selected
     this.setRightPaneTab('response-samples');
   }
@@ -1564,6 +1586,17 @@ export class ApiDocsComponent implements OnInit {
 
       // Select the response code and switch to the response-samples tab
       this.selectedResponseCode = code;
+
+      // Reset the JSON viewer expanded state to ensure proper rendering
+      this.jsonViewerExpanded = false;
+      setTimeout(() => {
+        this.jsonViewerExpanded = true;
+        // Force Angular change detection by accessing the JSON viewer
+        if (this.jsonViewer) {
+          console.log('Refreshing JSON viewer for response from try-it-out');
+        }
+      }, 50);
+
       this.setRightPaneTab('response-samples');
     }
   }

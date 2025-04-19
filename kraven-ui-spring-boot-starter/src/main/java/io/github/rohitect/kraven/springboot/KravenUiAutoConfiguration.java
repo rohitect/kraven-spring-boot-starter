@@ -1,4 +1,4 @@
-package io.github.rohitect.novaDocs.springboot;
+package io.github.rohitect.kraven.springboot;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -26,35 +26,48 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Auto-configuration for NovaDocs UI.
+ * Auto-configuration for Kraven UI.
  */
 @Configuration
 @ConditionalOnWebApplication
-@EnableConfigurationProperties(NovaDocsUiProperties.class)
-@ConditionalOnProperty(prefix = "novadocs.ui", name = "enabled", matchIfMissing = true)
-@PropertySource("classpath:novadocs-ui.properties")
-public class NovaDocsUiAutoConfiguration {
+@EnableConfigurationProperties(KravenUiProperties.class)
+@ConditionalOnProperty(prefix = "kraven.ui", name = "enabled", matchIfMissing = true)
+@PropertySource("classpath:kraven-ui.properties")
+public class KravenUiAutoConfiguration {
 
-    private final NovaDocsUiProperties properties;
+    private final KravenUiProperties properties;
     private final Environment environment;
 
-    public NovaDocsUiAutoConfiguration(NovaDocsUiProperties properties, Environment environment) {
+    public KravenUiAutoConfiguration(KravenUiProperties properties, Environment environment) {
         this.properties = properties;
         this.environment = environment;
-        this.properties.setVersion(environment.getProperty("novadocs.ui.version"));
+
+        // Try to get the version from the environment, fallback to the default in KravenUiProperties
+        String version = environment.getProperty("kraven.ui.version");
+        if (version != null && !version.isEmpty() && !version.contains("@project.version@")) {
+            this.properties.setVersion(version);
+        } else {
+            // Keep the default version from KravenUiProperties
+            System.out.println("Using default Kraven UI version: " + this.properties.getVersion());
+        }
+
+        // Log the configuration for debugging
+        System.out.println("Kraven UI Configuration:");
+        System.out.println("  Path: " + this.properties.getNormalizedPath());
+        System.out.println("  Version: " + this.properties.getVersion());
+        System.out.println("  Enabled: " + this.properties.isEnabled());
     }
 
-    // NovaDocsUiController removed to avoid ambiguous mapping with NovaDocsUiIndexController
 
     /**
-     * Configures the NovaDocs UI index controller.
+     * Configures the kraven UI index controller.
      *
-     * @return the NovaDocs UI index controller
+     * @return the kraven UI index controller
      */
     @Bean
     @ConditionalOnMissingBean
-    public NovaDocsUiIndexController novaDocsUiIndexController() {
-        return new NovaDocsUiIndexController(properties);
+    public KravenUiIndexController kravenUiIndexController() {
+        return new KravenUiIndexController(properties);
     }
 
     /**
@@ -134,16 +147,17 @@ public class NovaDocsUiAutoConfiguration {
     }
 
     /**
-     * Configures the WebMvc to serve the NovaDocs UI static resources.
+     * Configures the WebMvc to serve the Kraven UI static resources.
      *
      * @return the WebMvcConfigurer
      */
     @Bean
-    public WebMvcConfigurer novaDocsUiWebMvcConfigurer() {
+    public WebMvcConfigurer kravenUiWebMvcConfigurer() {
         return new WebMvcConfigurer() {
             @Override
             public void addResourceHandlers(ResourceHandlerRegistry registry) {
                 String uiPath = properties.getNormalizedPath();
+                System.out.println("Configuring resource handlers for UI path: " + uiPath);
 
                 // Serve webjar resources directly
                 registry.addResourceHandler("/webjars/**")
@@ -153,8 +167,20 @@ public class NovaDocsUiAutoConfiguration {
                 registry.addResourceHandler(uiPath + "/webjars/**")
                         .addResourceLocations("classpath:/META-INF/resources/webjars/");
 
-                // All static files are now handled by the NovaDocsUiIndexController
-                // No need to register resource handlers for static files
+                // Add a resource handler for the specific version of kraven-ui
+                String kravenUiPath = uiPath + "/**";
+                System.out.println("Adding resource handler for: " + kravenUiPath);
+                registry.addResourceHandler(kravenUiPath)
+                        .addResourceLocations("classpath:/META-INF/resources/webjars/kraven-ui/" + properties.getVersion() + "/")
+                        .addResourceLocations("classpath:/static/");
+
+                // If the UI path is /api-docs, also handle /api-docs/** pattern
+                if (uiPath.equals("/api-docs")) {
+                    System.out.println("Adding special handler for /api-docs path");
+                    registry.addResourceHandler("/api-docs/**")
+                            .addResourceLocations("classpath:/META-INF/resources/webjars/kraven-ui/" + properties.getVersion() + "/")
+                            .addResourceLocations("classpath:/static/");
+                }
             }
 
             @Override
@@ -162,7 +188,14 @@ public class NovaDocsUiAutoConfiguration {
                 // Add a redirect from the base path to the UI path
                 String uiPath = properties.getNormalizedPath();
                 if (!uiPath.equals("/")) {
+                    System.out.println("Adding redirect from " + uiPath + " to " + uiPath + "/");
                     registry.addRedirectViewController(uiPath, uiPath + "/");
+                }
+
+                // If the UI path is /api-docs, also add a view controller for it
+                if (uiPath.equals("/api-docs")) {
+                    System.out.println("Adding view controller for /api-docs");
+                    registry.addViewController("/api-docs").setViewName("forward:/api-docs/index.html");
                 }
             }
         };

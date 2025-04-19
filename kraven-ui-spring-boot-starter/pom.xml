@@ -6,7 +6,7 @@
     <parent>
         <groupId>io.github.rohitect</groupId>
         <artifactId>kraven-ui</artifactId>
-        <version>0.1.26</version>
+        <version>0.1.38</version>
     </parent>
 
     <artifactId>kraven-ui-spring-boot-starter</artifactId>
@@ -14,13 +14,13 @@
     <description>Spring Boot starter for Kraven UI</description>
 
     <dependencies>
-        <!-- NovaDocs UI Core -->
+        <!-- KravenDocs UI Core -->
         <dependency>
             <groupId>io.github.rohitect</groupId>
             <artifactId>kraven-ui-core</artifactId>
         </dependency>
 
-        <!-- NovaDocs UI Frontend -->
+        <!-- KravenDocs UI Frontend -->
         <dependency>
             <groupId>io.github.rohitect</groupId>
             <artifactId>kraven-ui-frontend</artifactId>

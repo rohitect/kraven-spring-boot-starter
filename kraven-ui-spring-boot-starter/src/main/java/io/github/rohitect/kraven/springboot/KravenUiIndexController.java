@@ -1,9 +1,10 @@
-package io.github.rohitect.novaDocs.springboot;
+package io.github.rohitect.kraven.springboot;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -22,17 +23,17 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Controller for serving the NovaDocs UI index.html with injected configuration.
+ * Controller for serving the Kraven UI index.html with injected configuration.
  */
 @Controller
-public class NovaDocsUiIndexController {
+public class KravenUiIndexController {
 
-    private final NovaDocsUiProperties properties;
+    private final KravenUiProperties properties;
 
     @Value("${springdoc.api-docs.path:/v3/api-docs}")
     private String apiDocsPath;
 
-    public NovaDocsUiIndexController(NovaDocsUiProperties properties) {
+    public KravenUiIndexController(KravenUiProperties properties) {
         this.properties = properties;
     }
 
@@ -57,26 +58,58 @@ public class NovaDocsUiIndexController {
     }
 
     /**
-     * Handles all requests under the NovaDocs UI path.
+     * Handles all requests under the Kraven UI path.
      * This includes serving static files if they exist, or falling back to index.html for client-side routing.
      *
      * @param request the HTTP request
      * @return the appropriate response based on the request path
      * @throws IOException if a resource cannot be read
      */
-    @GetMapping(value = "${novadocs.ui.path:/novadocs}/**")
+    @GetMapping(value = "${kraven.ui.path:/kraven}/**")
     public ResponseEntity<?> handleAllRequests(HttpServletRequest request) throws IOException {
         // Get the request path
         String path = request.getRequestURI();
         String uiPath = properties.getNormalizedPath();
 
         System.out.println("Handling request for path: " + path);
+        System.out.println("UI path configured as: " + uiPath);
+
+        // Check if the path contains the UI path
+        if (!path.contains(uiPath)) {
+            System.out.println("Warning: Request path does not contain configured UI path.");
+            System.out.println("This might indicate a configuration issue. Check your kraven.ui.path property.");
+            // Try to handle it anyway by assuming the entire path is relative
+            String relativePath = path.startsWith("/") ? path.substring(1) : path;
+            System.out.println("Attempting to serve as relative path: " + relativePath);
+
+            // If the path is empty, serve the index
+            if (relativePath.isEmpty()) {
+                return serveIndex();
+            }
+
+            // Try to serve the file directly
+            try {
+                return serveStaticFile(relativePath);
+            } catch (IOException e) {
+                System.out.println("Failed to serve file: " + e.getMessage());
+                // If the file doesn't exist, serve the index.html for client-side routing
+                return serveIndex();
+            }
+        }
 
         // Extract the relative path after the UI path
-        String relativePath = path.substring(path.indexOf(uiPath) + uiPath.length());
-        if (relativePath.startsWith("/")) {
-            relativePath = relativePath.substring(1);
+        String relativePath;
+        try {
+            relativePath = path.substring(path.indexOf(uiPath) + uiPath.length());
+            if (relativePath.startsWith("/")) {
+                relativePath = relativePath.substring(1);
+            }
+        } catch (Exception e) {
+            System.out.println("Error extracting relative path: " + e.getMessage());
+            relativePath = "";
         }
+
+        System.out.println("Relative path: " + relativePath);
 
         // If the path is empty or just "/", serve the index
         if (relativePath.isEmpty() || relativePath.equals("/")) {
@@ -87,20 +120,73 @@ public class NovaDocsUiIndexController {
         try {
             return serveStaticFile(relativePath);
         } catch (IOException e) {
+            System.out.println("Failed to serve file: " + e.getMessage());
             // If the file doesn't exist, serve the index.html for client-side routing
             return serveIndex();
         }
     }
 
     /**
-     * Serves the NovaDocs UI HTML page with injected configuration.
+     * Serves the Kraven UI HTML page with injected configuration.
      *
      * @return the HTML content with injected configuration
      * @throws IOException if the index.html file cannot be read
      */
     private ResponseEntity<String> serveIndex() throws IOException {
+        System.out.println("Serving index.html with version: " + properties.getVersion());
+
         // Read the index.html file from the webjar
-        Resource resource = new ClassPathResource("/META-INF/resources/webjars/novadocs-ui/" + properties.getVersion() + "/index.html");
+        String resourcePath = "/META-INF/resources/webjars/kraven-ui/" + properties.getVersion() + "/index.html";
+        Resource resource = new ClassPathResource(resourcePath);
+
+        if (!resource.exists()) {
+            System.out.println("Warning: Could not find resource at path: " + resourcePath);
+            System.out.println("Trying fallback to embedded index.html");
+
+            // Try to load from a fallback location
+            resource = new ClassPathResource("/static/index.html");
+
+            if (!resource.exists()) {
+                System.out.println("Error: Could not find index.html in fallback location either.");
+                // Return a helpful error message
+                String errorHtml = "<!DOCTYPE html>\n" +
+                        "<html>\n" +
+                        "<head>\n" +
+                        "    <title>Kraven UI Error</title>\n" +
+                        "    <style>\n" +
+                        "        body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }\n" +
+                        "        h1 { color: #d32f2f; }\n" +
+                        "        pre { background-color: #f5f5f5; padding: 15px; border-radius: 5px; overflow-x: auto; }\n" +
+                        "        .container { max-width: 800px; margin: 0 auto; }\n" +
+                        "    </style>\n" +
+                        "</head>\n" +
+                        "<body>\n" +
+                        "    <div class='container'>\n" +
+                        "        <h1>Kraven UI Error</h1>\n" +
+                        "        <p>Could not load the Kraven UI resources. This might be due to:</p>\n" +
+                        "        <ul>\n" +
+                        "            <li>Incorrect version configuration (current version: " + properties.getVersion() + ")</li>\n" +
+                        "            <li>Missing resources in the classpath</li>\n" +
+                        "            <li>Path configuration issue (current path: " + properties.getNormalizedPath() + ")</li>\n" +
+                        "        </ul>\n" +
+                        "        <p>Please check your application configuration and ensure the Kraven UI resources are properly included.</p>\n" +
+                        "        <h2>Configuration</h2>\n" +
+                        "        <pre>\n" +
+                        "kraven.ui.path=" + properties.getPath() + "\n" +
+                        "kraven.ui.version=" + properties.getVersion() + "\n" +
+                        "        </pre>\n" +
+                        "    </div>\n" +
+                        "</body>\n" +
+                        "</html>";
+
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.TEXT_HTML);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .headers(headers)
+                        .body(errorHtml);
+            }
+        }
+
         try (InputStream inputStream = resource.getInputStream()) {
             String html = StreamUtils.copyToString(inputStream, StandardCharsets.UTF_8);
 
@@ -125,6 +211,9 @@ public class NovaDocsUiIndexController {
             return ResponseEntity.ok()
                     .headers(headers)
                     .body(html);
+        } catch (IOException e) {
+            System.out.println("Error reading index.html: " + e.getMessage());
+            throw e;
         }
     }
 
@@ -144,13 +233,33 @@ public class NovaDocsUiIndexController {
         MediaType mediaType = MIME_TYPES.getOrDefault(extension, MediaType.APPLICATION_OCTET_STREAM);
 
         // Load the file from the classpath
-        String resourcePath = "/META-INF/resources/webjars/novadocs-ui/" + properties.getVersion() + "/" + relativePath;
+        String resourcePath = "/META-INF/resources/webjars/kraven-ui/" + properties.getVersion() + "/" + relativePath;
         Resource resource = new ClassPathResource(resourcePath);
+
+        // Check if the resource exists
+        if (!resource.exists()) {
+            System.out.println("Warning: Could not find resource at path: " + resourcePath);
+            System.out.println("Trying fallback to static directory");
+
+            // Try to load from a fallback location
+            String fallbackPath = "/static/" + relativePath;
+            resource = new ClassPathResource(fallbackPath);
+
+            if (!resource.exists()) {
+                System.out.println("Error: Could not find resource in fallback location either: " + fallbackPath);
+                throw new IOException("Resource not found: " + relativePath);
+            }
+
+            System.out.println("Found resource in fallback location: " + fallbackPath);
+        }
 
         // Read the file content
         byte[] content;
         try (InputStream inputStream = resource.getInputStream()) {
             content = StreamUtils.copyToByteArray(inputStream);
+        } catch (IOException e) {
+            System.out.println("Error reading resource: " + e.getMessage());
+            throw e;
         }
 
         // Set the appropriate headers
@@ -188,7 +297,7 @@ public class NovaDocsUiIndexController {
         StringBuilder script = new StringBuilder();
         script.append("<script>\n");
         String uiPath = properties.getNormalizedPath();
-        script.append("  window.__NOVADOCS_CONFIG__ = {\n");
+        script.append("  window.__KRAVEN_CONFIG__ = {\n");
         script.append("    basePath: '").append(uiPath).append("',\n");
         script.append("    apiDocsPath: '").append(apiDocsPath).append("',\n");
         script.append("    title: 'API Documentation',\n");

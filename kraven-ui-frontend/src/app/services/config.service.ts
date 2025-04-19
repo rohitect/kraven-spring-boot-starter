@@ -16,7 +16,7 @@ interface KravenConfig {
 
 declare global {
   interface Window {
-    __NOVADOCS_CONFIG__?: KravenConfig;
+    __KRAVEN_CONFIG__?: KravenConfig;
   }
 }
 
@@ -42,6 +42,6 @@ export class ConfigService {
    * Gets the configuration from the window object or returns default values
    */
   getConfig(): KravenConfig {
-    return window.__NOVADOCS_CONFIG__ || this.defaultConfig;
+    return window.__KRAVEN_CONFIG__ || this.defaultConfig;
   }
 }
