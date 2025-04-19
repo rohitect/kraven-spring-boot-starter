@@ -1,0 +1,85 @@
+<div class="auth-container">
+  <div class="auth-content">
+    <div *ngIf="securitySchemes && securitySchemes.length > 0">
+      <!-- Authentication Type Selector -->
+      <div class="auth-type-selector">
+        <button [class.active]="selectedAuthType === 'basic'" (click)="selectAuthType('basic')">
+          Basic
+        </button>
+        <button [class.active]="selectedAuthType === 'bearer'" (click)="selectAuthType('bearer')">
+          Bearer
+        </button>
+        <button [class.active]="selectedAuthType === 'apiKey'" (click)="selectAuthType('apiKey')">
+          API Key
+        </button>
+      </div>
+
+      <!-- API Key Authentication -->
+      <div *ngIf="selectedAuthType === 'apiKey'" class="auth-field-container">
+        <div class="auth-description">
+          API Key will be sent in <span class="auth-highlight">header</span> as <span class="auth-highlight">"X-API-Key"</span>
+        </div>
+
+        <div class="auth-field">
+          <label for="global-api-key">API Key</label>
+          <input
+            id="global-api-key"
+            type="text"
+            [(ngModel)]="globalApiKey"
+            placeholder="Enter API key"
+          >
+        </div>
+      </div>
+
+      <!-- Bearer Authentication -->
+      <div *ngIf="selectedAuthType === 'bearer'" class="auth-field-container">
+        <div class="auth-field">
+          <label for="global-bearer-token">Token</label>
+          <input
+            id="global-bearer-token"
+            type="text"
+            placeholder="Enter bearer token"
+            [(ngModel)]="globalBearerToken"
+          >
+        </div>
+      </div>
+
+      <!-- Basic Authentication -->
+      <div *ngIf="selectedAuthType === 'basic'" class="auth-field-container">
+        <div class="auth-field">
+          <label for="global-basic-username">Username</label>
+          <input
+            id="global-basic-username"
+            type="text"
+            [(ngModel)]="globalBasicAuth.username"
+            placeholder="Enter username"
+          >
+        </div>
+
+        <div class="auth-field">
+          <label for="global-basic-password">Password</label>
+          <input
+            id="global-basic-password"
+            type="password"
+            [(ngModel)]="globalBasicAuth.password"
+            placeholder="Enter password"
+          >
+        </div>
+      </div>
+
+      <!-- Update Button -->
+      <div class="auth-actions">
+        <button type="button" (click)="updateAuthentication()">
+          Update Authentication
+        </button>
+        <div *ngIf="updateSuccess" class="update-success-message">
+          Authentication updated successfully!
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="!securitySchemes || securitySchemes.length === 0" class="no-auth-message">
+      No authentication schemes available for this API.
+    </div>
+  </div>
+</div>
