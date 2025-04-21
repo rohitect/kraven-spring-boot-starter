@@ -43,11 +43,29 @@ import { AccordionModule } from 'primeng/accordion';
 export class FeignClientExplorerComponent implements OnInit {
   feignClients: FeignClient[] = [];
   filteredClients: FeignClient[] = [];
+  recentlyUsedClients: FeignClient[] = [];
   loading = true;
   error: string | null = null;
   title = 'Feign Client Explorer';
   isDarkTheme = true;
   searchQuery: string = '';
+  searchFocused: boolean = false;
+
+  private _viewMode: 'list' | 'card' = 'list';
+
+  get viewMode(): 'list' | 'card' {
+    return this._viewMode;
+  }
+
+  set viewMode(value: 'list' | 'card') {
+    this._viewMode = value;
+    // Save view mode to local storage
+    try {
+      localStorage.setItem('feignClientViewMode', value);
+    } catch (error) {
+      console.error('Failed to save view mode to local storage:', error);
+    }
+  }
 
   selectedClient: FeignClient | null = null;
   selectedMethod: FeignMethod | null = null;
@@ -100,6 +118,12 @@ export class FeignClientExplorerComponent implements OnInit {
         this.selectClientByName(clientName);
       }
     });
+
+    // Initialize view mode from local storage if available
+    const savedViewMode = localStorage.getItem('feignClientViewMode');
+    if (savedViewMode === 'list' || savedViewMode === 'card') {
+      this.viewMode = savedViewMode;
+    }
   }
 
   /**
@@ -160,6 +184,9 @@ export class FeignClientExplorerComponent implements OnInit {
         this.feignClients = clients || [];
         this.filteredClients = [...this.feignClients]; // Initialize filtered clients
         this.loading = false;
+
+        // Load recently used clients from local storage
+        this.loadRecentlyUsedClientsFromStorage();
 
         // If no client is selected and we have clients, select the first one
         if (!this.selectedClient && this.feignClients.length > 0) {
@@ -256,6 +283,61 @@ export class FeignClientExplorerComponent implements OnInit {
         method.isExpanded = false;
         method.showTryItOut = false;
       });
+    }
+
+    // Add to recently used clients
+    this.updateRecentlyUsedClients(client);
+  }
+
+  /**
+   * Updates the recently used clients list.
+   *
+   * @param client The client to add to the recently used list
+   */
+  private updateRecentlyUsedClients(client: FeignClient): void {
+    // Remove the client if it already exists in the list
+    this.recentlyUsedClients = this.recentlyUsedClients.filter(c => c.name !== client.name);
+
+    // Add the client to the beginning of the list
+    this.recentlyUsedClients.unshift(client);
+
+    // Keep only the most recent 3 clients
+    if (this.recentlyUsedClients.length > 3) {
+      this.recentlyUsedClients = this.recentlyUsedClients.slice(0, 3);
+    }
+
+    // Save to local storage for persistence
+    this.saveRecentlyUsedClientsToStorage();
+  }
+
+  /**
+   * Saves the recently used clients to local storage.
+   */
+  private saveRecentlyUsedClientsToStorage(): void {
+    try {
+      // Only store the client names to avoid storing too much data
+      const clientNames = this.recentlyUsedClients.map(client => client.name);
+      localStorage.setItem('recentlyUsedFeignClients', JSON.stringify(clientNames));
+    } catch (error) {
+      console.error('Failed to save recently used clients to local storage:', error);
+    }
+  }
+
+  /**
+   * Loads the recently used clients from local storage.
+   */
+  private loadRecentlyUsedClientsFromStorage(): void {
+    try {
+      const storedClients = localStorage.getItem('recentlyUsedFeignClients');
+      if (storedClients) {
+        const clientNames = JSON.parse(storedClients) as string[];
+        // Find the clients in the loaded clients list
+        this.recentlyUsedClients = clientNames
+          .map(name => this.feignClients.find(client => client.name === name))
+          .filter((client): client is FeignClient => client !== undefined);
+      }
+    } catch (error) {
+      console.error('Failed to load recently used clients from local storage:', error);
     }
   }
 
@@ -436,7 +518,7 @@ export class FeignClientExplorerComponent implements OnInit {
         // this.responseData = response;
 
 
-        
+
         this.responseStatus = 200;
         this.responseStatusText = 'OK';
         this.responseContentType = 'application/json';
