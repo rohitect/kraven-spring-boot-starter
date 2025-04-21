@@ -21,6 +21,11 @@ public class KravenUiProperties {
     private String path = "/kraven";
 
     /**
+     * Enable development mode for easier resource loading during development.
+     */
+    private boolean developmentMode = false;
+
+    /**
      * Get the normalized path with a leading slash.
      *
      * @return the normalized path
@@ -41,6 +46,11 @@ public class KravenUiProperties {
      * The theme configuration.
      */
     private Theme theme = new Theme();
+
+    /**
+     * The Feign client configuration.
+     */
+    private FeignClientConfig feignClient = new FeignClientConfig();
 
     /**
      * The version of Kraven UI.
@@ -89,5 +99,21 @@ public class KravenUiProperties {
          * Custom JavaScript file path to include.
          */
         private String customJsPath;
+    }
+
+    /**
+     * Feign client configuration options.
+     */
+    @Data
+    public static class FeignClientConfig {
+        /**
+         * Enable or disable Feign client scanning.
+         */
+        private boolean enabled = true;
+
+        /**
+         * The base packages to scan for Feign clients.
+         */
+        private String[] basePackages = {"io.github", "com", "org", "net"};
     }
 }

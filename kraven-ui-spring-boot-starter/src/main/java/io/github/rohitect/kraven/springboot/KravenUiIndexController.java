@@ -15,9 +15,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -32,6 +36,9 @@ public class KravenUiIndexController {
 
     @Value("${springdoc.api-docs.path:/v3/api-docs}")
     private String apiDocsPath;
+
+    @Value("${kraven.ui.development-mode:false}")
+    private boolean developmentMode;
 
     public KravenUiIndexController(KravenUiProperties properties) {
         this.properties = properties;
@@ -135,56 +142,123 @@ public class KravenUiIndexController {
     private ResponseEntity<String> serveIndex() throws IOException {
         System.out.println("Serving index.html with version: " + properties.getVersion());
 
-        // Read the index.html file from the webjar
-        String resourcePath = "/META-INF/resources/webjars/kraven-ui/" + properties.getVersion() + "/index.html";
-        Resource resource = new ClassPathResource(resourcePath);
+        // Try to find the index.html file in various locations
+        Resource resource = null;
+        String resourcePath = null;
 
-        if (!resource.exists()) {
-            System.out.println("Warning: Could not find resource at path: " + resourcePath);
-            System.out.println("Trying fallback to embedded index.html");
+        // Locations to check, in order of preference
+        List<String> locationsList = new ArrayList<>();
 
-            // Try to load from a fallback location
-            resource = new ClassPathResource("/static/index.html");
+        if (developmentMode || properties.isDevelopmentMode()) {
+            System.out.println("Running in development mode, prioritizing local resources");
+            // In development mode, prioritize local resources
+            locationsList.add("/kraven-ui-frontend/dist/kraven-ui-frontend/browser/index.html");
+            locationsList.add("/static/index.html");
+            locationsList.add("/META-INF/resources/webjars/kraven-ui/" + properties.getVersion() + "/index.html");
 
-            if (!resource.exists()) {
-                System.out.println("Error: Could not find index.html in fallback location either.");
-                // Return a helpful error message
-                String errorHtml = "<!DOCTYPE html>\n" +
-                        "<html>\n" +
-                        "<head>\n" +
-                        "    <title>Kraven UI Error</title>\n" +
-                        "    <style>\n" +
-                        "        body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }\n" +
-                        "        h1 { color: #d32f2f; }\n" +
-                        "        pre { background-color: #f5f5f5; padding: 15px; border-radius: 5px; overflow-x: auto; }\n" +
-                        "        .container { max-width: 800px; margin: 0 auto; }\n" +
-                        "    </style>\n" +
-                        "</head>\n" +
-                        "<body>\n" +
-                        "    <div class='container'>\n" +
-                        "        <h1>Kraven UI Error</h1>\n" +
-                        "        <p>Could not load the Kraven UI resources. This might be due to:</p>\n" +
-                        "        <ul>\n" +
-                        "            <li>Incorrect version configuration (current version: " + properties.getVersion() + ")</li>\n" +
-                        "            <li>Missing resources in the classpath</li>\n" +
-                        "            <li>Path configuration issue (current path: " + properties.getNormalizedPath() + ")</li>\n" +
-                        "        </ul>\n" +
-                        "        <p>Please check your application configuration and ensure the Kraven UI resources are properly included.</p>\n" +
-                        "        <h2>Configuration</h2>\n" +
-                        "        <pre>\n" +
-                        "kraven.ui.path=" + properties.getPath() + "\n" +
-                        "kraven.ui.version=" + properties.getVersion() + "\n" +
-                        "        </pre>\n" +
-                        "    </div>\n" +
-                        "</body>\n" +
-                        "</html>";
+            // Also try to load from the project directory
+            if (fileExistsInProjectDirectory("kraven-ui-frontend/dist/kraven-ui-frontend/browser/index.html")) {
+                try {
+                    File projectDir = new File(".").getCanonicalFile();
+                    while (projectDir != null && !new File(projectDir, "pom.xml").exists()) {
+                        projectDir = projectDir.getParentFile();
+                    }
 
-                HttpHeaders headers = new HttpHeaders();
-                headers.setContentType(MediaType.TEXT_HTML);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .headers(headers)
-                        .body(errorHtml);
+                    if (projectDir != null) {
+                        File indexFile = new File(projectDir, "kraven-ui-frontend/dist/kraven-ui-frontend/browser/index.html");
+                        System.out.println("Found index.html in project directory: " + indexFile.getAbsolutePath());
+                        try (InputStream inputStream = new FileInputStream(indexFile)) {
+                            String html = StreamUtils.copyToString(inputStream, StandardCharsets.UTF_8);
+
+                            // Inject the configuration into the HTML
+                            String configScript = createConfigScript();
+                            html = html.replace("</head>", configScript + "</head>");
+
+                            // Update paths to include the UI path prefix
+                            String uiPath = properties.getNormalizedPath();
+
+                            // Replace relative paths with absolute paths that include the UI path
+                            html = html.replace("src=\"./", "src=\"" + uiPath + "/");
+                            html = html.replace("href=\"./", "href=\"" + uiPath + "/");
+
+                            // Replace absolute paths with UI-prefixed paths
+                            html = html.replace("src=\"/", "src=\"" + uiPath + "/");
+                            html = html.replace("href=\"/", "href=\"" + uiPath + "/");
+
+                            // Return the HTML with the correct content type
+                            HttpHeaders headers = new HttpHeaders();
+                            headers.setContentType(MediaType.TEXT_HTML);
+                            return ResponseEntity.ok()
+                                    .headers(headers)
+                                    .body(html);
+                        }
+                    }
+                } catch (IOException e) {
+                    System.out.println("Error reading index.html from project directory: " + e.getMessage());
+                }
             }
+        } else {
+            // In production mode, prioritize webjar resources
+            locationsList.add("/META-INF/resources/webjars/kraven-ui/" + properties.getVersion() + "/index.html");
+            locationsList.add("/static/index.html");
+            locationsList.add("/kraven-ui-frontend/dist/kraven-ui-frontend/browser/index.html");
+        }
+
+        String[] locations = locationsList.toArray(new String[0]);
+
+        // Try each location until we find the resource
+        for (String location : locations) {
+            resourcePath = location;
+            resource = new ClassPathResource(resourcePath);
+            if (resource.exists()) {
+                System.out.println("Found index.html at: " + resourcePath);
+                break;
+            }
+        }
+
+        // If we still haven't found the resource, return an error
+        if (resource == null || !resource.exists()) {
+            System.out.println("Error: Could not find index.html in any location.");
+            // Return a helpful error message
+            String errorHtml = "<!DOCTYPE html>\n" +
+                    "<html>\n" +
+                    "<head>\n" +
+                    "    <title>Kraven UI Error</title>\n" +
+                    "    <style>\n" +
+                    "        body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }\n" +
+                    "        h1 { color: #d32f2f; }\n" +
+                    "        pre { background-color: #f5f5f5; padding: 15px; border-radius: 5px; overflow-x: auto; }\n" +
+                    "        .container { max-width: 800px; margin: 0 auto; }\n" +
+                    "    </style>\n" +
+                    "</head>\n" +
+                    "<body>\n" +
+                    "    <div class='container'>\n" +
+                    "        <h1>Kraven UI Error</h1>\n" +
+                    "        <p>Could not load the Kraven UI resources. This might be due to:</p>\n" +
+                    "        <ul>\n" +
+                    "            <li>Incorrect version configuration (current version: " + properties.getVersion() + ")</li>\n" +
+                    "            <li>Missing resources in the classpath</li>\n" +
+                    "            <li>Path configuration issue (current path: " + properties.getNormalizedPath() + ")</li>\n" +
+                    "        </ul>\n" +
+                    "        <p>Please check your application configuration and ensure the Kraven UI resources are properly included.</p>\n" +
+                    "        <h2>Configuration</h2>\n" +
+                    "        <pre>\n" +
+                    "kraven.ui.path=" + properties.getPath() + "\n" +
+                    "kraven.ui.version=" + properties.getVersion() + "\n" +
+                    "        </pre>\n" +
+                    "        <h2>Locations Checked</h2>\n" +
+                    "        <pre>\n" +
+                    String.join("\n", locations) + "\n" +
+                    "        </pre>\n" +
+                    "    </div>\n" +
+                    "</body>\n" +
+                    "</html>";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.TEXT_HTML);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .headers(headers)
+                    .body(errorHtml);
         }
 
         try (InputStream inputStream = resource.getInputStream()) {
@@ -232,25 +306,75 @@ public class KravenUiIndexController {
         // Get the appropriate MIME type
         MediaType mediaType = MIME_TYPES.getOrDefault(extension, MediaType.APPLICATION_OCTET_STREAM);
 
-        // Load the file from the classpath
-        String resourcePath = "/META-INF/resources/webjars/kraven-ui/" + properties.getVersion() + "/" + relativePath;
-        Resource resource = new ClassPathResource(resourcePath);
+        // Try to find the file in various locations
+        Resource resource = null;
+        String resourcePath = null;
 
-        // Check if the resource exists
-        if (!resource.exists()) {
-            System.out.println("Warning: Could not find resource at path: " + resourcePath);
-            System.out.println("Trying fallback to static directory");
+        // Locations to check, in order of preference
+        List<String> locationsList = new ArrayList<>();
 
-            // Try to load from a fallback location
-            String fallbackPath = "/static/" + relativePath;
-            resource = new ClassPathResource(fallbackPath);
+        if (developmentMode || properties.isDevelopmentMode()) {
+            System.out.println("Running in development mode, prioritizing local resources");
+            // In development mode, prioritize local resources
+            locationsList.add("/kraven-ui-frontend/dist/kraven-ui-frontend/browser/" + relativePath);
+            locationsList.add("/kraven-ui-frontend/dist/kraven-ui-frontend/browser/" + relativePath);
+            locationsList.add("/static/" + relativePath);
+            locationsList.add("/META-INF/resources/webjars/kraven-ui/" + properties.getVersion() + "/" + relativePath);
 
-            if (!resource.exists()) {
-                System.out.println("Error: Could not find resource in fallback location either: " + fallbackPath);
-                throw new IOException("Resource not found: " + relativePath);
+            // Also try to load from the project directory
+            String projectPath = "kraven-ui-frontend/dist/kraven-ui-frontend/browser/" + relativePath;
+            if (fileExistsInProjectDirectory(projectPath)) {
+                try {
+                    File projectDir = new File(".").getCanonicalFile();
+                    while (projectDir != null && !new File(projectDir, "pom.xml").exists()) {
+                        projectDir = projectDir.getParentFile();
+                    }
+
+                    if (projectDir != null) {
+                        File resourceFile = new File(projectDir, projectPath);
+                        System.out.println("Found resource in project directory: " + resourceFile.getAbsolutePath());
+                        try (InputStream inputStream = new FileInputStream(resourceFile)) {
+                            byte[] content = StreamUtils.copyToByteArray(inputStream);
+
+                            // Set the appropriate headers
+                            HttpHeaders headers = new HttpHeaders();
+                            headers.setContentType(mediaType);
+                            headers.setCacheControl("max-age=3600");
+
+                            return ResponseEntity.ok()
+                                    .headers(headers)
+                                    .body(content);
+                        }
+                    }
+                } catch (IOException e) {
+                    System.out.println("Error reading resource from project directory: " + e.getMessage());
+                }
             }
+        } else {
+            // In production mode, prioritize webjar resources
+            locationsList.add("/META-INF/resources/webjars/kraven-ui/" + properties.getVersion() + "/" + relativePath);
+            locationsList.add("/static/" + relativePath);
+            locationsList.add("/kraven-ui-frontend/dist/kraven-ui-frontend/browser/" + relativePath);
+            locationsList.add("/kraven-ui-frontend/dist/kraven-ui-frontend/browser/" + relativePath);
+        }
 
-            System.out.println("Found resource in fallback location: " + fallbackPath);
+        String[] locations = locationsList.toArray(new String[0]);
+
+        // Try each location until we find the resource
+        for (String location : locations) {
+            resourcePath = location;
+            resource = new ClassPathResource(resourcePath);
+            if (resource.exists()) {
+                System.out.println("Found resource at: " + resourcePath);
+                break;
+            }
+        }
+
+        // If we still haven't found the resource, throw an exception
+        if (resource == null || !resource.exists()) {
+            System.out.println("Error: Could not find resource in any location: " + relativePath);
+            System.out.println("Locations checked: \n" + String.join("\n", locations));
+            throw new IOException("Resource not found: " + relativePath);
         }
 
         // Read the file content
@@ -289,6 +413,33 @@ public class KravenUiIndexController {
     }
 
     /**
+     * Checks if a file exists in the project directory.
+     * This is useful for development mode.
+     *
+     * @param relativePath the relative path to check
+     * @return true if the file exists, false otherwise
+     */
+    private boolean fileExistsInProjectDirectory(String relativePath) {
+        try {
+            // Try to find the project root directory
+            File currentDir = new File(".").getCanonicalFile();
+            while (currentDir != null && !new File(currentDir, "pom.xml").exists()) {
+                currentDir = currentDir.getParentFile();
+            }
+
+            if (currentDir == null) {
+                return false;
+            }
+
+            // Check if the file exists in the project directory
+            File file = new File(currentDir, relativePath);
+            return file.exists() && file.isFile();
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    /**
      * Creates a script tag with the configuration.
      *
      * @return the script tag with the configuration
@@ -312,6 +463,12 @@ public class KravenUiIndexController {
         // Add layout configuration
         script.append("    layout: {\n");
         script.append("      type: '").append(properties.getLayout().getType()).append("'\n");
+        script.append("    },\n");
+
+        // Add Feign client configuration
+        script.append("    feignClient: {\n");
+        script.append("      enabled: ").append(properties.getFeignClient().isEnabled()).append(",\n");
+        script.append("      apiPath: '").append(uiPath).append("/v1/feign-clients'\n");
         script.append("    }\n");
 
         script.append("  };\n");

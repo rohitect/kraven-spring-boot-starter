@@ -77,27 +77,19 @@ nav a {
   gap: 1rem;
 }
 
-// Add margin to main content to account for fixed header
-main {
-  margin-top: 60px;
-}
-
-// Card icon styles
-.icon-container {
+.theme-toggle {
+  background: none;
+  border: none;
+  color: var(--foreground-color);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: var(--primary-color-10, rgba(59, 130, 246, 0.1));
-  position: relative;
-}
+  transition: background-color 0.2s ease;
 
-.icon {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: var(--primary-color);
+  &:hover {
+    background-color: var(--muted-color);
+  }
 }

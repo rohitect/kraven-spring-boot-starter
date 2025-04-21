@@ -39,6 +39,7 @@
         <module>kraven-ui-core</module>
         <module>kraven-ui-frontend</module>
         <module>kraven-ui-spring-boot-starter</module>
+        <module>kraven-ui-example</module>
     </modules>
 
     <properties>
@@ -50,6 +51,7 @@
 
         <!-- Dependency versions -->
         <spring-boot.version>3.2.0</spring-boot.version>
+        <spring-cloud.version>2023.0.0</spring-cloud.version>
         <springdoc-openapi.version>2.3.0</springdoc-openapi.version>
         <lombok.version>1.18.30</lombok.version>
         <junit-jupiter.version>5.10.1</junit-jupiter.version>
@@ -62,6 +64,15 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
                 <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- Spring Cloud BOM -->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -231,6 +242,12 @@
     <profiles>
         <profile>
             <id>release</id>
+            <modules>
+                <module>kraven-ui-core</module>
+                <module>kraven-ui-frontend</module>
+                <module>kraven-ui-spring-boot-starter</module>
+                <!-- Exclude example module from release -->
+            </modules>
             <build>
                 <plugins>
                     <plugin>
@@ -257,6 +274,7 @@
             <modules>
                 <!-- Only build the spring-boot-starter module when creating a fat JAR -->
                 <module>kraven-ui-spring-boot-starter</module>
+                <!-- Exclude example module from fat-jar build -->
             </modules>
             <build>
                 <plugins>

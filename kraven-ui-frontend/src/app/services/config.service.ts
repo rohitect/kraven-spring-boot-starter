@@ -12,6 +12,10 @@ interface KravenConfig {
   layout: {
     type: string;
   };
+  feignClient?: {
+    enabled: boolean;
+    apiPath: string;
+  };
 }
 
 declare global {
@@ -35,6 +39,10 @@ export class ConfigService {
     },
     layout: {
       type: 'three-pane'
+    },
+    feignClient: {
+      enabled: true,
+      apiPath: '/kraven/v1/feign-clients'
     }
   };
 

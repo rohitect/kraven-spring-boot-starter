@@ -88,6 +88,10 @@ nav a {
   &:hover {
     color: var(--primary-color);
   }
+
+  &.active {
+    color: var(--primary-color);
+  }
 }
 
 .header-right {

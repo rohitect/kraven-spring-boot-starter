@@ -10,18 +10,19 @@ import { JsonViewerComponent } from '../json-viewer/json-viewer.component';
 import { TryItOutComponent } from '../try-it-out-new/try-it-out.component';
 import { GlobalAuthenticationComponent } from '../global-authentication/global-authentication.component';
 import { MarkdownPipe } from '../../pipes/markdown.pipe';
+import { HeaderComponent } from '../shared/header/header.component';
 
 @Component({
   selector: 'app-api-docs',
   standalone: true,
   imports: [
     CommonModule,
-    RouterLink,
     FormsModule,
     TryItOutComponent,
     GlobalAuthenticationComponent,
     MarkdownPipe,
-    JsonViewerComponent
+    JsonViewerComponent,
+    HeaderComponent
   ],
   templateUrl: './api-docs.component.html',
   styleUrls: ['./api-docs.component.scss'],

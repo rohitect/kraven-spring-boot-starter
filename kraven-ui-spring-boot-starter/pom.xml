@@ -45,6 +45,13 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- Spring Cloud OpenFeign (optional) -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+            <optional>true</optional>
+        </dependency>
+
         <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>

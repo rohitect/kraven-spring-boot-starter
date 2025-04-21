@@ -1,0 +1,411 @@
+<div class="feign-client-container">
+  <app-header></app-header>
+
+  <!-- Main Content -->
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="loading-spinner">
+      <svg class="h-8 w-8 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor"
+          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+        </path>
+      </svg>
+      <span>Loading Feign clients...</span>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error" class="error-container">
+    <div class="error-content">
+      <h2 class="error-title">Error loading Feign clients</h2>
+      <p class="error-message">{{ error }}</p>
+      <button (click)="loadFeignClients()" class="btn btn-primary">
+        Retry
+      </button>
+    </div>
+  </div>
+
+  <!-- Feign Client Explorer Three-Pane Layout -->
+  <div *ngIf="!loading && !error" class="three-pane-layout">
+    <!-- Left Sidebar: Feign Client List -->
+    <div class="left-sidebar">
+      <!-- Title Section -->
+      <div class="sidebar-title-section">
+        <h3 class="sidebar-title">Feign Clients</h3>
+        <span class="client-count-badge" *ngIf="feignClients.length > 0">{{ feignClients.length }}</span>
+      </div>
+
+      <!-- Search Box -->
+      <div class="sidebar-header">
+        <div class="search-container">
+          <input type="text" placeholder="Search clients..." [(ngModel)]="searchQuery" (input)="filterClients()"
+            class="search-input" />
+          <svg *ngIf="!searchQuery" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            class="search-icon">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <svg *ngIf="searchQuery" (click)="clearSearch()" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" class="clear-icon">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Client List -->
+      <div class="client-list-container">
+        <div *ngIf="filteredClients.length > 0" class="client-list">
+          <div *ngFor="let client of filteredClients" class="client-item" [class.active]="selectedClient === client"
+            (click)="selectClient(client)">
+            <div class="client-item-content">
+              <div class="client-name">{{ client.name }}</div>
+              <div class="client-path">{{ client.path || 'No path specified' }}</div>
+              <div class="client-methods-count">{{ client.methods.length || 0 }} methods</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="!loading && filteredClients.length === 0" class="no-clients">
+          <div class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <h3>No Feign Clients Found</h3>
+            <p>No Feign clients were detected in your application.</p>
+            <p>Make sure your application has Feign clients and they are properly annotated with &#64;FeignClient.</p>
+            <button class="btn btn-primary" (click)="debugFeignClients()">Debug Feign Clients</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Middle Pane: Client Details -->
+    <div class="middle-pane">
+      <!-- Empty State (No Clients) -->
+      <div *ngIf="!loading && feignClients.length === 0" class="middle-pane-empty">
+        <div class="empty-state">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          <h3>No Feign Clients Found</h3>
+          <p>No Feign clients were detected in your application.</p>
+          <p>Make sure your application has Feign clients and they are properly annotated with &#64;FeignClient.</p>
+        </div>
+      </div>
+
+      <!-- Empty State (No Client Selected) -->
+      <div *ngIf="!selectedClient && feignClients.length > 0" class="middle-pane-empty">
+        <div class="empty-state">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          <h3>Select a Feign Client</h3>
+          <p>Please select a client from the list to view its details.</p>
+        </div>
+      </div>
+
+      <!-- Client Details -->
+      <div *ngIf="selectedClient" class="middle-pane-content">
+        <!-- Client Header -->
+        <div class="client-header">
+          <div class="client-title-section">
+            <h2 class="client-title">{{ selectedClient.name }}</h2>
+            <div class="client-badges">
+              <span class="client-badge" *ngIf="selectedClient.url">URL: {{ selectedClient.url }}</span>
+              <span class="client-badge" *ngIf="selectedClient.path">Path: {{ selectedClient.path }}</span>
+            </div>
+          </div>
+          <div class="client-meta">
+            <div class="client-meta-item" *ngIf="selectedClient.className">
+              <span class="meta-label">Class:</span>
+              <span class="meta-value">{{ selectedClient.className }}</span>
+            </div>
+            <div class="client-meta-item" *ngIf="selectedClient.configuration">
+              <span class="meta-label">Configuration:</span>
+              <span class="meta-value">{{ selectedClient.configuration }}</span>
+            </div>
+            <div class="client-meta-item" *ngIf="selectedClient.fallback">
+              <span class="meta-label">Fallback:</span>
+              <span class="meta-value">{{ selectedClient.fallback }}</span>
+            </div>
+            <div class="client-meta-item" *ngIf="selectedClient.fallbackFactory">
+              <span class="meta-label">Fallback Factory:</span>
+              <span class="meta-value">{{ selectedClient.fallbackFactory }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Methods Section -->
+        <div class="client-methods-section">
+          <div class="methods-header">
+            <h3>Methods</h3>
+            <span class="methods-count">{{ selectedClient.methods.length || 0 }} methods</span>
+          </div>
+          <!-- Method List -->
+          <div class="method-list">
+            <div *ngFor="let method of selectedClient.methods" class="method-item"
+              [class.active]="selectedMethod === method">
+              <div class="method-header" (click)="selectMethod(method)" [class.expanded]="method.isExpanded">
+                <div class="method-left">
+                  <div class="method-type" [ngClass]="getMethodColor(method.httpMethod)">{{ method.httpMethod }}</div>
+                  <div class="method-name">{{ method.name }}</div>
+                </div>
+                <div class="method-center">
+                  <div class="method-path">{{ method.path || '/' }}</div>
+                </div>
+                <div class="method-right">
+                  <div class="method-return-type">{{ getReturnTypeDisplay(method) }}</div>
+                  <div class="method-actions">
+                    <button class="btn btn-sm btn-primary try-button" (click)="toggleTryItOut(method, $event)"
+                      [class.active]="method.showTryItOut">{{ method.showTryItOut ? 'Cancel' : 'Try It' }}</button>
+                    <div class="expand-icon">
+                      <svg *ngIf="method.isExpanded" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="m18 15-6-6-6 6" />
+                      </svg>
+                      <svg *ngIf="!method.isExpanded" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="m6 9 6 6 6-6" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            
+              <div class="method-details" [hidden]="!method.isExpanded">
+                <div class="method-details-content">
+                  <!-- Parameters Section -->
+                  <div *ngIf="method.parameters && method.parameters.length > 0" class="method-parameters">
+                    <div class="details-section-header">
+                      <h4>Parameters</h4>
+                    </div>
+                    <div class="details-section-content">
+                      <table class="parameters-table">
+                        <thead>
+                          <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Annotation</th>
+                            <th>Required</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr *ngFor="let param of method.parameters">
+                            <td>{{ param.name }}</td>
+                            <td><code>{{ getParameterTypeDisplay(param) }}</code></td>
+                            <td><span class="annotation-type">{{ param.annotationType }}</span></td>
+                            <td><span [class.required-true]="param.required" [class.required-false]="!param.required">{{
+                                param.required ? 'Yes' : 'No' }}</span></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <!-- Headers Section -->
+                  <div *ngIf="method.headers && method.headers.length > 0" class="method-headers">
+                    <div class="details-section-header">
+                      <h4>Headers</h4>
+                    </div>
+                    <div class="details-section-content">
+                      <div class="tag-list">
+                        <span class="tag" *ngFor="let header of method.headers">{{ header }}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Produces Section -->
+                  <div *ngIf="method.produces && method.produces.length > 0" class="method-produces">
+                    <div class="details-section-header">
+                      <h4>Produces</h4>
+                    </div>
+                    <div class="details-section-content">
+                      <div class="tag-list">
+                        <span class="tag" *ngFor="let produce of method.produces">{{ produce }}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Consumes Section -->
+                  <div *ngIf="method.consumes && method.consumes.length > 0" class="method-consumes">
+                    <div class="details-section-header">
+                      <h4>Consumes</h4>
+                    </div>
+                    <div class="details-section-content">
+                      <div class="tag-list">
+                        <span class="tag" *ngFor="let consume of method.consumes">{{ consume }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="!selectedClient" class="middle-pane-empty">
+          <div class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 6.1H3"></path>
+              <path d="M21 12.1H3"></path>
+              <path d="M15.1 18H3"></path>
+            </svg>
+            <h3>Select a Feign Client</h3>
+            <p>Choose a Feign client from the list to view its details</p>
+          </div>
+        </div>
+      </div>
+
+
+    </div>
+    <!-- Right Pane: Try It Out -->
+    <div class="right-pane">
+      <!-- Empty State (No Clients) -->
+      <div *ngIf="!loading && feignClients.length === 0" class="right-pane-empty">
+        <div class="empty-state">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          <h3>How to Use Feign Clients</h3>
+          <p>Feign clients are interfaces annotated with &#64;FeignClient that define REST API calls.</p>
+          <p>Add Spring Cloud OpenFeign to your project and create interfaces with &#64;FeignClient annotation.</p>
+        </div>
+      </div>
+
+      <!-- Empty State (No Method Selected or Try It Out not active) -->
+
+      <div *ngIf="(!selectedMethod || !selectedMethod.showTryItOut) && feignClients.length > 0"
+        class="right-pane-empty">
+        <div class="empty-state">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 6.1H3"></path>
+            <path d="M21 12.1H3"></path>
+            <path d="M15.1 18H3"></path>
+          </svg>
+          <h3>Select a Method</h3>
+          <p>Choose a method from a Feign client to try it out</p>
+        </div>
+      </div>
+      <!-- Try It Out Form -->
+      <div *ngIf="selectedMethod && selectedMethod.showTryItOut" class="right-pane-content try-it-out-container"
+        [@fadeInOut]>
+        <!-- Try It Out Header -->
+        <div class="try-it-out-header">
+          <div class="try-it-out-title">
+            <h3>Try It Out</h3>
+            <div class="method-info">
+              <span class="method-badge" [ngClass]="getMethodBgColor(selectedMethod.httpMethod)">
+                {{ selectedMethod.httpMethod }}
+              </span>
+              <span class="method-path">{{ selectedClient?.path || '' }}{{ selectedMethod.path || '' }}</span>
+            </div>
+          </div>
+          <div class="method-description" *ngIf="selectedMethod.name">
+            <p>Method: <code>{{ selectedMethod.name }}</code></p>
+            <p>Returns: <code>{{ selectedMethod.returnType }}</code></p>
+          </div>
+        </div>
+
+        <!-- Parameters Form -->
+        <div class="try-it-out-form">
+          <div *ngIf="selectedMethod.parameters && selectedMethod.parameters.length > 0" class="parameters-form">
+            <div class="form-section-header">
+              <h4>Parameters</h4>
+            </div>
+            <div class="form-section-content">
+              <div *ngFor="let param of selectedMethod.parameters" class="parameter-input">
+                <label [for]="'param-' + param.name">
+                  {{ param.name }}
+                  <span *ngIf="param.required" class="required">*</span>
+                  <span class="parameter-annotation">{{ param.annotationType }}</span>
+                </label>
+                <div class="input-container">
+                  <input *ngIf="param.annotationType !== 'RequestBody'" [id]="'param-' + param.name"
+                    [(ngModel)]="paramValues[param.name]" [placeholder]="param.defaultValue || ''" class="form-control">
+                  <textarea *ngIf="param.annotationType === 'RequestBody'" [id]="'param-' + param.name"
+                    [(ngModel)]="requestBody" rows="5" class="form-control code-editor"
+                    placeholder="Enter JSON body"></textarea>
+                  <div class="parameter-type"><code>{{ getParameterTypeDisplay(param) }}</code></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Execute Actions -->
+          <div class="try-it-out-actions">
+            <button class="btn btn-primary execute-button"
+              (click)="selectedClient && selectedMethod && executeMethod(selectedClient, selectedMethod)"
+              [disabled]="isExecuting || !selectedClient || !selectedMethod">
+              <span *ngIf="!isExecuting">Execute</span>
+              <span *ngIf="isExecuting" class="loading-spinner-small"></span>
+              <span *ngIf="isExecuting">Executing...</span>
+            </button>
+            <button class="btn btn-secondary cancel-button" (click)="toggleTryItOut(selectedMethod, $event)">
+              Cancel
+            </button>
+          </div>
+        </div>
+
+        <!-- Response Section -->
+        <div *ngIf="responseData" class="response-container">
+          <div class="response-header">
+            <h4>Response</h4>
+            <div class="response-meta">
+              <div class="response-status"
+                [ngClass]="{'success': responseStatus >= 200 && responseStatus < 300, 'warning': responseStatus >= 300 && responseStatus < 400, 'error': responseStatus >= 400}">
+                <span class="status-code">{{ responseStatus }}</span>
+                <span class="status-text">{{ responseStatusText }}</span>
+              </div>
+              <div class="response-time">Time: {{ responseTime }} ms</div>
+            </div>
+          </div>
+
+          <div class="response-body">
+            <pre #responseViewer class="json-viewer">{{ responseData | json }}</pre>
+            <button class="btn btn-sm btn-outline copy-button" (click)="copyResponseToClipboard()"
+              title="Copy to clipboard">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span>Copy</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="!(selectedMethod && selectedMethod.showTryItOut)" class="right-pane-empty">
+        <div class="empty-state">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m22 2-7 20-4-9-9-4Z"></path>
+            <path d="M22 2 11 13"></path>
+          </svg>
+          <h3>Try It Out</h3>
+          <p>Click the "Try" button on a method to test it</p>
+        </div>
+      </div>
+    </div>
+  </div>

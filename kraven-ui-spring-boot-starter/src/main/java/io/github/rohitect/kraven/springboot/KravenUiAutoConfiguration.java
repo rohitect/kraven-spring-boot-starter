@@ -1,11 +1,17 @@
 package io.github.rohitect.kraven.springboot;
 
+import io.github.rohitect.kraven.springboot.feign.FeignClientController;
+import io.github.rohitect.kraven.springboot.feign.FeignClientExecutor;
+import io.github.rohitect.kraven.springboot.feign.FeignClientScanner;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
@@ -33,6 +39,7 @@ import java.util.Map;
 @EnableConfigurationProperties(KravenUiProperties.class)
 @ConditionalOnProperty(prefix = "kraven.ui", name = "enabled", matchIfMissing = true)
 @PropertySource("classpath:kraven-ui.properties")
+@ComponentScan(basePackages = {"io.github.rohitect.kraven.springboot.feign"})
 public class KravenUiAutoConfiguration {
 
     private final KravenUiProperties properties;
@@ -68,6 +75,47 @@ public class KravenUiAutoConfiguration {
     @ConditionalOnMissingBean
     public KravenUiIndexController kravenUiIndexController() {
         return new KravenUiIndexController(properties);
+    }
+
+    /**
+     * Configures the Feign client scanner.
+     *
+     * @param applicationContext the application context
+     * @return the Feign client scanner
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnClass(name = "org.springframework.cloud.openfeign.FeignClient")
+    public FeignClientScanner feignClientScanner(ApplicationContext applicationContext) {
+        return new FeignClientScanner(applicationContext);
+    }
+
+    /**
+     * Configures the Feign client executor.
+     *
+     * @param applicationContext the application context
+     * @param feignClientScanner the Feign client scanner
+     * @return the Feign client executor
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnClass(name = "org.springframework.cloud.openfeign.FeignClient")
+    public FeignClientExecutor feignClientExecutor(ApplicationContext applicationContext, FeignClientScanner feignClientScanner) {
+        return new FeignClientExecutor(applicationContext, feignClientScanner);
+    }
+
+    /**
+     * Configures the Feign client controller.
+     *
+     * @param feignClientScanner the Feign client scanner
+     * @param feignClientExecutor the Feign client executor
+     * @return the Feign client controller
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnClass(name = "org.springframework.cloud.openfeign.FeignClient")
+    public FeignClientController feignClientController(FeignClientScanner feignClientScanner, FeignClientExecutor feignClientExecutor) {
+        return new FeignClientController(feignClientScanner, feignClientExecutor, properties);
     }
 
     /**
