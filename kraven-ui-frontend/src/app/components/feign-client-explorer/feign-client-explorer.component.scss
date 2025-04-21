@@ -63,96 +63,16 @@
   }
 }
 
-// Header styles
-header {
-  background-color: var(--background-color);
-  border-bottom: 1px solid var(--border-color);
-  height: var(--header-height);
-  min-height: var(--header-height);
-  display: flex;
-  align-items: center;
-  width: 100%; /* Full width of container */
-  margin: 0; /* Remove any margin */
-  padding: 0; /* Remove any padding */
-  z-index: 1000; /* Ensure it's above other content */
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  flex-shrink: 0; /* Prevent header from shrinking */
-}
-
-header .container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  padding: 0 1.5rem;
-  margin: 0 auto; /* Center the content */
-}
-
-.full-width {
-  width: 100vw;
-  max-width: 100vw;
-  margin: 0;
-  padding-left: 1.5rem;
-  padding-right: 1.5rem;
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-}
-
-.logo {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--foreground-color);
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-nav {
-  display: flex;
-  gap: 1.5rem;
-}
-
-nav a {
-  color: var(--foreground-color);
-  text-decoration: none;
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: color var(--transition-speed) ease;
-
-  &:hover {
-    color: var(--primary-color);
-  }
-
-  &.active {
-    color: var(--primary-color);
-  }
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
+// No header styles needed as they're now in the layout component
 
 // Main Layout
 .feign-client-container {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - var(--header-height, 60px)); /* Height minus header */
-  max-height: calc(100vh - var(--header-height, 60px)); /* Ensure it doesn't exceed viewport height minus header */
+  height: 100%; /* Take full height of parent */
   background-color: var(--background-color);
   overflow: hidden; /* Prevent scrolling on the container */
   position: relative;
-  margin-top: var(--header-height, 60px); /* Add margin to push content below header */
-  position: fixed; /* Fix the container to prevent scrolling */
-  left: 0;
-  right: 0;
-  bottom: 0;
 
   &::before {
     content: '';
@@ -171,16 +91,6 @@ nav a {
   & > * {
     position: relative;
     z-index: 1;
-  }
-
-  /* Position the app-header at the top */
-  app-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 1000;
-    height: var(--header-height, 60px);
   }
 }
 
@@ -299,8 +209,9 @@ nav a {
   padding: 0.75rem;
   border-radius: var(--border-radius);
   cursor: pointer;
-  transition: background-color var(--transition-speed) ease;
+  transition: all var(--transition-speed) ease;
   border: 1px solid transparent;
+  position: relative;
 
   &:hover {
     background-color: var(--hover-color, rgba(0, 0, 0, 0.05));
@@ -309,6 +220,25 @@ nav a {
   &.active {
     background-color: var(--active-color, rgba(0, 0, 0, 0.1));
     border-color: var(--primary-color);
+    box-shadow: 0 0 0 1px var(--primary-color);
+
+    // Add a left border indicator
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 4px;
+      background-color: var(--primary-color);
+      border-top-left-radius: var(--border-radius);
+      border-bottom-left-radius: var(--border-radius);
+    }
+
+    // Make the client name more prominent
+    .client-name {
+      color: var(--primary-color);
+    }
   }
 }
 
@@ -512,6 +442,34 @@ nav a {
     &::before {
       background-color: var(--primary-color);
     }
+
+    // Add a subtle indicator for expanded state without using arrows
+    border-left: 3px solid var(--primary-color);
+  }
+
+  // Style for methods without expandable content
+  &.no-expandable-content {
+    cursor: default;
+
+    // Add a subtle indicator that this is not expandable
+    &::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 0;
+      height: 100%;
+      width: 4px;
+      background-color: var(--muted-color);
+    }
+
+    // When selected, highlight it differently
+    &.selected {
+      background-color: var(--active-color, rgba(0, 0, 0, 0.1));
+
+      &::before {
+        background-color: var(--primary-color);
+      }
+    }
   }
 }
 
@@ -639,10 +597,6 @@ nav a {
       background-color: var(--hover-color, rgba(0, 0, 0, 0.05));
     }
   }
-}
-
-.expand-icon {
-  color: var(--muted-foreground-color);
 }
 
 // Method Details
@@ -954,35 +908,6 @@ nav a {
   gap: 0.5rem;
 }
 
-.method-badge {
-  font-weight: 600;
-  padding: 0.25rem 0.5rem;
-  border-radius: var(--border-radius);
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  color: white;
-
-  &.get {
-    background-color: #61affe;
-  }
-
-  &.post {
-    background-color: #49cc90;
-  }
-
-  &.put {
-    background-color: #fca130;
-  }
-
-  &.delete {
-    background-color: #f93e3e;
-  }
-
-  &.patch {
-    background-color: #50e3c2;
-  }
-}
-
 .method-description {
   font-size: 0.875rem;
   color: var(--muted-foreground-color);
@@ -1199,11 +1124,64 @@ nav a {
   color: var(--muted-foreground-color);
 }
 
+// Response Tabs
+.response-tabs {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.tab-buttons {
+  display: flex;
+  padding: 0 1rem;
+}
+
+.tab-button {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--muted-foreground-color);
+  background-color: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: var(--foreground-color);
+  }
+
+  &.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+  }
+}
+
+// Response Body Tab
 .response-body {
   position: relative;
-  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
   background-color: var(--background-color);
+}
+
+.response-body-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background-color: var(--muted-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.content-type {
+  font-size: 0.75rem;
+  color: var(--muted-foreground-color);
+}
+
+.response-body-content {
   flex: 1;
+  padding: 1rem;
   overflow: auto;
 }
 
@@ -1215,6 +1193,39 @@ nav a {
   white-space: pre-wrap;
   word-break: break-word;
   color: var(--foreground-color);
+}
+
+// Response Headers Tab
+.response-headers {
+  padding: 1rem;
+  overflow: auto;
+  height: 100%;
+}
+
+.headers-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.headers-table th {
+  text-align: left;
+  padding: 0.5rem;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--foreground-color);
+}
+
+.headers-table td {
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--foreground-color);
+}
+
+.no-headers {
+  text-align: center;
+  color: var(--muted-foreground-color);
+  padding: 1rem;
 }
 
 .copy-button {

@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { HttpClientModule } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { ConfigService } from './services/config.service';
 import { ThemeService } from './services/theme.service';
@@ -8,28 +7,9 @@ import { ThemeService } from './services/theme.service';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, HttpClientModule, CommonModule],
-  template: `
-    <div class="app-container">
-      <main class="content">
-        <router-outlet></router-outlet>
-      </main>
-    </div>
-  `,
-  styles: [`
-    .app-container {
-      display: flex;
-      height: 100vh;
-      width: 100vw;
-      overflow: hidden;
-    }
-
-    .content {
-      flex: 1;
-      overflow-y: auto;
-      width: 100%;
-    }
-  `]
+  imports: [RouterOutlet, CommonModule],
+  template: `<router-outlet></router-outlet>`,
+  styles: []
 })
 export class AppComponent implements OnInit {
   constructor(

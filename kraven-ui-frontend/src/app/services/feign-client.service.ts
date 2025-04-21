@@ -76,7 +76,7 @@ export class FeignClientService {
    * @param methodName the name of the method
    * @param parameters the parameters for the method
    */
-  executeMethod(clientName: string, methodName: string, parameters: any): Observable<any> {
+  executeMethod(clientName: string, methodName: string, parameters: any, requestBody?: string): Observable<any> {
     const config = this.configService.getConfig();
     if (!config.feignClient?.enabled) {
       console.log('Feign client feature is disabled');
@@ -86,11 +86,51 @@ export class FeignClientService {
     const apiPath = config.feignClient?.apiPath || '/kraven/v1/feign-clients';
     console.log('Executing Feign client method:', apiPath + '/' + clientName + '/methods/' + methodName + '/execute');
 
-    return this.http.post(`${apiPath}/${clientName}/methods/${methodName}/execute`, parameters).pipe(
+    // Prepare the request payload
+    const payload: any = { ...parameters };
+
+    // If there's a request body parameter and requestBody is provided, add it
+    if (requestBody) {
+      try {
+        // Try to parse as JSON
+        payload['requestBody'] = JSON.parse(requestBody);
+      } catch (e) {
+        // If not valid JSON, use as string
+        payload['requestBody'] = requestBody;
+      }
+    }
+
+    console.log('Request payload:', payload);
+
+    // Return the raw response without wrapping it
+    return this.http.post(`${apiPath}/${clientName}/methods/${methodName}/execute`, payload, { observe: 'response' }).pipe(
+      map(response => {
+        // Return the raw response body
+        return response.body;
+      }),
       catchError(error => {
         console.error('Error executing Feign client method:', error);
         console.error('Response text:', error.error?.text || 'No response text');
-        return of({ error: error.message || 'Failed to execute method' });
+
+        // Try to extract error message from the response
+        let errorMessage = 'Failed to execute method';
+        if (error.error) {
+          if (typeof error.error === 'string') {
+            try {
+              const errorObj = JSON.parse(error.error);
+              errorMessage = errorObj.error || errorMessage;
+            } catch (e) {
+              errorMessage = error.error;
+            }
+          } else if (error.error.error) {
+            errorMessage = error.error.error;
+          } else if (error.message) {
+            errorMessage = error.message;
+          }
+        }
+
+        console.error('Error message:', errorMessage);
+        return of({ error: errorMessage });
       })
     );
   }

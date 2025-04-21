@@ -1,6 +1,4 @@
 <div class="feign-client-container">
-  <app-header></app-header>
-
   <!-- Main Content -->
   <!-- Loading State -->
   <div *ngIf="loading" class="loading-container">
@@ -159,7 +157,10 @@
           <div class="method-list">
             <div *ngFor="let method of selectedClient.methods" class="method-item"
               [class.active]="selectedMethod === method">
-              <div class="method-header" (click)="selectMethod(method)" [class.expanded]="method.isExpanded">
+              <div class="method-header" (click)="selectMethod(method)"
+                   [class.expanded]="method.isExpanded"
+                   [class.no-expandable-content]="!hasExpandableContent(method)"
+                   [class.selected]="selectedMethod === method">
                 <div class="method-left">
                   <div class="method-type" [ngClass]="getMethodColor(method.httpMethod)">{{ method.httpMethod }}</div>
                   <div class="method-name">{{ method.name }}</div>
@@ -172,23 +173,11 @@
                   <div class="method-actions">
                     <button class="btn btn-sm btn-primary try-button" (click)="toggleTryItOut(method, $event)"
                       [class.active]="method.showTryItOut">{{ method.showTryItOut ? 'Cancel' : 'Try It' }}</button>
-                    <div class="expand-icon">
-                      <svg *ngIf="method.isExpanded" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="m18 15-6-6-6 6" />
-                      </svg>
-                      <svg *ngIf="!method.isExpanded" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="m6 9 6 6 6-6" />
-                      </svg>
-                    </div>
                   </div>
                 </div>
               </div>
-            
-              <div class="method-details" [hidden]="!method.isExpanded">
+
+              <div class="method-details" [hidden]="!method.isExpanded" *ngIf="method.parameters && method.parameters.length > 0 || method.headers && method.headers.length > 0 || method.produces && method.produces.length > 0 || method.consumes && method.consumes.length > 0">
                 <div class="method-details-content">
                   <!-- Parameters Section -->
                   <div *ngIf="method.parameters && method.parameters.length > 0" class="method-parameters">
@@ -315,9 +304,7 @@
           <div class="try-it-out-title">
             <h3>Try It Out</h3>
             <div class="method-info">
-              <span class="method-badge" [ngClass]="getMethodBgColor(selectedMethod.httpMethod)">
-                {{ selectedMethod.httpMethod }}
-              </span>
+              <div class="method-type" [ngClass]="getMethodColor(selectedMethod.httpMethod)">{{ selectedMethod.httpMethod }}</div>
               <span class="method-path">{{ selectedClient?.path || '' }}{{ selectedMethod.path || '' }}</span>
             </div>
           </div>
@@ -381,22 +368,60 @@
             </div>
           </div>
 
-          <div class="response-body">
-            <pre #responseViewer class="json-viewer">{{ responseData | json }}</pre>
-            <button class="btn btn-sm btn-outline copy-button" (click)="copyResponseToClipboard()"
-              title="Copy to clipboard">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-              <span>Copy</span>
-            </button>
+          <div class="response-tabs">
+            <div class="tab-buttons">
+              <button class="tab-button" [class.active]="responseTab === 'body'" (click)="responseTab = 'body'">
+                Body
+              </button>
+              <button class="tab-button" [class.active]="responseTab === 'headers'" (click)="responseTab = 'headers'">
+                Headers
+              </button>
+            </div>
+          </div>
+
+          <!-- Body Tab -->
+          <div *ngIf="responseTab === 'body'" class="response-body">
+            <div class="response-body-header">
+              <div class="content-type">{{ responseContentType }}</div>
+              <button class="btn btn-sm btn-outline copy-button" (click)="copyResponseToClipboard()"
+                title="Copy to clipboard">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <span>Copy</span>
+              </button>
+            </div>
+            <div class="response-body-content">
+              <pre #responseViewer class="json-viewer">{{ formattedResponseBody }}</pre>
+            </div>
+          </div>
+
+          <!-- Headers Tab -->
+          <div *ngIf="responseTab === 'headers'" class="response-headers">
+            <table class="headers-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let header of responseHeaders">
+                  <td>{{ header.name }}</td>
+                  <td>{{ header.value }}</td>
+                </tr>
+                <tr *ngIf="responseHeaders.length === 0">
+                  <td colspan="2" class="no-headers">No headers available</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
 
-      <div *ngIf="!(selectedMethod && selectedMethod.showTryItOut)" class="right-pane-empty">
+      <!-- <div *ngIf="!(selectedMethod && selectedMethod.showTryItOut)" class="right-pane-empty">
         <div class="empty-state">
           <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -406,6 +431,6 @@
           <h3>Try It Out</h3>
           <p>Click the "Try" button on a method to test it</p>
         </div>
-      </div>
+      </div> -->
     </div>
   </div>

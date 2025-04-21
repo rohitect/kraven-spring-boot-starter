@@ -19,6 +19,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.ResourceHttpMessageConverter;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
@@ -100,8 +101,8 @@ public class KravenUiAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnClass(name = "org.springframework.cloud.openfeign.FeignClient")
-    public FeignClientExecutor feignClientExecutor(ApplicationContext applicationContext, FeignClientScanner feignClientScanner) {
-        return new FeignClientExecutor(applicationContext, feignClientScanner);
+    public FeignClientExecutor feignClientExecutor(ApplicationContext applicationContext, FeignClientScanner feignClientScanner, ObjectMapper objectMapper) {
+        return new FeignClientExecutor(applicationContext, feignClientScanner, objectMapper);
     }
 
     /**

@@ -7,7 +7,6 @@ import { FeignClientService } from '../../services/feign-client.service';
 import { ConfigService } from '../../services/config.service';
 import { ThemeService } from '../../services/theme.service';
 import { trigger, transition, style, animate, state } from '@angular/animations';
-import { HeaderComponent } from '../shared/header/header.component';
 import { FeignClient, FeignMethod, FeignParameter } from '../../models/feign-client.model';
 import { AccordionModule } from 'primeng/accordion';
 @Component({
@@ -16,8 +15,7 @@ import { AccordionModule } from 'primeng/accordion';
   imports: [
     CommonModule,
     FormsModule,
-    AccordionModule,
-    HeaderComponent
+    AccordionModule
   ],
   templateUrl: './feign-client-explorer.component.html',
   styleUrls: ['./feign-client-explorer.component.scss'],
@@ -60,6 +58,9 @@ export class FeignClientExplorerComponent implements OnInit {
   responseStatus: number = 0;
   responseStatusText: string = '';
   responseContentType: string = '';
+  responseHeaders: { name: string, value: string }[] = [];
+  formattedResponseBody: string = '';
+  responseTab: 'body' | 'headers' = 'body';
   isExecuting = false;
 
   // Parameter values for try-it-out
@@ -119,20 +120,20 @@ export class FeignClientExplorerComponent implements OnInit {
     console.log('Debug: API Path:', apiPath);
 
     // Check the debug endpoint
-    this.http.get(`${apiPath}/debug`).subscribe(
-      response => {
+    this.http.get(`${apiPath}/debug`).subscribe({
+      next: (response) => {
         console.log('Debug endpoint response:', response);
         alert('Debug endpoint is working. Check console for details.');
       },
-      error => {
+      error: (error) => {
         console.error('Debug endpoint error:', error);
         alert('Debug endpoint error. Check console for details.');
       }
-    );
+    });
 
     // Check the names endpoint
-    this.http.get<string[]>(`${apiPath}/debug/names`).subscribe(
-      names => {
+    this.http.get<string[]>(`${apiPath}/debug/names`).subscribe({
+      next: (names) => {
         console.log('Client names:', names);
         if (names && names.length > 0) {
           alert(`Found ${names.length} client names: ${names.join(', ')}`);
@@ -140,11 +141,11 @@ export class FeignClientExplorerComponent implements OnInit {
           alert('No client names found.');
         }
       },
-      error => {
+      error: (error) => {
         console.error('Names endpoint error:', error);
         alert('Names endpoint error. Check console for details.');
       }
-    );
+    });
   }
 
   /**
@@ -199,24 +200,6 @@ export class FeignClientExplorerComponent implements OnInit {
   clearSearch(): void {
     this.searchQuery = '';
     this.filterClients();
-  }
-
-  /**
-   * Copy response data to clipboard
-   */
-  copyResponseToClipboard(): void {
-    if (this.responseData) {
-      const text = JSON.stringify(this.responseData, null, 2);
-      navigator.clipboard.writeText(text).then(
-        () => {
-          alert('Response copied to clipboard');
-        },
-        (err) => {
-          console.error('Could not copy text: ', err);
-          alert('Failed to copy response to clipboard');
-        }
-      );
-    }
   }
 
   /**
@@ -282,6 +265,37 @@ export class FeignClientExplorerComponent implements OnInit {
    * @param method the method to select
    */
   selectMethod(method: FeignMethod): void {
+    // Check if the method has any expandable content
+    const hasContent = this.hasExpandableContent(method);
+
+    // If the method has no expandable content, just select it without toggling expansion
+    if (!hasContent) {
+      // Collapse previously selected method if any
+      if (this.selectedMethod && this.selectedMethod !== method) {
+        this.selectedMethod.isExpanded = false;
+
+        // Also hide try-it-out if it was showing
+        if (this.selectedMethod.showTryItOut) {
+          this.selectedMethod.showTryItOut = false;
+        }
+      }
+
+      // Select the method
+      this.selectedMethod = method;
+      this.responseData = null;
+      this.paramValues = {};
+
+      // Initialize parameter values (though there shouldn't be any for methods without content)
+      if (method.parameters) {
+        method.parameters.forEach(param => {
+          this.paramValues[param.name] = param.defaultValue || '';
+        });
+      }
+
+      return;
+    }
+
+    // For methods with expandable content, proceed with normal accordion behavior
     // Initialize isExpanded property if it doesn't exist
     if (method.isExpanded === undefined) {
       method.isExpanded = false;
@@ -382,38 +396,67 @@ export class FeignClientExplorerComponent implements OnInit {
    * @param method the method to execute
    */
   executeMethod(client: FeignClient, method: FeignMethod): void {
+    if (!client || !method) return;
+
     this.isExecuting = true;
     this.responseData = null;
     this.responseTime = 0;
     this.responseStatus = 0;
     this.responseStatusText = '';
     this.responseContentType = '';
+    this.responseHeaders = [];
 
     const startTime = new Date().getTime();
+
+    // Prepare parameters
+    const parameters: Record<string, any> = {};
+
+    // Add path and query parameters
+    if (method.parameters) {
+      method.parameters.forEach(param => {
+        if (param.annotationType !== 'RequestBody' &&
+            this.paramValues[param.name] !== undefined &&
+            this.paramValues[param.name] !== '') {
+          parameters[param.name] = this.paramValues[param.name];
+        }
+      });
+    }
+
+    console.log('Executing method with parameters:', parameters);
 
     this.feignClientService.executeMethod(
       client.name,
       method.name,
-      this.paramValues
+      parameters,
+      this.requestBody
     ).subscribe({
       next: (response) => {
         const endTime = new Date().getTime();
         this.responseTime = endTime - startTime;
-        this.responseData = response;
+        // this.responseData = response;
+
+
+        
         this.responseStatus = 200;
         this.responseStatusText = 'OK';
         this.responseContentType = 'application/json';
+        this.responseData = response.body;
 
-        // Refresh the JSON viewer
-        setTimeout(() => {
-          if (this.responseViewer) {
-            const viewerElement = this.responseViewer.nativeElement;
-            if (viewerElement) {
-              viewerElement.innerHTML = '';
-              viewerElement.appendChild(document.createTextNode(JSON.stringify(this.responseData, null, 2)));
-            }
-          }
-        }, 0);
+        // Extract headers (if available)
+        this.responseHeaders = [];
+        // this.responseHeaders = [
+        //   { name: 'Content-Type', value: 'application/json' },
+        //   { name: 'Request-Time', value: `${this.responseTime} ms` }
+        // ];
+        // convert the key of the response.headers as name and value array as value joined by comma
+        if (response.headers) {
+          Object.keys(response.headers).forEach(key => {
+            this.responseHeaders.push({ name: key, value: response.headers[key].join(', ') });
+          });
+        }
+
+        // Format the response body
+        this.formatResponseBody(this.responseData);
 
         // Switch to the response tab
         this.setRightPaneTab('response');
@@ -424,11 +467,48 @@ export class FeignClientExplorerComponent implements OnInit {
         this.responseTime = endTime - startTime;
 
         // Type guard for error object
-        const err = error as { status?: number; statusText?: string; error?: any };
+        const err = error as { status?: number; statusText?: string; error?: any; headers?: any };
         this.responseStatus = err.status || 500;
         this.responseStatusText = err.statusText || 'Internal Server Error';
-        this.responseData = err.error || { error: 'Failed to execute method' };
+
+        // Get the raw error response
+        if (err.error) {
+          // If the error is a string, use it directly
+          if (typeof err.error === 'string') {
+            try {
+              // Try to parse it as JSON
+              this.responseData = JSON.parse(err.error);
+            } catch (e) {
+              // If it's not valid JSON, use it as a string
+              this.responseData = err.error;
+            }
+          } else {
+            // If it's already an object, use it directly
+            this.responseData = err.error;
+          }
+        } else {
+          // Fallback error message
+          this.responseData = { error: 'Failed to execute method' };
+        }
+
         this.responseContentType = 'application/json';
+
+        // Extract headers from error response if available
+        this.responseHeaders = [];
+        if (err.headers) {
+          // Extract headers from the error response
+          // This would depend on the actual structure of your error object
+        } else {
+          // Add some default headers for the error case
+          this.responseHeaders = [
+            { name: 'Content-Type', value: 'application/json' },
+            { name: 'Status', value: `${this.responseStatus} ${this.responseStatusText}` }
+          ];
+        }
+
+        // Format the error response body
+        this.formatResponseBody(this.responseData);
+
         this.isExecuting = false;
 
         // Switch to the response tab
@@ -457,6 +537,51 @@ export class FeignClientExplorerComponent implements OnInit {
    */
   cancelExecution(): void {
     this.isExecuting = false;
+  }
+
+  /**
+   * Formats the response body for display.
+   *
+   * @param data The response data to format
+   */
+  formatResponseBody(data: any): void {
+    try {
+      if (data === null || data === undefined) {
+        this.formattedResponseBody = 'No response body';
+        return;
+      }
+
+      if (typeof data === 'string') {
+        // Try to parse as JSON if it's a string that looks like JSON
+        if (data.trim().startsWith('{') || data.trim().startsWith('[')) {
+          try {
+            const jsonData = JSON.parse(data);
+            this.formattedResponseBody = JSON.stringify(jsonData, null, 2);
+            return;
+          } catch (e) {
+            // Not valid JSON, just display as string
+          }
+        }
+        this.formattedResponseBody = data;
+      } else {
+        // Format objects and arrays as pretty JSON
+        this.formattedResponseBody = JSON.stringify(data, null, 2);
+      }
+    } catch (e) {
+      console.error('Error formatting response body:', e);
+      this.formattedResponseBody = String(data);
+    }
+
+    // Update the viewer element if it exists
+    setTimeout(() => {
+      if (this.responseViewer) {
+        const viewerElement = this.responseViewer.nativeElement;
+        if (viewerElement) {
+          viewerElement.innerHTML = '';
+          viewerElement.appendChild(document.createTextNode(this.formattedResponseBody));
+        }
+      }
+    }, 0);
   }
 
   /**
@@ -522,6 +647,80 @@ export class FeignClientExplorerComponent implements OnInit {
         return 'bg-purple-100 dark:bg-purple-900';
       default:
         return 'bg-gray-100 dark:bg-gray-900';
+    }
+  }
+
+  /**
+   * Checks if a method has any expandable content (parameters, headers, produces, consumes).
+   *
+   * @param method the method to check
+   * @returns true if the method has expandable content, false otherwise
+   */
+  hasExpandableContent(method: FeignMethod): boolean {
+    return (
+      (method.parameters && method.parameters.length > 0) ||
+      (method.headers && method.headers.length > 0) ||
+      (method.produces && method.produces.length > 0) ||
+      (method.consumes && method.consumes.length > 0)
+    );
+  }
+
+  /**
+   * Copies the response data to the clipboard.
+   */
+  copyResponseToClipboard(): void {
+    if (!this.formattedResponseBody) {
+      return;
+    }
+
+    try {
+      navigator.clipboard.writeText(this.formattedResponseBody).then(
+        () => {
+          // Show a temporary success message
+          const copyButton = document.querySelector('.copy-button');
+          if (copyButton) {
+            const originalText = copyButton.innerHTML;
+            copyButton.innerHTML = '<span>Copied!</span>';
+            setTimeout(() => {
+              copyButton.innerHTML = originalText;
+            }, 2000);
+          }
+        },
+        (err) => {
+          console.error('Could not copy text: ', err);
+        }
+      );
+    } catch (err) {
+      console.error('Clipboard API not available:', err);
+
+      // Fallback method using a temporary textarea
+      const textarea = document.createElement('textarea');
+      textarea.value = this.formattedResponseBody;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+
+      try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+          // Show success message
+          const copyButton = document.querySelector('.copy-button');
+          if (copyButton) {
+            const originalText = copyButton.innerHTML;
+            copyButton.innerHTML = '<span>Copied!</span>';
+            setTimeout(() => {
+              copyButton.innerHTML = originalText;
+            }, 2000);
+          }
+        } else {
+          console.error('Failed to copy text');
+        }
+      } catch (err) {
+        console.error('Failed to copy text:', err);
+      }
+
+      document.body.removeChild(textarea);
     }
   }
 }

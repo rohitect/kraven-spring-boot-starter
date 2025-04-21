@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -143,12 +144,18 @@ public class FeignClientController {
     public ResponseEntity<Object> executeMethod(
             @PathVariable(name = "name") String name,
             @PathVariable(name = "methodName") String methodName,
-            @RequestBody Map<String, Object> parameters) {
+            @RequestBody(required = false) Map<String, Object> parameters) {
         try {
             // Check if Spring Cloud OpenFeign is available
             Class.forName("org.springframework.cloud.openfeign.FeignClient");
 
-            Object result = feignClientExecutor.executeMethod(name, methodName, parameters);
+            // If parameters is null, use an empty map
+            Map<String, Object> safeParameters = parameters != null ? parameters : Collections.emptyMap();
+
+            // Log the request for debugging
+            System.out.println("Executing method: " + name + "." + methodName + " with parameters: " + safeParameters);
+
+            Object result = feignClientExecutor.executeMethod(name, methodName, safeParameters);
             return ResponseEntity.ok(result);
         } catch (ClassNotFoundException e) {
             // Spring Cloud OpenFeign is not available
@@ -156,7 +163,17 @@ public class FeignClientController {
             System.err.println("To use the Feign client executor, add the spring-cloud-starter-openfeign dependency to your project.");
             return ResponseEntity.badRequest().body(Map.of("error", "Spring Cloud OpenFeign is not available on the classpath."));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            // Log the full exception for debugging
+            System.err.println("Error executing method " + name + "." + methodName + ": " + e.getMessage());
+            e.printStackTrace();
+
+            String errorMessage=  null;
+            if(((InvocationTargetException) e).getTargetException() != null){
+                errorMessage = ((InvocationTargetException) e).getTargetException().getMessage();
+            }
+
+            errorMessage = errorMessage == null ? e.getMessage() : errorMessage;
+            return ResponseEntity.badRequest().body(Map.of("error", errorMessage));
         }
     }
 }

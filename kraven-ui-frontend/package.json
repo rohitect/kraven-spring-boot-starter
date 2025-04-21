@@ -1,6 +1,6 @@
 {
   "name": "kraven-ui-frontend",
-  "version": "",
+  "version": "0.1.38",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",

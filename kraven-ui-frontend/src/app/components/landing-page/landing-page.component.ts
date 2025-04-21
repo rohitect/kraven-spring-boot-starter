@@ -2,14 +2,13 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ThemeService } from '../../services/theme.service';
-import { HeaderComponent } from '../shared/header/header.component';
 
 @Component({
   selector: 'app-landing-page',
   standalone: true,
   imports: [
     CommonModule,
-    HeaderComponent
+    RouterLink
   ],
   templateUrl: './landing-page.component.html',
   styleUrls: ['./landing-page.component.scss']
