@@ -17,6 +17,11 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
+# Application Configuration
+app:
+  api:
+    base-url: http://localhost:8081
+
 # Kraven UI Configuration
 kraven:
   ui:

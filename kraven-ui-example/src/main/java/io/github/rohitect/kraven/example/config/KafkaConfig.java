@@ -1,6 +1,5 @@
 package io.github.rohitect.kraven.example.config;
 
-import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -41,16 +40,6 @@ public class KafkaConfig {
                 .partitions(1)
                 .replicas(1)
                 .build();
-    }
-
-    /**
-     * Kafka admin client configuration.
-     */
-    @Bean
-    public KafkaAdmin kafkaAdmin() {
-        Map<String, Object> configs = new HashMap<>();
-        configs.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        return new KafkaAdmin(configs);
     }
 
     /**

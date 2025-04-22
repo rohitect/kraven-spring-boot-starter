@@ -52,6 +52,13 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- Spring Kafka (optional) -->
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+            <optional>true</optional>
+        </dependency>
+
         <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>

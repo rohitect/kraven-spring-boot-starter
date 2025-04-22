@@ -4,6 +4,8 @@ import io.github.rohitect.kraven.example.config.KafkaConfig;
 import io.github.rohitect.kraven.example.model.KafkaMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
+
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -26,13 +28,13 @@ public class KafkaConsumerService {
      * @param message The received message
      */
     @KafkaListener(topics = KafkaConfig.TOPIC_NAME, groupId = "${spring.kafka.consumer.group-id}")
-    public void listen(KafkaMessage message) {
+    public void listen(@Payload KafkaMessage message) {
         log.info("Received message from Kafka: {}", message);
-        
+
         synchronized (receivedMessages) {
             // Add the message to the beginning of the list (newest first)
             receivedMessages.add(0, message);
-            
+
             // Keep only the most recent MAX_MESSAGES
             if (receivedMessages.size() > MAX_MESSAGES) {
                 receivedMessages.remove(receivedMessages.size() - 1);
@@ -48,6 +50,31 @@ public class KafkaConsumerService {
     public List<KafkaMessage> getReceivedMessages() {
         synchronized (receivedMessages) {
             return new ArrayList<>(receivedMessages);
+        }
+    }
+
+    /**
+     * Gets the latest messages in newest-first order.
+     *
+     * @return List of messages sorted by timestamp (newest first)
+     */
+    public List<KafkaMessage> getNewestMessages() {
+        synchronized (receivedMessages) {
+            // The list is already maintained in newest-first order
+            return new ArrayList<>(receivedMessages);
+        }
+    }
+
+    /**
+     * Gets the latest messages in oldest-first order.
+     *
+     * @return List of messages sorted by timestamp (oldest first)
+     */
+    public List<KafkaMessage> getOldestMessages() {
+        synchronized (receivedMessages) {
+            List<KafkaMessage> oldestFirst = new ArrayList<>(receivedMessages);
+            Collections.reverse(oldestFirst);
+            return oldestFirst;
         }
     }
 

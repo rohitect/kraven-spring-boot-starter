@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Feign client for the Customer API.
  */
-@FeignClient(name = "customerClient", url = "${app.api.base-url:http://localhost:8081}", path = "/api/customers")
+@FeignClient(name = "customerClient", url = "${app.api.base-url:http://localhost:8081}", path = "/api/customers", configuration = io.github.rohitect.kraven.example.config.FeignClientConfig.class)
 public interface CustomerClient {
 
     /**

@@ -40,7 +40,10 @@ import java.util.Map;
 @EnableConfigurationProperties(KravenUiProperties.class)
 @ConditionalOnProperty(prefix = "kraven.ui", name = "enabled", matchIfMissing = true)
 @PropertySource("classpath:kraven-ui.properties")
-@ComponentScan(basePackages = {"io.github.rohitect.kraven.springboot.feign"})
+@ComponentScan(basePackages = {
+    "io.github.rohitect.kraven.springboot.feign",
+    "io.github.rohitect.kraven.springboot.kafka"
+})
 public class KravenUiAutoConfiguration {
 
     private final KravenUiProperties properties;

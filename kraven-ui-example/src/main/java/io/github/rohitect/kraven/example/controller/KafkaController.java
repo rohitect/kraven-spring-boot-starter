@@ -54,8 +54,19 @@ public class KafkaController {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved messages",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = KafkaMessage.class)))
     })
-    public ResponseEntity<List<KafkaMessage>> getReceivedMessages() {
-        return ResponseEntity.ok(consumerService.getReceivedMessages());
+    public ResponseEntity<List<KafkaMessage>> getReceivedMessages(
+            @Parameter(description = "Sort order: 'new' for newest first, 'old' for oldest first")
+            @RequestParam(name = "sort", defaultValue = "new") String sort) {
+
+        List<KafkaMessage> messages;
+        if ("old".equalsIgnoreCase(sort)) {
+            messages = consumerService.getOldestMessages();
+        } else {
+            // Default to newest first
+            messages = consumerService.getNewestMessages();
+        }
+
+        return ResponseEntity.ok(messages);
     }
 
     @DeleteMapping("/messages")

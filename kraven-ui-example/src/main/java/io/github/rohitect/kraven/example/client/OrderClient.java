@@ -11,7 +11,7 @@ import java.util.Map;
 /**
  * Feign client for the Order API.
  */
-@FeignClient(name = "orderClient", url = "${app.api.base-url:http://localhost:8081}", path = "/api/orders")
+@FeignClient(name = "orderClient", url = "${app.api.base-url:http://localhost:8081}", path = "/api/orders", configuration = io.github.rohitect.kraven.example.config.FeignClientConfig.class)
 public interface OrderClient {
 
     /**

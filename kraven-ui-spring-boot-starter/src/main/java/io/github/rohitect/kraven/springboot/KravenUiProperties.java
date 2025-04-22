@@ -53,6 +53,11 @@ public class KravenUiProperties {
     private FeignClientConfig feignClient = new FeignClientConfig();
 
     /**
+     * The Kafka configuration.
+     */
+    private KafkaConfig kafka = new KafkaConfig();
+
+    /**
      * The version of Kraven UI.
      * This is automatically set from the kraven.ui.version property.
      */
@@ -113,6 +118,22 @@ public class KravenUiProperties {
 
         /**
          * The base packages to scan for Feign clients.
+         */
+        private String[] basePackages = {"io.github", "com", "org", "net"};
+    }
+
+    /**
+     * Kafka configuration options.
+     */
+    @Data
+    public static class KafkaConfig {
+        /**
+         * Enable or disable Kafka management features.
+         */
+        private boolean enabled = true;
+
+        /**
+         * The base packages to scan for Kafka listeners.
          */
         private String[] basePackages = {"io.github", "com", "org", "net"};
     }
