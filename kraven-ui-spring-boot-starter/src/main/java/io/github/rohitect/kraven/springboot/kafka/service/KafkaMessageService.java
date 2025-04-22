@@ -10,12 +10,20 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import jakarta.annotation.PreDestroy;
+
+import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Service for retrieving messages from Kafka topics.
@@ -25,11 +33,140 @@ import java.util.*;
 @Slf4j
 public class KafkaMessageService {
 
+    // Map to store emitters by topic
+    private final Map<String, List<SseEmitter>> topicEmitters = new ConcurrentHashMap<>();
+
+    // Thread pool for async operations
+    private final ExecutorService executor = Executors.newCachedThreadPool();
+
     private final String bootstrapServers;
 
     @Autowired
     public KafkaMessageService(KafkaAdminService kafkaAdminService) {
         this.bootstrapServers = kafkaAdminService.getClusterInfo().getBootstrapServers();
+    }
+
+    /**
+     * Registers an SSE emitter for a specific topic.
+     *
+     * @param topicName The name of the topic
+     * @param emitter The SSE emitter to register
+     */
+    public void registerEmitter(String topicName, SseEmitter emitter) {
+        log.info("Registering emitter for topic: {}", topicName);
+        topicEmitters.computeIfAbsent(topicName, k -> new ArrayList<>()).add(emitter);
+
+        // Set up a callback to remove the emitter when it's completed or times out
+        emitter.onCompletion(() -> removeEmitter(topicName, emitter));
+        emitter.onTimeout(() -> removeEmitter(topicName, emitter));
+        emitter.onError(e -> removeEmitter(topicName, emitter));
+    }
+
+    /**
+     * Removes an SSE emitter for a specific topic.
+     *
+     * @param topicName The name of the topic
+     * @param emitter The SSE emitter to remove
+     */
+    private void removeEmitter(String topicName, SseEmitter emitter) {
+        log.info("Removing emitter for topic: {}", topicName);
+        List<SseEmitter> emitters = topicEmitters.get(topicName);
+        if (emitters != null) {
+            emitters.remove(emitter);
+            if (emitters.isEmpty()) {
+                topicEmitters.remove(topicName);
+            }
+        }
+    }
+
+    /**
+     * Sends a message to all registered emitters for a specific topic.
+     *
+     * @param topicName The name of the topic
+     * @param message The message to send
+     */
+    public void sendMessageToEmitters(String topicName, KafkaMessage message) {
+        List<SseEmitter> emitters = topicEmitters.get(topicName);
+        if (emitters != null && !emitters.isEmpty()) {
+            log.info("Sending message to {} emitters for topic: {}", emitters.size(), topicName);
+            List<SseEmitter> deadEmitters = new ArrayList<>();
+
+            emitters.forEach(emitter -> {
+                try {
+                    emitter.send(SseEmitter.event()
+                            .name("message")
+                            .data(message));
+                } catch (IOException e) {
+                    log.error("Error sending message to emitter for topic: {}", topicName, e);
+                    deadEmitters.add(emitter);
+                }
+            });
+
+            // Remove any dead emitters
+            if (!deadEmitters.isEmpty()) {
+                emitters.removeAll(deadEmitters);
+                if (emitters.isEmpty()) {
+                    topicEmitters.remove(topicName);
+                }
+            }
+        }
+    }
+
+    /**
+     * Listens for messages on all Kafka topics and forwards them to registered SSE emitters.
+     * This method uses a generic Kafka listener that can be configured to listen to multiple topics.
+     *
+     * @param record The Kafka record received
+     */
+    @KafkaListener(topicPattern = ".*", groupId = "kraven-ui-sse-listener")
+    public void listenToAllTopics(ConsumerRecord<String, Object> record) {
+        String topicName = record.topic();
+        Object value = record.value();
+        log.debug("Received message from Kafka topic {}: {}", topicName, value);
+
+        // Check if we have any emitters registered for this topic
+        if (topicEmitters.containsKey(topicName)) {
+            KafkaMessage message;
+
+            // Handle different types of message values
+            if (value instanceof KafkaMessage) {
+                // If the value is already a KafkaMessage, use it directly
+                message = (KafkaMessage) value;
+                // Ensure the message has an ID
+                if (message.getId() == null || message.getId().isEmpty()) {
+                    message.setId(record.key() != null ? record.key() : UUID.randomUUID().toString());
+                }
+                // Ensure the message has a timestamp
+                if (message.getTimestamp() == null) {
+                    message.setTimestamp(LocalDateTime.now());
+                }
+                // Add metadata if not present
+                if (message.getMetadata() == null || message.getMetadata().isEmpty()) {
+                    message.setMetadata("offset=" + record.offset() + ",partition=" + record.partition());
+                }
+            } else {
+                // If the value is not a KafkaMessage, create a new one
+                String content = value != null ? value.toString() : "";
+                message = KafkaMessage.builder()
+                        .id(record.key() != null ? record.key() : UUID.randomUUID().toString())
+                        .content(content)
+                        .timestamp(LocalDateTime.now())
+                        .metadata("offset=" + record.offset() + ",partition=" + record.partition())
+                        .build();
+            }
+
+            // Send the message to all registered emitters for this topic
+            executor.submit(() -> sendMessageToEmitters(topicName, message));
+        }
+    }
+
+    /**
+     * Cleanup method to shutdown the executor service.
+     */
+    @PreDestroy
+    public void cleanup() {
+        log.info("Shutting down KafkaMessageService executor");
+        executor.shutdown();
     }
 
     /**

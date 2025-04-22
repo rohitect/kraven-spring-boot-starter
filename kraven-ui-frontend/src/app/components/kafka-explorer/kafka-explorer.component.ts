@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -38,7 +38,7 @@ import { trigger, transition, style, animate, state } from '@angular/animations'
     ])
   ]
 })
-export class KafkaExplorerComponent implements OnInit {
+export class KafkaExplorerComponent implements OnInit, OnDestroy {
   clusterInfo: KafkaClusterInfo | null = null;
   selectedTopic: KafkaTopic | null = null;
   selectedBroker: KafkaBroker | null = null;
@@ -49,8 +49,8 @@ export class KafkaExplorerComponent implements OnInit {
   error: string | null = null;
   title = 'Kafka Explorer';
   isDarkTheme = true;
-  searchQuery: string = '';
-  searchFocused: boolean = false;
+  topicSearchQuery: string = '';
+  filteredTopics: KafkaTopic[] = [];
 
   // Message sending
   newMessage: KafkaMessage = {
@@ -66,6 +66,11 @@ export class KafkaExplorerComponent implements OnInit {
   loadingMessages = false;
   expandedMessageIds: Set<string> = new Set<string>();
   messageFilter: string = '';
+
+  // Live streaming properties
+  eventSource: EventSource | null = null;
+  isStreaming: boolean = false;
+  streamedMessages: KafkaMessage[] = [];
 
   // Pagination
   currentPage = 0;
@@ -131,6 +136,9 @@ export class KafkaExplorerComponent implements OnInit {
       next: (clusterInfo) => {
         this.clusterInfo = clusterInfo;
         this.loading = false;
+
+        // Initialize filtered topics
+        this.filteredTopics = [...clusterInfo.topics];
 
         // Select the first topic if available
         if (clusterInfo.topics.length > 0) {
@@ -269,6 +277,11 @@ export class KafkaExplorerComponent implements OnInit {
    */
   refreshMessages(): void {
     if (this.selectedTopic) {
+      // Don't refresh if we're in live mode
+      if (this.messageViewMode === 'live') {
+        return;
+      }
+
       const sortParam = this.messageViewMode === 'old' ? 'old' : 'new';
       this.loadMessagesForTopic(this.selectedTopic.name, sortParam, this.currentPage);
     }
@@ -278,19 +291,22 @@ export class KafkaExplorerComponent implements OnInit {
    * Applies the filter to messages.
    */
   applyMessageFilter(): void {
-    // Initialize filteredMessages as an empty array if receivedMessages is undefined
-    if (!this.receivedMessages) {
+    // Determine which message array to use based on the view mode
+    const sourceMessages = this.messageViewMode === 'live' ? this.streamedMessages : this.receivedMessages;
+
+    // Initialize filteredMessages as an empty array if source messages is undefined
+    if (!sourceMessages) {
       this.filteredMessages = [];
       return;
     }
 
     if (!this.messageFilter || this.messageFilter.trim() === '') {
-      this.filteredMessages = [...this.receivedMessages];
+      this.filteredMessages = [...sourceMessages];
       return;
     }
 
     const filterLower = this.messageFilter.toLowerCase();
-    this.filteredMessages = this.receivedMessages.filter(message => {
+    this.filteredMessages = sourceMessages.filter(message => {
       // Check if the content contains the filter text
       if (message.content && message.content.toLowerCase().includes(filterLower)) {
         return true;
@@ -450,7 +466,87 @@ export class KafkaExplorerComponent implements OnInit {
     this.loadClusterInfo();
   }
 
-  // Note: refreshMessages() method is already defined above
+  /**
+   * Sets the message view mode.
+   */
+  setMessageViewMode(mode: string): void {
+    // If we're switching to or from live mode, handle the stream
+    if (mode === 'live' && this.messageViewMode !== 'live') {
+      this.startLiveStream();
+    } else if (this.messageViewMode === 'live' && mode !== 'live') {
+      this.stopLiveStream();
+    }
+
+    this.messageViewMode = mode;
+
+    // Only refresh messages if we're not in live mode
+    if (mode !== 'live') {
+      this.refreshMessages();
+    }
+  }
+
+  /**
+   * Starts the live stream for the selected topic.
+   */
+  startLiveStream(): void {
+    if (!this.selectedTopic) {
+      return;
+    }
+
+    // Clear any existing streamed messages
+    this.streamedMessages = [];
+    this.filteredMessages = [];
+
+    // Close any existing event source
+    this.stopLiveStream();
+
+    // Create a new event source
+    this.isStreaming = true;
+    this.eventSource = this.kafkaService.streamMessagesFromTopic(this.selectedTopic.name);
+
+    // Handle connection open
+    this.eventSource.onopen = (event) => {
+      console.log('SSE connection opened for topic:', this.selectedTopic?.name);
+    };
+
+    // Handle messages
+    this.eventSource.addEventListener('message', (event) => {
+      try {
+        const message = JSON.parse(event.data) as KafkaMessage;
+        console.log('Received message from stream:', message);
+
+        // Add the message to the beginning of the array (newest first)
+        this.streamedMessages.unshift(message);
+
+        // Keep only the most recent 100 messages
+        if (this.streamedMessages.length > 100) {
+          this.streamedMessages.pop();
+        }
+
+        // Update filtered messages
+        this.applyMessageFilter();
+      } catch (error) {
+        console.error('Error parsing message:', error);
+      }
+    });
+
+    // Handle errors
+    this.eventSource.onerror = (error) => {
+      console.error('SSE error:', error);
+      this.stopLiveStream();
+    };
+  }
+
+  /**
+   * Stops the live stream.
+   */
+  stopLiveStream(): void {
+    if (this.eventSource) {
+      this.eventSource.close();
+      this.eventSource = null;
+    }
+    this.isStreaming = false;
+  }
 
   /**
    * Formats a timestamp for display.
@@ -486,6 +582,14 @@ export class KafkaExplorerComponent implements OnInit {
    */
   isMessageExpanded(messageId: string): boolean {
     return this.expandedMessageIds.has(messageId);
+  }
+
+  /**
+   * Cleans up resources when the component is destroyed.
+   */
+  ngOnDestroy(): void {
+    // Clean up the event source if it exists
+    this.stopLiveStream();
   }
 
   /**
@@ -534,19 +638,7 @@ export class KafkaExplorerComponent implements OnInit {
     this.activeTopicTab = tab;
   }
 
-  /**
-   * Sets the message view mode.
-   */
-  setMessageViewMode(mode: string): void {
-    this.messageViewMode = mode;
-    // Reload messages with the new sort order
-    if (this.selectedTopic) {
-      const sortParam = mode === 'old' ? 'old' : 'new';
-      this.loadMessagesForTopic(this.selectedTopic.name, sortParam);
-    } else {
-      this.loadReceivedMessages();
-    }
-  }
+  // setMessageViewMode is implemented above with live streaming support
 
   /**
    * Gets the count of in-sync replicas for a topic.
@@ -580,6 +672,22 @@ export class KafkaExplorerComponent implements OnInit {
   }
 
   /**
+   * Refreshes the consumers for the selected topic
+   */
+  refreshConsumers(): void {
+    if (!this.selectedTopic) return;
+
+    this.kafkaService.getConsumersForTopic(this.selectedTopic.name).subscribe({
+      next: (consumers) => {
+        this.topicConsumers = consumers;
+      },
+      error: (error) => {
+        console.error('Error refreshing topic consumers:', error);
+      }
+    });
+  }
+
+  /**
    * Checks if the topic has settings.
    */
   hasSettings(): boolean {
@@ -598,5 +706,93 @@ export class KafkaExplorerComponent implements OnInit {
    */
   hideProduceMessagePane(): void {
     this.showRightPane = false;
+  }
+
+  /**
+   * Filters topics based on the search query
+   */
+  filterTopics(): void {
+    if (!this.clusterInfo || !this.clusterInfo.topics) {
+      this.filteredTopics = [];
+      return;
+    }
+
+    if (!this.topicSearchQuery || this.topicSearchQuery.trim() === '') {
+      this.filteredTopics = [...this.clusterInfo.topics];
+      return;
+    }
+
+    const query = this.topicSearchQuery.toLowerCase();
+    this.filteredTopics = this.clusterInfo.topics.filter(topic =>
+      topic.name.toLowerCase().includes(query)
+    );
+  }
+
+  /**
+   * Extracts the actual content from a message
+   * If the message content is JSON and has a content field, returns only that content
+   * Otherwise returns the original content
+   */
+  extractMessageContent(message: KafkaMessage): string {
+    if (!message || !message.content) {
+      return '';
+    }
+
+    try {
+      // Try to parse as JSON
+      const parsed = JSON.parse(message.content);
+
+      // If the parsed object has a 'content' property, extract only that
+      if (parsed && typeof parsed === 'object' && parsed.content !== undefined) {
+        // If the content value is itself a JSON object, stringify it
+        if (typeof parsed.content === 'object') {
+          return JSON.stringify(parsed.content);
+        }
+        // Otherwise return the content value as is
+        return parsed.content;
+      }
+
+      // If no content property, return the original content
+      return message.content;
+    } catch (e) {
+      // If not valid JSON, return as is
+      return message.content;
+    }
+  }
+
+  /**
+   * Copies the message content to the clipboard
+   */
+  copyMessageContentToClipboard(message: KafkaMessage, event: Event): void {
+    // Prevent the click from toggling the message expansion
+    event.stopPropagation();
+
+    // Extract the actual content
+    const content = this.extractMessageContent(message);
+
+    // Copy to clipboard
+    navigator.clipboard.writeText(content)
+      .then(() => {
+        console.log('Content copied to clipboard');
+        // You could add a toast notification here
+      })
+      .catch(err => {
+        console.error('Failed to copy content: ', err);
+      });
+  }
+
+  /**
+   * Reproduces a message by copying its content to the producer pane
+   */
+  reproduceMessage(message: KafkaMessage, event: Event): void {
+    // Prevent the click from toggling the message expansion
+    event.stopPropagation();
+
+    // Extract the actual content and copy it to the new message
+    this.newMessage.content = this.extractMessageContent(message);
+    this.newMessage.metadata = ''; // Don't copy metadata
+
+    // Show the produce message pane
+    this.showProduceMessagePane();
   }
 }

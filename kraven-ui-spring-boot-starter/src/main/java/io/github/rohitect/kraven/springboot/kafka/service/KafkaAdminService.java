@@ -2,11 +2,18 @@ package io.github.rohitect.kraven.springboot.kafka.service;
 
 import io.github.rohitect.kraven.springboot.kafka.model.*;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.admin.*;
+import org.apache.kafka.common.Node;
+import org.apache.kafka.common.TopicPartitionInfo;
+import org.apache.kafka.common.config.ConfigResource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Service for interacting with Kafka Admin API.
@@ -17,10 +24,15 @@ import java.util.*;
 public class KafkaAdminService {
 
     private final KafkaListenerScanner kafkaListenerScanner;
+    private final KafkaAdmin kafkaAdmin;
+
+    @Value("${spring.kafka.bootstrap-servers:localhost:9092}")
+    private String bootstrapServers;
 
     @Autowired
-    public KafkaAdminService(KafkaListenerScanner kafkaListenerScanner) {
+    public KafkaAdminService(KafkaListenerScanner kafkaListenerScanner, KafkaAdmin kafkaAdmin) {
         this.kafkaListenerScanner = kafkaListenerScanner;
+        this.kafkaAdmin = kafkaAdmin;
     }
 
     /**
@@ -31,117 +43,239 @@ public class KafkaAdminService {
     public KafkaClusterInfo getClusterInfo() {
         try {
             log.debug("Getting Kafka cluster info");
-            // Return fallback info if Kafka is not available
-            KafkaClusterInfo clusterInfo = createFallbackClusterInfo();
-            log.debug("Created fallback cluster info with {} topics",
-                    clusterInfo.getTopics() != null ? clusterInfo.getTopics().size() : 0);
-            if (clusterInfo.getTopics() != null) {
-                clusterInfo.getTopics().forEach(topic ->
-                    log.debug("Topic: {}", topic.getName()));
+
+            // Create AdminClient from KafkaAdmin
+            try (AdminClient adminClient = AdminClient.create(kafkaAdmin.getConfigurationProperties())) {
+                // Get cluster info
+                DescribeClusterResult clusterResult = adminClient.describeCluster();
+                String clusterId = clusterResult.clusterId().get();
+                Collection<Node> nodes = clusterResult.nodes().get();
+                int controllerId = clusterResult.controller().get().id();
+
+                // Get brokers
+                List<KafkaBroker> brokers = nodes.stream()
+                        .map(node -> KafkaBroker.builder()
+                                .id(node.id())
+                                .host(node.host())
+                                .port(node.port())
+                                .rack(node.rack())
+                                .controller(node.id() == controllerId)
+                                .build())
+                        .collect(Collectors.toList());
+
+                // Get topics
+                ListTopicsResult topicsResult = adminClient.listTopics();
+                Set<String> topicNames = topicsResult.names().get();
+
+                // Get topic descriptions
+                Map<String, TopicDescription> topicDescriptions = adminClient.describeTopics(topicNames).topicNameValues().entrySet().stream()
+                        .collect(Collectors.toMap(Map.Entry::getKey, entry -> {
+                            try {
+                                return entry.getValue().get();
+                            } catch (Exception e) {
+                                log.warn("Error getting topic description for {}", entry.getKey(), e);
+                                return null;
+                            }
+                        }));
+                topicDescriptions.values().removeIf(Objects::isNull);
+
+                // Get topic configs
+                Map<ConfigResource, Config> topicConfigs = new HashMap<>();
+                try {
+                    Set<ConfigResource> resources = topicNames.stream()
+                            .map(name -> new ConfigResource(ConfigResource.Type.TOPIC, name))
+                            .collect(Collectors.toSet());
+
+                    if (!resources.isEmpty()) {
+                        topicConfigs = adminClient.describeConfigs(resources).all().get();
+                    }
+                } catch (Exception e) {
+                    log.warn("Error getting topic configs", e);
+                }
+
+                // Build topic list
+                List<KafkaTopic> topics = new ArrayList<>();
+                for (String topicName : topicNames) {
+                    try {
+                        TopicDescription desc = topicDescriptions.get(topicName);
+                        if (desc != null) {
+                            // Get partition info
+                            List<KafkaTopic.PartitionInfo> partitionInfos = new ArrayList<>();
+                            for (TopicPartitionInfo partitionInfo : desc.partitions()) {
+                                partitionInfos.add(KafkaTopic.PartitionInfo.builder()
+                                        .id(partitionInfo.partition())
+                                        .leader(partitionInfo.leader().id())
+                                        .replicas(partitionInfo.replicas().stream()
+                                                .map(Node::id)
+                                                .collect(Collectors.toList()))
+                                        .inSyncReplicas(partitionInfo.isr().stream()
+                                                .map(Node::id)
+                                                .collect(Collectors.toList()))
+                                        .firstOffset(0L) // Not available from AdminClient
+                                        .lastOffset(0L)  // Not available from AdminClient
+                                        .build());
+                            }
+
+                            // Get topic settings
+                            List<KafkaTopic.TopicSetting> settings = new ArrayList<>();
+                            ConfigResource resource = new ConfigResource(ConfigResource.Type.TOPIC, topicName);
+                            Config config = topicConfigs.get(resource);
+
+                            if (config != null) {
+                                for (ConfigEntry entry : config.entries()) {
+                                    settings.add(KafkaTopic.TopicSetting.builder()
+                                            .name(entry.name())
+                                            .value(entry.value())
+                                            .description(entry.documentation())
+                                            .build());
+                                }
+                            }
+
+                            // Get cleanup policy
+                            String cleanupPolicy = "unknown";
+                            if (config != null) {
+                                ConfigEntry cleanupEntry = config.get("cleanup.policy");
+                                if (cleanupEntry != null) {
+                                    cleanupPolicy = cleanupEntry.value();
+                                }
+                            }
+
+                            // Build topic
+                            topics.add(KafkaTopic.builder()
+                                    .name(topicName)
+                                    .partitions(desc.partitions().size())
+                                    .replicationFactor((short) desc.partitions().get(0).replicas().size())
+                                    .partitionInfos(partitionInfos)
+                                    .internal(desc.isInternal())
+                                    .segmentSize(0L) // Not available from AdminClient
+                                    .segmentCount(0)  // Not available from AdminClient
+                                    .cleanupPolicy(cleanupPolicy)
+                                    .messageCount(0L) // Not available from AdminClient
+                                    .settings(settings)
+                                    .build());
+                        }
+                    } catch (Exception e) {
+                        log.warn("Error processing topic {}", topicName, e);
+                    }
+                }
+
+                // Get consumer groups
+                List<KafkaConsumerGroup> consumerGroups = new ArrayList<>();
+                try {
+                    ListConsumerGroupsResult groupsResult = adminClient.listConsumerGroups();
+                    Collection<ConsumerGroupListing> groups = groupsResult.all().get();
+
+                    if (!groups.isEmpty()) {
+                        Set<String> groupIds = groups.stream()
+                                .map(ConsumerGroupListing::groupId)
+                                .collect(Collectors.toSet());
+
+                        Map<String, ConsumerGroupDescription> groupDescriptions =
+                                adminClient.describeConsumerGroups(groupIds).all().get();
+
+                        for (String groupId : groupIds) {
+                            try {
+                                ConsumerGroupDescription groupDesc = groupDescriptions.get(groupId);
+                                if (groupDesc != null) {
+                                    // Get members and collect topic partitions from assignments
+                                    List<KafkaConsumerGroup.GroupMember> members = new ArrayList<>();
+                                    Map<String, Set<Integer>> topicPartitionsMap = new HashMap<>();
+
+                                    for (MemberDescription member : groupDesc.members()) {
+                                        String assignment = "";
+                                        if (member.assignment() != null && member.assignment().topicPartitions() != null) {
+                                            // Process topic partitions for this member
+                                            for (org.apache.kafka.common.TopicPartition tp : member.assignment().topicPartitions()) {
+                                                // Add to the map of topic partitions
+                                                topicPartitionsMap
+                                                    .computeIfAbsent(tp.topic(), k -> new HashSet<>())
+                                                    .add(tp.partition());
+                                            }
+
+                                            assignment = member.assignment().topicPartitions().stream()
+                                                    .map(tp -> tp.topic() + "-" + tp.partition())
+                                                    .collect(Collectors.joining(", "));
+                                        }
+
+                                        members.add(KafkaConsumerGroup.GroupMember.builder()
+                                                .memberId(member.consumerId())
+                                                .clientId(member.clientId())
+                                                .host(member.host())
+                                                .assignment(assignment)
+                                                .build());
+                                    }
+
+                                    // Create topic partitions list from the collected data
+                                    // Note: Offsets are not available from AdminClient, so we set them to 0
+                                    List<KafkaConsumerGroup.TopicPartitionInfo> topicPartitions = new ArrayList<>();
+                                    for (Map.Entry<String, Set<Integer>> entry : topicPartitionsMap.entrySet()) {
+                                        String topic = entry.getKey();
+                                        for (Integer partition : entry.getValue()) {
+                                            topicPartitions.add(KafkaConsumerGroup.TopicPartitionInfo.builder()
+                                                    .topic(topic)
+                                                    .partition(partition)
+                                                    .currentOffset(0L) // Not available from AdminClient
+                                                    .logEndOffset(0L)  // Not available from AdminClient
+                                                    .lag(0L)          // Not available from AdminClient
+                                                    .memberId("")     // Not tracking which member owns which partition
+                                                    .build());
+                                        }
+                                    }
+
+                                    // Build consumer group
+                                    consumerGroups.add(KafkaConsumerGroup.builder()
+                                            .groupId(groupId)
+                                            .state(groupDesc.state().toString())
+                                            .members(members)
+                                            .topicPartitions(topicPartitions)
+                                            .build());
+                                }
+                            } catch (Exception e) {
+                                log.warn("Error processing consumer group {}", groupId, e);
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    log.warn("Error getting consumer groups", e);
+                }
+
+                // Get listeners
+                List<KafkaListener> listeners = kafkaListenerScanner.getKafkaListeners();
+
+                // Build cluster info
+                return KafkaClusterInfo.builder()
+                        .bootstrapServers(bootstrapServers)
+                        .clusterId(clusterId)
+                        .controllerId(controllerId)
+                        .brokers(brokers)
+                        .topics(topics)
+                        .consumerGroups(consumerGroups)
+                        .listeners(listeners)
+                        .build();
             }
-            return clusterInfo;
         } catch (Exception e) {
             log.error("Error getting Kafka cluster info", e);
-            return createFallbackClusterInfo();
+            return createEmptyClusterInfo();
         }
     }
 
     /**
-     * Creates a fallback cluster info when Kafka is not available.
+     * Creates an empty cluster info when Kafka is not available.
      *
-     * @return Fallback Kafka cluster info
+     * @return Empty Kafka cluster info
      */
-    private KafkaClusterInfo createFallbackClusterInfo() {
-        // Create a broker
-        KafkaBroker broker = KafkaBroker.builder()
-                .id(1)
-                .host("localhost")
-                .port(9092)
-                .controller(true)
-                .rack(null)
-                .build();
-
-        // Create a topic
-        KafkaTopic.PartitionInfo partitionInfo = KafkaTopic.PartitionInfo.builder()
-                .id(0)
-                .leader(1)
-                .replicas(Collections.singletonList(1))
-                .inSyncReplicas(Collections.singletonList(1))
-                .firstOffset(0L)
-                .lastOffset(0L)
-                .build();
-
-        // Create topic settings
-        List<KafkaTopic.TopicSetting> topicSettings = new ArrayList<>();
-        topicSettings.add(KafkaTopic.TopicSetting.builder()
-                .name("cleanup.policy")
-                .value("delete")
-                .description("The cleanup policy for the topic")
-                .build());
-        topicSettings.add(KafkaTopic.TopicSetting.builder()
-                .name("compression.type")
-                .value("producer")
-                .description("The compression type for the topic")
-                .build());
-        topicSettings.add(KafkaTopic.TopicSetting.builder()
-                .name("retention.ms")
-                .value("604800000")
-                .description("The retention period for the topic in milliseconds")
-                .build());
-        topicSettings.add(KafkaTopic.TopicSetting.builder()
-                .name("segment.bytes")
-                .value("1073741824")
-                .description("The segment size for the topic in bytes")
-                .build());
-
-        KafkaTopic topic = KafkaTopic.builder()
-                .name("kraven-example-topic")
-                .partitions(1)
-                .replicationFactor(1)
-                .partitionInfos(Collections.singletonList(partitionInfo))
-                .internal(false)
-                .segmentSize(1073741824L)
-                .segmentCount(1)
-                .cleanupPolicy("delete")
-                .messageCount(0L)
-                .settings(topicSettings)
-                .build();
-
-        // Create a consumer group
-        KafkaConsumerGroup.GroupMember member = KafkaConsumerGroup.GroupMember.builder()
-                .memberId("consumer-1")
-                .clientId("consumer-1")
-                .host("localhost")
-                .assignment("kraven-example-topic-0")
-                .build();
-
-        KafkaConsumerGroup.TopicPartitionInfo topicPartitionInfo = KafkaConsumerGroup.TopicPartitionInfo.builder()
-                .topic("kraven-example-topic")
-                .partition(0)
-                .currentOffset(0L)
-                .logEndOffset(0L)
-                .lag(0L)
-                .memberId("consumer-1")
-                .build();
-
-        KafkaConsumerGroup consumerGroup = KafkaConsumerGroup.builder()
-                .groupId("kraven-example-group")
-                .state("Stable")
-                .members(Collections.singletonList(member))
-                .topicPartitions(Collections.singletonList(topicPartitionInfo))
-                .build();
-
-        // Get listeners
+    private KafkaClusterInfo createEmptyClusterInfo() {
+        // Get listeners (these are available even if Kafka is not)
         List<KafkaListener> listeners = kafkaListenerScanner.getKafkaListeners();
 
-        // Build cluster info
+        // Build empty cluster info
         return KafkaClusterInfo.builder()
-                .bootstrapServers("localhost:9092")
-                .clusterId("kraven-example-cluster")
-                .controllerId(1)
-                .brokers(Collections.singletonList(broker))
-                .topics(Collections.singletonList(topic))
-                .consumerGroups(Collections.singletonList(consumerGroup))
+                .bootstrapServers(bootstrapServers)
+                .clusterId("-----")
+                .controllerId(-1)
+                .brokers(Collections.emptyList())
+                .topics(Collections.emptyList())
+                .consumerGroups(Collections.emptyList())
                 .listeners(listeners)
                 .build();
     }

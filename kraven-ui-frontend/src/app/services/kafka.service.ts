@@ -178,4 +178,14 @@ export class KafkaService {
   getMessagesFromTopic(topicName: string, page: number = 0, limit: number = 20, sort: string = 'new'): Observable<any> {
     return this.http.get<any>(`/api/kraven-kafka-management/topics/${topicName}/messages?page=${page}&limit=${limit}&sort=${sort}`);
   }
+
+  /**
+   * Creates an EventSource connection to stream messages from a specific topic.
+   * @param topicName The name of the topic to stream messages from
+   * @returns An EventSource object that can be used to listen for messages
+   */
+  streamMessagesFromTopic(topicName: string): EventSource {
+    const url = `/api/kraven-kafka-management/topics/${topicName}/stream`;
+    return new EventSource(url);
+  }
 }

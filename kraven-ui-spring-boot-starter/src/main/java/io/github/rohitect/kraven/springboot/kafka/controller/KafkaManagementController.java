@@ -15,13 +15,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 /**
@@ -39,6 +43,9 @@ public class KafkaManagementController {
     private final KafkaAdminService kafkaAdminService;
     private final KafkaListenerScanner kafkaListenerScanner;
     private final KafkaMessageService kafkaMessageService;
+
+    // List to keep track of all active SSE emitters
+    private final List<SseEmitter> emitters = new CopyOnWriteArrayList<>();
 
     @GetMapping("/cluster")
     @Operation(summary = "Get Kafka cluster info", description = "Retrieves information about the Kafka cluster")
@@ -205,5 +212,55 @@ public class KafkaManagementController {
         log.info("Retrieved {} messages from topic: {} (page {}/{}, total messages: {})",
                 messages.size(), name, page + 1, totalPages, totalMessages);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping(value = "/topics/{name}/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @Operation(summary = "Stream messages from a topic", description = "Establishes a Server-Sent Events connection to stream messages from a specific Kafka topic in real-time")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully established stream connection",
+                    content = @Content(mediaType = "text/event-stream")),
+            @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
+    })
+    public SseEmitter streamMessagesFromTopic(
+            @PathVariable("name") String name) {
+
+        log.info("Establishing SSE stream for topic: {}", name);
+
+        // Create a new emitter with a timeout
+        SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
+
+        // Add the emitter to our list
+        emitters.add(emitter);
+
+        // Set up callbacks for completion, timeout, and error
+        emitter.onCompletion(() -> {
+            log.info("SSE stream completed for topic: {}", name);
+            emitters.remove(emitter);
+        });
+
+        emitter.onTimeout(() -> {
+            log.info("SSE stream timed out for topic: {}", name);
+            emitters.remove(emitter);
+        });
+
+        emitter.onError(e -> {
+            log.error("SSE stream error for topic: {}", name, e);
+            emitters.remove(emitter);
+        });
+
+        // Send an initial event to establish the connection
+        try {
+            emitter.send(SseEmitter.event()
+                    .name("connected")
+                    .data("Connected to topic: " + name));
+        } catch (IOException e) {
+            log.error("Error sending initial SSE event for topic: {}", name, e);
+            emitter.completeWithError(e);
+        }
+
+        // Register this emitter with the message service for updates
+        kafkaMessageService.registerEmitter(name, emitter);
+
+        return emitter;
     }
 }
