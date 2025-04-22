@@ -50,7 +50,7 @@ Add the following dependency to your Spring Boot application's `pom.xml`:
 <dependency>
     <groupId>io.github.rohitect</groupId>
     <artifactId>kraven-ui-spring-boot-starter</artifactId>
-    <version>0.1.38</version>
+    <version>0.1.39</version>
 </dependency>
 ```
 
@@ -143,7 +143,7 @@ Here's a complete example of how to set up a Spring Boot REST API with Kraven UI
         <dependency>
             <groupId>io.github.rohitect</groupId>
             <artifactId>kraven-ui-spring-boot-starter</artifactId>
-            <version>0.1.38</version>
+            <version>0.1.39</version>
         </dependency>
     </dependencies>
 </project>

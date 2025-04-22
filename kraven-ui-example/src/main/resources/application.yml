@@ -7,6 +7,16 @@ spring:
   application:
     name: kraven-ui-example
 
+  # Kafka Configuration
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: kraven-example-group
+      auto-offset-reset: earliest
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
 # Kraven UI Configuration
 kraven:
   ui:
@@ -44,3 +54,5 @@ logging:
     org.springframework.web: INFO
     org.springframework.context.annotation: DEBUG
     org.springframework.beans.factory.support: DEBUG
+    org.springframework.kafka: INFO
+    org.apache.kafka: WARN

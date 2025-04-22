@@ -6,7 +6,7 @@
 
     <groupId>io.github.rohitect</groupId>
     <artifactId>kraven-ui</artifactId>
-    <version>0.1.38</version>
+    <version>0.1.39</version>
     <packaging>pom</packaging>
 
     <name>Kraven UI</name>
