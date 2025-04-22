@@ -6,6 +6,8 @@ server:
 spring:
   application:
     name: kraven-ui-example
+  main:
+    allow-bean-definition-overriding: true
 
   # Kafka Configuration
   kafka:
@@ -21,6 +23,19 @@ spring:
 app:
   api:
     base-url: http://localhost:8081
+
+# Feign Client Configuration
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 5000
+        loggerLevel: full
+  httpclient:
+    enabled: true
+    max-connections: 200
+    max-connections-per-route: 50
 
 # Kraven UI Configuration
 kraven:

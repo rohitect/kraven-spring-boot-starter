@@ -8,7 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.lang.reflect.InvocationTargetException;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -167,9 +167,12 @@ public class FeignClientController {
             System.err.println("Error executing method " + name + "." + methodName + ": " + e.getMessage());
             e.printStackTrace();
 
-            String errorMessage=  null;
-            if(((InvocationTargetException) e).getTargetException() != null){
-                errorMessage = ((InvocationTargetException) e).getTargetException().getMessage();
+            String errorMessage = null;
+            if (e instanceof java.lang.reflect.InvocationTargetException) {
+                Throwable targetException = ((java.lang.reflect.InvocationTargetException) e).getTargetException();
+                if (targetException != null) {
+                    errorMessage = targetException.getMessage();
+                }
             }
 
             errorMessage = errorMessage == null ? e.getMessage() : errorMessage;

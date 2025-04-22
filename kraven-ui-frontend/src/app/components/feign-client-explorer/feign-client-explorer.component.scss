@@ -111,15 +111,16 @@
   width: var(--sidebar-width);
   min-width: var(--sidebar-width);
   max-width: var(--sidebar-width);
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
-  background-color: #0f172a; /* Dark blue background for better contrast */
+  background-color: var(--background-secondary);
   overflow: hidden; /* Hide overflow for the container */
   height: 100%; /* Take full height of parent */
   z-index: 10;
   flex-shrink: 0;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
 }
 
 // Sidebar Components
@@ -128,10 +129,10 @@
   justify-content: space-between;
   align-items: center;
   padding: 1.25rem 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background-color: rgba(15, 23, 42, 0.8);
-  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--background-secondary);
   position: relative;
+  transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease;
 
   &::after {
     content: '';
@@ -140,7 +141,8 @@
     left: 0;
     width: 100%;
     height: 1px;
-    background: linear-gradient(to right, transparent, rgba(59, 130, 246, 0.5), transparent);
+    background: linear-gradient(to right, transparent, var(--primary-color), transparent);
+    opacity: 0.3;
   }
 }
 
@@ -218,8 +220,9 @@
 // Search Section
 .sidebar-header {
   padding: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background-color: rgba(15, 23, 42, 0.6);
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--background-secondary);
+  transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease;
 }
 
 .search-container {
@@ -231,7 +234,7 @@
 
     .search-input {
       border-color: var(--primary-color);
-      box-shadow: 0 4px 10px rgba(var(--primary-color-rgb), 0.15);
+      box-shadow: 0 0 0 1px var(--primary-color), 0 4px 10px rgba(0, 0, 0, 0.1);
     }
   }
 }
@@ -239,23 +242,22 @@
 .search-input {
   width: 100%;
   padding: 0.75rem 2.5rem 0.75rem 2.5rem;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
-  background-color: rgba(15, 23, 42, 0.9);
-  color: #ffffff;
+  background-color: var(--card-color);
+  color: var(--foreground-color);
   font-size: 0.875rem;
   transition: all var(--transition-speed) ease;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 
   &:focus {
     outline: none;
-    border-color: rgba(59, 130, 246, 0.6);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-    background-color: rgba(15, 23, 42, 1);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 1px var(--primary-color), 0 4px 8px rgba(0, 0, 0, 0.1);
   }
 
   &::placeholder {
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--muted-foreground-color);
   }
 }
 
@@ -303,17 +305,17 @@
 .sidebar-section-title {
   font-size: 0.8rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--foreground-color);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: var(--accent-color);
   padding: 0.35rem 0.75rem;
   border-radius: 4px;
   display: inline-block;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   margin-bottom: 0.5rem;
+  transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease, border-color var(--transition-speed) ease;
 }
 
 .sidebar-section-actions {
@@ -348,9 +350,11 @@
 // Client Lists
 .client-list-container {
   flex: 1;
-  // overflow-y: auto; /* Enable vertical scrolling */
+  overflow-y: auto; /* Enable vertical scrolling */
   padding: 0 1rem 1rem 1rem;
   height: 0; /* This forces the container to respect the flex layout and enable scrolling */
+  display: flex;
+  flex-direction: column;
 }
 
 .client-list {
@@ -364,37 +368,26 @@
   border-radius: var(--border-radius);
   cursor: pointer;
   transition: all var(--transition-speed) ease;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--border-color);
   position: relative;
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background-color: rgba(30, 41, 59, 0.8);
+  background-color: var(--card-color);
   margin-bottom: 0.75rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-
-  &::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.05), transparent);
-    pointer-events: none;
-  }
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 
   &:hover {
-    background-color: rgba(59, 130, 246, 0.2);
+    background-color: var(--hover-color);
     transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
-    border-color: rgba(59, 130, 246, 0.6);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-color: var(--primary-color);
   }
 
   &.active {
-    background-color: rgba(59, 130, 246, 0.25);
-    border-color: rgb(59, 130, 246);
-    box-shadow: 0 0 0 1px rgb(59, 130, 246), 0 6px 12px rgba(0, 0, 0, 0.4);
+    background-color: var(--hover-color);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 1px var(--primary-color), 0 4px 8px rgba(0, 0, 0, 0.1);
 
     // Add a left border indicator
     &::before {
@@ -403,20 +396,20 @@
       left: 0;
       top: 0;
       height: 100%;
-      width: 4px;
-      background-color: rgb(59, 130, 246);
+      width: 3px;
+      background-color: var(--primary-color);
       border-top-left-radius: var(--border-radius);
       border-bottom-left-radius: var(--border-radius);
     }
 
     // Make the client name more prominent
     .client-name {
-      color: rgb(59, 130, 246);
+      color: var(--primary-color);
     }
 
     // Change the icon color
     .client-icon svg {
-      color: rgb(59, 130, 246);
+      color: var(--primary-color);
     }
   }
 }
@@ -425,28 +418,26 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
+  color: var(--foreground-color);
   transition: all var(--transition-speed) ease;
-  background-color: rgba(59, 130, 246, 0.25);
+  background-color: var(--accent-color);
   padding: 0.5rem;
   border-radius: 50%;
   height: 2.5rem;
   width: 2.5rem;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.1);
-  border: 2px solid rgba(59, 130, 246, 0.3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-color);
 
   svg {
     height: 1.25rem;
     width: 1.25rem;
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
   }
 
   .client-item:hover & {
-    transform: scale(1.1) rotate(5deg);
-    background-color: rgba(59, 130, 246, 0.4);
-    color: #ffffff;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.2);
-    border-color: rgba(59, 130, 246, 0.6);
+    transform: scale(1.05);
+    background-color: var(--hover-color);
+    color: var(--primary-color);
+    border-color: var(--primary-color);
   }
 }
 
@@ -459,15 +450,13 @@
 }
 
 .client-name {
-  font-weight: 700;
-  color: #ffffff;
+  font-weight: 600;
+  color: var(--foreground-color);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   transition: color var(--transition-speed) ease;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
   font-size: 1rem;
-  letter-spacing: 0.01em;
 }
 
 .client-meta {
@@ -484,25 +473,25 @@
   text-overflow: ellipsis;
   max-width: 150px;
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.9);
-  background-color: rgba(0, 0, 0, 0.5);
+  color: var(--muted-foreground-color);
+  background-color: var(--accent-color);
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
   font-family: monospace;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-color);
+  transition: all var(--transition-speed) ease;
 }
 
 .client-methods-count {
   white-space: nowrap;
   font-size: 0.75rem;
-  color: #ffffff;
-  background-color: rgba(59, 130, 246, 0.3);
+  color: var(--foreground-color);
+  background-color: var(--muted-color);
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
   font-weight: 600;
-  border: 1px solid rgba(59, 130, 246, 0.4);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-color);
+  transition: all var(--transition-speed) ease;
 }
 
 .client-actions {
@@ -545,7 +534,7 @@
 .client-card {
   border-radius: var(--border-radius);
   border: 1px solid var(--border-color);
-  background-color: var(--card-background-color, rgba(0, 0, 0, 0.02));
+  background-color: var(--card-color);
   padding: 1rem;
   cursor: pointer;
   transition: all var(--transition-speed) ease;
@@ -560,13 +549,14 @@
   &:hover {
     transform: translateY(-3px);
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    border-color: rgba(var(--primary-color-rgb), 0.3);
+    border-color: var(--primary-color);
+    background-color: var(--hover-color);
   }
 
   &.active {
-    background-color: rgba(var(--primary-color-rgb), 0.05);
+    background-color: var(--hover-color);
     border-color: var(--primary-color);
-    box-shadow: 0 5px 15px rgba(var(--primary-color-rgb), 0.2);
+    box-shadow: 0 0 0 1px var(--primary-color), 0 4px 8px rgba(0, 0, 0, 0.1);
 
     &::before {
       content: '';
@@ -574,7 +564,7 @@
       top: 0;
       left: 0;
       right: 0;
-      height: 4px;
+      height: 3px;
       background-color: var(--primary-color);
     }
 
@@ -591,21 +581,23 @@
 .client-card-icon {
   margin-bottom: 0.75rem;
   padding: 0.75rem;
-  background-color: rgba(var(--primary-color-rgb), 0.1);
+  background-color: var(--accent-color);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all var(--transition-speed) ease;
+  border: 1px solid var(--border-color);
 
   svg {
-    color: var(--muted-foreground-color);
+    color: var(--foreground-color);
     transition: color var(--transition-speed) ease;
   }
 
   .client-card:hover & {
     transform: scale(1.05);
-    background-color: rgba(var(--primary-color-rgb), 0.15);
+    background-color: var(--hover-color);
+    border-color: var(--primary-color);
   }
 }
 
@@ -1668,6 +1660,15 @@
   align-items: center;
   justify-content: center;
   height: 100%;
+  width: 100%;
+  padding: 1rem;
+  overflow: hidden;
+
+  .empty-state {
+    background-color: var(--card-background-color, rgba(0, 0, 0, 0.02));
+    border: 1px dashed var(--border-color);
+    max-width: 300px;
+  }
 }
 
 .empty-state {
@@ -1904,80 +1905,85 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  padding: 2rem;
+  width: 100%;
+  padding: 1rem;
   text-align: center;
+  overflow: hidden;
+  flex: 1;
 }
 
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.5rem;
-  max-width: 350px;
-  animation: fadeIn 0.5s ease, float 3s ease-in-out infinite;
-  padding: 2rem;
-  background-color: var(--card-background-color, rgba(0, 0, 0, 0.02));
+  gap: 1rem;
+  width: 100%;
+  max-width: 250px;
+  animation: fadeIn 0.5s ease;
+  padding: 1.5rem;
+  background-color: var(--card-color);
   border-radius: var(--border-radius);
   border: 1px dashed var(--border-color);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--card-shadow);
+  transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
 
   svg {
     color: var(--primary-color);
     opacity: 0.8;
     transition: all var(--transition-speed) ease;
-    filter: drop-shadow(0 4px 6px rgba(var(--primary-color-rgb), 0.2));
+    margin-bottom: 0.5rem;
 
     &:hover {
-      transform: scale(1.1) rotate(5deg);
+      transform: scale(1.05);
       opacity: 1;
     }
   }
 
   h3 {
     margin: 0;
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     font-weight: 700;
     color: var(--foreground-color);
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    margin-bottom: 0.5rem;
   }
 
   p {
-    margin: 0;
-    font-size: 0.95rem;
+    margin: 0 0 0.5rem 0;
+    font-size: 0.85rem;
     color: var(--muted-foreground-color);
     text-align: center;
-    line-height: 1.6;
+    line-height: 1.4;
   }
 
   button {
-    margin-top: 0.5rem;
+    margin-top: 0.75rem;
     transition: all var(--transition-speed) ease;
-    padding: 0.75rem 1.5rem;
+    padding: 0.6rem 1.25rem;
     font-weight: 600;
-    font-size: 0.95rem;
-    box-shadow: 0 4px 6px rgba(var(--primary-color-rgb), 0.25);
+    font-size: 0.9rem;
+    background-color: var(--primary-color);
+    color: var(--primary-foreground-color);
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
     &:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 6px 12px rgba(var(--primary-color-rgb), 0.3);
+      transform: translateY(-2px);
+      filter: brightness(var(--hover-brightness));
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
 
     &:active {
       transform: translateY(1px);
-      box-shadow: 0 2px 4px rgba(var(--primary-color-rgb), 0.2);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
   }
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
 }
 
 .right-pane-content {

@@ -74,7 +74,12 @@ public class FeignClientExecutor {
         // Find the Feign client bean
         String className = feignClient.getClassName();
         Class<?> feignClientClass = Class.forName(className);
-        Object feignClientBean = applicationContext.getBean(feignClientClass);
+        Object feignClientBean;
+        try {
+            feignClientBean = applicationContext.getBean(feignClientClass);
+        } catch (org.springframework.beans.factory.NoSuchBeanDefinitionException e) {
+            throw new IllegalStateException("Feign client bean not found: " + className + ". Make sure @EnableFeignClients is properly configured.", e);
+        }
 
         // Find the method
         Method[] methods = feignClientClass.getDeclaredMethods();

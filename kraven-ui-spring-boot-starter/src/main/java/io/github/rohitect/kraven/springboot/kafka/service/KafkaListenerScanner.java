@@ -49,7 +49,13 @@ public class KafkaListenerScanner implements ApplicationListener<ContextRefreshe
         // Get all beans from the application context
         String[] beanNames = applicationContext.getBeanNamesForType(Object.class);
         for (String beanName : beanNames) {
-            Object bean = applicationContext.getBean(beanName);
+            Object bean;
+            try {
+                bean = applicationContext.getBean(beanName);
+            } catch (Exception e) {
+                log.warn("Could not get bean '{}': {}", beanName, e.getMessage());
+                continue;
+            }
             Class<?> targetClass = AopProxyUtils.ultimateTargetClass(bean);
 
             // Check for @KafkaListener annotations on methods

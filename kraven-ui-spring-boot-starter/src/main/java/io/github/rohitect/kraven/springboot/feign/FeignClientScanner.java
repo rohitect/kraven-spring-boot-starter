@@ -2,6 +2,7 @@ package io.github.rohitect.kraven.springboot.feign;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationContext;
@@ -117,7 +118,14 @@ public class FeignClientScanner implements ApplicationListener<ApplicationReadyE
      * @param feignClientClass the FeignClient annotation class
      */
     private void scanUsingClassPathScanner(String[] basePackages, Class<?> feignClientClass) {
-        ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
+        // Create a custom scanner that includes interfaces
+        ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false) {
+            @Override
+            protected boolean isCandidateComponent(AnnotatedBeanDefinition beanDefinition) {
+                // Include interfaces that are annotated with @FeignClient
+                return beanDefinition.getMetadata().isInterface() && beanDefinition.getMetadata().hasAnnotation(feignClientClass.getName());
+            }
+        };
         scanner.addIncludeFilter(new AnnotationTypeFilter((Class<? extends Annotation>) feignClientClass));
 
         // Use the application context's ClassLoader

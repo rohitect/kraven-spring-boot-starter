@@ -28,23 +28,27 @@
   <div *ngIf="!loading && !error" class="three-pane-layout">
     <!-- Left Sidebar: Feign Client List -->
     <div class="left-sidebar">
-      <!-- Title Section with Logo -->
+      <!-- Sidebar Title Section -->
       <div class="sidebar-title-section">
         <div class="sidebar-title-content">
-          <svg class="sidebar-logo" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16"></path>
-            <path d="M8 7h.01M12 7h.01M16 7h.01"></path>
-            <path d="M12 2v1"></path>
-            <path d="M12 16v3"></path>
-          </svg>
+          <div class="sidebar-logo">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+              <polyline points="7.5 4.21 12 6.81 16.5 4.21"></polyline>
+              <polyline points="7.5 19.79 7.5 14.6 3 12"></polyline>
+              <polyline points="21 12 16.5 14.6 16.5 19.79"></polyline>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+              <line x1="12" y1="22.08" x2="12" y2="12"></line>
+            </svg>
+          </div>
           <div class="sidebar-title-text">
-            <h3 class="sidebar-title">Feign Clients</h3>
+            <h2 class="sidebar-title">Feign Clients</h2>
             <span class="sidebar-subtitle">External API Clients</span>
           </div>
         </div>
         <div class="sidebar-actions">
-          <span class="client-count-badge" *ngIf="feignClients.length > 0">{{ feignClients.length }}</span>
-          <button class="sidebar-refresh-btn" title="Refresh Clients" (click)="loadFeignClients()">
+          <span class="client-count-badge">{{ feignClients.length }}</span>
+          <button class="sidebar-refresh-btn" (click)="loadFeignClients()" title="Refresh Feign Clients">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 2v6h-6"></path>
               <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
@@ -55,148 +59,149 @@
         </div>
       </div>
 
-      <!-- Search Box with Enhanced UI -->
+      <!-- Search Section -->
       <div class="sidebar-header">
         <div class="search-container" [class.active]="searchFocused">
-          <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-          <input type="text" placeholder="Search clients..." [(ngModel)]="searchQuery" (input)="filterClients()"
-            (focus)="searchFocused = true" (blur)="searchFocused = false"
-            class="search-input" />
-          <svg *ngIf="searchQuery" (click)="clearSearch()" class="clear-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </div>
-      </div>
-
-      <!-- Recently Used Section (if applicable) -->
-      <div *ngIf="recentlyUsedClients && recentlyUsedClients.length > 0" class="sidebar-section">
-        <div class="sidebar-section-header">
-          <span class="sidebar-section-title">Recently Used</span>
-        </div>
-        <div class="client-list recent-clients">
-          <div *ngFor="let client of recentlyUsedClients" class="client-item"
-               [class.active]="selectedClient === client"
-               (click)="selectClient(client)">
-            <div class="client-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"></path>
-                <path d="m3 9 2.45-4.9A2 2 0 0 1 7.24 3h9.52a2 2 0 0 1 1.8 1.1L21 9"></path>
-                <path d="M12 3v6"></path>
-              </svg>
-            </div>
-            <div class="client-item-content">
-              <div class="client-name">{{ client.name }}</div>
-              <div class="client-meta">
-                <span class="client-path">{{ client.path || '/' }}</span>
-                <span class="client-methods-count">{{ client.methods.length || 0 }} methods</span>
-              </div>
-            </div>
+          <div class="search-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </div>
+          <input
+            type="text"
+            class="search-input"
+            placeholder="Search clients..."
+            [(ngModel)]="searchQuery"
+            (input)="filterClients()"
+            (focus)="searchFocused = true"
+            (blur)="searchFocused = false"
+          >
+          <div class="clear-icon" *ngIf="searchQuery" (click)="clearSearch()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
           </div>
         </div>
       </div>
 
-      <!-- All Clients Section with Categories -->
-      <div class="sidebar-section">
-        <div class="sidebar-section-header">
-          <span class="sidebar-section-title">All Clients</span>
-          <div class="sidebar-section-actions">
-            <button class="view-toggle-btn" [class.active]="viewMode === 'list'" (click)="viewMode = 'list'" title="List View">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="8" y1="6" x2="21" y2="6"></line>
-                <line x1="8" y1="12" x2="21" y2="12"></line>
-                <line x1="8" y1="18" x2="21" y2="18"></line>
-                <line x1="3" y1="6" x2="3.01" y2="6"></line>
-                <line x1="3" y1="12" x2="3.01" y2="12"></line>
-                <line x1="3" y1="18" x2="3.01" y2="18"></line>
-              </svg>
-            </button>
-            <button class="view-toggle-btn" [class.active]="viewMode === 'card'" (click)="viewMode = 'card'" title="Card View">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="3" width="7" height="7"></rect>
-                <rect x="14" y="3" width="7" height="7"></rect>
-                <rect x="14" y="14" width="7" height="7"></rect>
-                <rect x="3" y="14" width="7" height="7"></rect>
-              </svg>
-            </button>
+      <!-- Client List -->
+      <div class="client-list-container">
+        <!-- Recently Used Section -->
+        <div class="sidebar-section" *ngIf="recentlyUsedClients.length > 0">
+          <div class="sidebar-section-header">
+            <span class="sidebar-section-title">Recently Used</span>
           </div>
-        </div>
-
-        <!-- Client List Container -->
-        <div class="client-list-container">
-          <!-- List View -->
-          <div *ngIf="viewMode === 'list' && filteredClients.length > 0" class="client-list">
-            <div *ngFor="let client of filteredClients" class="client-item"
-                 [class.active]="selectedClient === client"
-                 (click)="selectClient(client)">
+          <div class="client-list">
+            <div
+              *ngFor="let client of recentlyUsedClients"
+              class="client-item"
+              [class.active]="selectedClient?.name === client.name"
+              (click)="selectClient(client)"
+            >
               <div class="client-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"></path>
-                  <path d="m3 9 2.45-4.9A2 2 0 0 1 7.24 3h9.52a2 2 0 0 1 1.8 1.1L21 9"></path>
-                  <path d="M12 3v6"></path>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                  <polyline points="9 22 9 12 15 12 15 22"></polyline>
                 </svg>
               </div>
               <div class="client-item-content">
                 <div class="client-name">{{ client.name }}</div>
                 <div class="client-meta">
-                  <span class="client-path">{{ client.path || '/' }}</span>
-                  <span class="client-methods-count">{{ client.methods.length || 0 }} methods</span>
+                  <span class="client-path" *ngIf="client.path">{{ client.path }}</span>
+                  <span class="client-methods-count">{{ client.methods?.length || 0 }} methods</span>
                 </div>
               </div>
-              <div class="client-actions">
-                <button class="client-action-btn" title="View Details" (click)="selectClient(client); $event.stopPropagation();">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
-                    <circle cx="12" cy="12" r="3"></circle>
-                  </svg>
-                </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- All Clients Section -->
+        <div class="sidebar-section">
+          <div class="sidebar-section-header">
+            <span class="sidebar-section-title">All Clients</span>
+            <div class="sidebar-section-actions">
+              <button class="view-toggle-btn" [class.active]="viewMode === 'list'" (click)="viewMode = 'list'" title="List View">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="8" y1="6" x2="21" y2="6"></line>
+                  <line x1="8" y1="12" x2="21" y2="12"></line>
+                  <line x1="8" y1="18" x2="21" y2="18"></line>
+                  <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                  <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                  <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                </svg>
+              </button>
+              <button class="view-toggle-btn" [class.active]="viewMode === 'card'" (click)="viewMode = 'card'" title="Card View">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="14" width="7" height="7"></rect>
+                  <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- List View -->
+          <div class="client-list" *ngIf="viewMode === 'list'">
+            <div
+              *ngFor="let client of filteredClients"
+              class="client-item"
+              [class.active]="selectedClient?.name === client.name"
+              (click)="selectClient(client)"
+            >
+              <div class="client-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34"></path>
+                  <polygon points="18 2 22 6 12 16 8 16 8 12 18 2"></polygon>
+                </svg>
+              </div>
+              <div class="client-item-content">
+                <div class="client-name">{{ client.name }}</div>
+                <div class="client-meta">
+                  <span class="client-path" *ngIf="client.path">{{ client.path }}</span>
+                  <span class="client-methods-count">{{ client.methods?.length || 0 }} methods</span>
+                </div>
               </div>
             </div>
           </div>
 
           <!-- Card View -->
-          <div *ngIf="viewMode === 'card' && filteredClients.length > 0" class="client-grid">
-            <div *ngFor="let client of filteredClients" class="client-card"
-                 [class.active]="selectedClient === client"
-                 (click)="selectClient(client)">
+          <div class="client-grid" *ngIf="viewMode === 'card'">
+            <div
+              *ngFor="let client of filteredClients"
+              class="client-card"
+              [class.active]="selectedClient?.name === client.name"
+              (click)="selectClient(client)"
+            >
               <div class="client-card-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"></path>
-                  <path d="m3 9 2.45-4.9A2 2 0 0 1 7.24 3h9.52a2 2 0 0 1 1.8 1.1L21 9"></path>
-                  <path d="M12 3v6"></path>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34"></path>
+                  <polygon points="18 2 22 6 12 16 8 16 8 12 18 2"></polygon>
                 </svg>
               </div>
               <div class="client-card-content">
                 <div class="client-name">{{ client.name }}</div>
-                <div class="client-meta">
-                  <span class="client-path">{{ client.path || '/' }}</span>
-                </div>
                 <div class="client-card-footer">
-                  <span class="client-methods-count">{{ client.methods.length || 0 }} methods</span>
+                  <span class="client-methods-count">{{ client.methods?.length || 0 }} methods</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Empty State -->
-          <div *ngIf="!loading && filteredClients.length === 0" class="no-clients">
-            <div class="empty-state">
-              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <!-- No Clients Found -->
+          <div *ngIf="filteredClients.length === 0 && !loading" class="no-clients">
+            <div class="empty-state small">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
                 <circle cx="12" cy="12" r="10"></circle>
-                <line x1="12" y1="8" x2="12" y2="12"></line>
-                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
               </svg>
-              <h3>No Feign Clients Found</h3>
-              <p>No Feign clients were detected in your application.</p>
-              <p>Make sure your application has Feign clients and they are properly annotated with &#64;FeignClient.</p>
-              <button class="btn btn-primary" (click)="debugFeignClients()">Debug Feign Clients</button>
+              <h3>No Clients Found</h3>
+              <p *ngIf="searchQuery">No clients match your search criteria.</p>
+              <p *ngIf="!searchQuery">No Feign clients were detected in your application.</p>
+              <button class="btn" (click)="clearSearch()" *ngIf="searchQuery">Clear Search</button>
             </div>
           </div>
         </div>
@@ -208,7 +213,7 @@
       <!-- Empty State (No Clients) -->
       <div *ngIf="!loading && feignClients.length === 0" class="middle-pane-empty">
         <div class="empty-state">
-          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
             <circle cx="12" cy="12" r="10"></circle>
@@ -223,7 +228,7 @@
       <!-- Empty State (No Client Selected) -->
       <div *ngIf="!selectedClient && feignClients.length > 0" class="middle-pane-empty">
         <div class="empty-state">
-          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
             <circle cx="12" cy="12" r="10"></circle>
@@ -368,7 +373,7 @@
 
         <div *ngIf="!selectedClient" class="middle-pane-empty">
           <div class="empty-state">
-            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M17 6.1H3"></path>
               <path d="M21 12.1H3"></path>
@@ -387,7 +392,7 @@
       <!-- Empty State (No Clients) -->
       <div *ngIf="!loading && feignClients.length === 0" class="right-pane-empty">
         <div class="empty-state">
-          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
             <circle cx="12" cy="12" r="10"></circle>
@@ -404,7 +409,7 @@
       <div *ngIf="(!selectedMethod || !selectedMethod.showTryItOut) && feignClients.length > 0"
         class="right-pane-empty">
         <div class="empty-state">
-          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M17 6.1H3"></path>
             <path d="M21 12.1H3"></path>

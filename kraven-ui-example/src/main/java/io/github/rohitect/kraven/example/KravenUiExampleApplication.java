@@ -13,8 +13,7 @@ import io.swagger.v3.oas.annotations.info.License;
  * This application demonstrates the features of Kraven UI.
  */
 @SpringBootApplication
-// Temporarily disable Feign clients to focus on Kafka functionality
-// @EnableFeignClients(basePackages = "io.github.rohitect.kraven.example.client")
+@EnableFeignClients(basePackages = "io.github.rohitect.kraven.example.client")
 @OpenAPIDefinition(
     info = @Info(
         title = "Kraven UI Example API",
