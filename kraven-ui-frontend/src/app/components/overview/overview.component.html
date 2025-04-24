@@ -1,0 +1,639 @@
+<div class="overview-container">
+  <div class="overview-header">
+    <h1>Application Overview</h1>
+    <div class="actions">
+      <div class="refresh-controls">
+        <div class="refresh-dropdown">
+          <label for="refreshInterval">Auto-refresh:</label>
+          <select id="refreshInterval" [(ngModel)]="selectedRefreshInterval" (change)="onRefreshIntervalChange()">
+            <option *ngFor="let option of refreshOptions" [value]="option.value">{{ option.label }}</option>
+          </select>
+        </div>
+        <button class="refresh-btn" (click)="refreshMetrics()" [disabled]="loading">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 2v6h-6"></path>
+            <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
+            <path d="M3 22v-6h6"></path>
+            <path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path>
+          </svg>
+          Refresh
+        </button>
+        <div class="refresh-status" *ngIf="selectedRefreshInterval > 0">
+          <div class="last-refreshed">
+            <span>Refreshed at {{ formatDateTime(lastRefreshedTime) }}</span>
+          </div>
+          <div class="refresh-progress-container">
+            <div class="refresh-progress-bar" [style.width.%]="refreshProgress"></div>
+          </div>
+        </div>
+      </div>
+      <div class="action-buttons">
+        <div class="dump-buttons">
+          <button class="thread-dump-btn" (click)="downloadThreadDump()" title="Download thread dump">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Thread Dump
+          </button>
+          <button class="heap-dump-btn" (click)="downloadHeapDump()" title="Download heap dump">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Heap Dump
+          </button>
+        </div>
+
+        <div class="summary-buttons">
+          <div class="custom-dropdown">
+            <button class="summary-btn" (click)="toggleSummaryDropdown()" title="Download metrics summary">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Download Summary
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="chevron-down" [class.open]="showSummaryDropdown">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+
+            <div class="dropdown-menu" *ngIf="showSummaryDropdown">
+              <button class="dropdown-item" (click)="downloadTextSummary()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                  <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+                Download as Text
+              </button>
+              <button class="dropdown-item" (click)="downloadJsonSummary()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="10" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                  <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+                Download as JSON
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Loading metrics...</p>
+  </div>
+
+  <div *ngIf="error" class="error-container">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="12" y1="8" x2="12" y2="12"></line>
+      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+    </svg>
+    <p>{{ error }}</p>
+    <button class="retry-btn" (click)="refreshMetrics()">Try Again</button>
+  </div>
+
+  <div *ngIf="!loading && !error && metrics" class="metrics-container">
+    <!-- Application Info Section -->
+    <section class="metrics-section">
+      <h2>Application Information</h2>
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+          </div>
+          <div class="metric-content">
+            <div class="metric-title">
+              Application Name
+              <span class="info-icon" [appTooltip]="descriptions.getDescription('application-name')" position="top">i</span>
+            </div>
+            <div class="metric-value">{{ metrics.application.name }}</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect>
+              <line x1="3" y1="9" x2="21" y2="9"></line>
+              <line x1="9" y1="21" x2="9" y2="9"></line>
+            </svg>
+          </div>
+          <div class="metric-content">
+            <div class="metric-title">
+              Version
+              <span class="info-icon" [appTooltip]="descriptions.getDescription('application-version')" position="top">i</span>
+            </div>
+            <div class="metric-value">{{ metrics.application.version }}</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </div>
+          <div class="metric-content">
+            <div class="metric-title">
+              Uptime
+              <span class="info-icon" [appTooltip]="descriptions.getDescription('application-uptime')" position="top">i</span>
+            </div>
+            <div class="metric-value">{{ formatDuration(metrics.application.uptime) }}</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect>
+              <path d="M3 9h18"></path>
+              <path d="M3 15h18"></path>
+            </svg>
+          </div>
+          <div class="metric-content">
+            <div class="metric-title">
+              Active Profiles
+              <span class="info-icon" [appTooltip]="descriptions.getDescription('application-profiles')" position="top">i</span>
+            </div>
+            <div class="metric-value">
+              <span *ngIf="metrics.application.profiles.length === 0">default</span>
+              <span *ngFor="let profile of metrics.application.profiles; let i = index">
+                {{ profile }}{{ i < metrics.application.profiles.length - 1 ? ', ' : '' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- JVM Metrics Section -->
+    <section class="metrics-section">
+      <h2>JVM Metrics</h2>
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16"></path>
+            </svg>
+          </div>
+          <div class="metric-content">
+            <div class="metric-title">
+              Memory Usage
+              <span class="info-icon" [appTooltip]="descriptions.getDescription('memory-usage')" position="top">i</span>
+            </div>
+            <div class="metric-value">{{ formatBytes(metrics.jvm.usedMemory) }} / {{ formatBytes(metrics.jvm.totalMemory) }}</div>
+            <div class="metric-subtitle" *ngIf="metrics.jvm.maxMemory > 0">
+              Min: {{ formatBytes(metrics.jvm.totalMemory - metrics.jvm.freeMemory) }} / Max: {{ formatBytes(metrics.jvm.maxMemory) }}
+            </div>
+            <div class="memory-progress">
+              <div class="memory-progress-text">{{ getMemoryUsagePercentage().toFixed(1) }}%</div>
+              <div class="memory-progress-bar" [style.width.%]="getMemoryUsagePercentage()" [style.background-color]="getMemoryUsageColor()"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Memory Details Section -->
+        <div class="metric-card memory-details-card" *ngIf="metrics.jvm.memoryDetails">
+          <div class="metric-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+              <polyline points="3.29 7 12 12 20.71 7"></polyline>
+              <line x1="12" y1="22" x2="12" y2="12"></line>
+            </svg>
+          </div>
+          <div class="metric-content">
+            <div class="metric-title">
+              Memory Pools
+              <span class="info-icon" [appTooltip]="'Detailed breakdown of JVM memory usage by memory pool type. Each pool serves a specific purpose in the JVM memory management system.'" position="top">i</span>
+            </div>
+
+            <!-- Heap Memory -->
+            <div class="memory-pool">
+              <div class="memory-pool-header">
+                <span class="memory-pool-name">
+                  Heap Memory
+                  <span class="info-icon" [appTooltip]="descriptions.getDescription('heap-memory')" position="top">i</span>
+                </span>
+                <span class="memory-pool-usage">{{ formatBytes(metrics.jvm.memoryDetails.heap.used) }} / {{ formatBytes(metrics.jvm.memoryDetails.heap.max > 0 ? metrics.jvm.memoryDetails.heap.max : metrics.jvm.memoryDetails.heap.committed) }}</span>
+              </div>
+              <div class="memory-progress">
+                <div class="memory-progress-text">{{ metrics.jvm.memoryDetails.heap.usagePercentage.toFixed(1) }}%</div>
+                <div class="memory-progress-bar" [style.width.%]="metrics.jvm.memoryDetails.heap.usagePercentage" [style.background-color]="getMemoryPoolColor(metrics.jvm.memoryDetails.heap.usagePercentage)"></div>
+              </div>
+            </div>
+
+            <!-- Non-Heap Memory -->
+            <div class="memory-pool">
+              <div class="memory-pool-header">
+                <span class="memory-pool-name">
+                  Non-Heap Memory
+                  <span class="info-icon" [appTooltip]="descriptions.getDescription('non-heap-memory')" position="top">i</span>
+                </span>
+                <span class="memory-pool-usage">{{ formatBytes(metrics.jvm.memoryDetails.nonHeap.used) }} / {{ formatBytes(metrics.jvm.memoryDetails.nonHeap.max > 0 ? metrics.jvm.memoryDetails.nonHeap.max : metrics.jvm.memoryDetails.nonHeap.committed) }}</span>
+              </div>
+              <div class="memory-progress">
+                <div class="memory-progress-text">{{ metrics.jvm.memoryDetails.nonHeap.usagePercentage.toFixed(1) }}%</div>
+                <div class="memory-progress-bar" [style.width.%]="metrics.jvm.memoryDetails.nonHeap.usagePercentage" [style.background-color]="getMemoryPoolColor(metrics.jvm.memoryDetails.nonHeap.usagePercentage)"></div>
+              </div>
+            </div>
+
+            <!-- Individual Memory Pools -->
+            <div class="memory-pool" *ngFor="let pool of getMemoryPools()">
+              <div class="memory-pool-header">
+                <span class="memory-pool-name">
+                  {{ pool.name }}
+                  <span class="info-icon" [appTooltip]="getMemoryPoolDescription(pool.name)" position="top">i</span>
+                </span>
+                <span class="memory-pool-usage">{{ formatBytes(pool.used) }} / {{ formatBytes(pool.max > 0 ? pool.max : pool.committed) }}</span>
+              </div>
+              <div class="memory-progress">
+                <div class="memory-progress-text">{{ pool.usagePercentage.toFixed(1) }}%</div>
+                <div class="memory-progress-bar" [style.width.%]="pool.usagePercentage" [style.background-color]="getMemoryPoolColor(pool.usagePercentage)"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5c-2.22 0-4 1.44-5 2-1-.56-2.78-2-5-2a4.9 4.9 0 0 0-5 4.78C2 14 5 22 8 22c1.25 0 2.5-1.06 4-1.06Z"></path>
+              <path d="M10 2c1 .5 2 2 2 5"></path>
+            </svg>
+          </div>
+          <div class="metric-content">
+            <div class="metric-title">
+              Java Version
+              <span class="info-icon" [appTooltip]="descriptions.getDescription('java-version')" position="top">i</span>
+            </div>
+            <div class="metric-value">{{ metrics.jvm.systemProperties['java.version'] }}</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+          </div>
+          <div class="metric-content">
+            <div class="metric-title">
+              Threads
+              <span class="info-icon" [appTooltip]="descriptions.getDescription('threads')" position="top">i</span>
+            </div>
+            <div class="metric-value">{{ metrics.jvm.threadCount }} ({{ metrics.jvm.daemonThreadCount }} daemon)</div>
+            <div class="metric-subtitle">Peak: {{ metrics.jvm.peakThreadCount }}</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z"></path>
+            </svg>
+          </div>
+          <div class="metric-content">
+            <div class="metric-title">
+              Classes
+              <span class="info-icon" [appTooltip]="descriptions.getDescription('classes')" position="top">i</span>
+            </div>
+            <div class="metric-value">{{ metrics.jvm.loadedClassCount }} loaded</div>
+            <div class="metric-subtitle">
+              Kraven library: {{ kravenLibraryClassCount }} classes<br>
+              All libraries: {{ libraryClassCount }} classes<br>
+              Total: {{ metrics.jvm.totalLoadedClassCount }} ({{ metrics.jvm.unloadedClassCount }} unloaded)
+            </div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="20" height="14" x="2" y="3" rx="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+          </div>
+          <div class="metric-content">
+            <div class="metric-title">
+              Operating System
+              <span class="info-icon" [appTooltip]="descriptions.getDescription('operating-system')" position="top">i</span>
+            </div>
+            <div class="metric-value">{{ metrics.jvm.systemProperties['os.name'] }}</div>
+            <div class="metric-subtitle">{{ metrics.jvm.systemProperties['os.version'] }} ({{ metrics.jvm.systemProperties['os.arch'] }})</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8a6 6 0 0 0-6-6 6 6 0 0 0-6 6c0 7 6 13 6 13s6-6 6-13Z"></path>
+              <circle cx="12" cy="8" r="2"></circle>
+            </svg>
+          </div>
+          <div class="metric-content">
+            <div class="metric-title">
+              Processors
+              <span class="info-icon" [appTooltip]="descriptions.getDescription('processors')" position="top">i</span>
+            </div>
+            <div class="metric-value">{{ metrics.jvm.availableProcessors }}</div>
+          </div>
+        </div>
+
+        <!-- Garbage Collector Metrics -->
+        <div class="metric-card gc-metrics-card" *ngIf="metrics.jvm.garbageCollector && getGarbageCollectors().length > 0">
+          <div class="metric-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 6h18"></path>
+              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+              <line x1="10" y1="11" x2="10" y2="17"></line>
+              <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+          </div>
+          <div class="metric-content">
+            <div class="metric-title">
+              Garbage Collectors
+              <span class="info-icon" [appTooltip]="descriptions.getDescription('garbage-collectors')" position="top">i</span>
+            </div>
+            <div class="gc-list">
+              <div class="gc-item" *ngFor="let gc of getGarbageCollectors()">
+                <div class="gc-name">{{ gc.name }}</div>
+                <div class="gc-stats">
+                  <span class="gc-count">{{ gc.collectionCount }} collections</span>
+                  <span class="gc-time">{{ formatDuration(gc.collectionTime) }} total time</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Spring Metrics Section -->
+    <section class="metrics-section">
+      <h2>Spring Metrics</h2>
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 11a9 9 0 0 1 9 9"></path>
+              <path d="M4 4a16 16 0 0 1 16 16"></path>
+              <circle cx="5" cy="19" r="2"></circle>
+            </svg>
+          </div>
+          <div class="metric-content">
+            <div class="metric-title">
+              Beans
+              <span class="info-icon" [appTooltip]="descriptions.getDescription('beans')" position="top">i</span>
+            </div>
+            <div class="metric-value">{{ metrics.spring.beanCount }}</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 2H3v16h5v4l4-4h5l4-4V2z"></path>
+              <path d="M10 8h4"></path>
+              <path d="M10 12h4"></path>
+              <path d="M10 16h4"></path>
+            </svg>
+          </div>
+          <div class="metric-content">
+            <div class="metric-title">
+              Controllers
+              <span class="info-icon" [appTooltip]="descriptions.getDescription('controllers')" position="top">i</span>
+            </div>
+            <div class="metric-value">{{ metrics.spring.controllerCount }}</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2H2v10h10V2Z"></path>
+              <path d="M22 12h-10v10h10V12Z"></path>
+              <path d="M12 12H2v10h10V12Z"></path>
+              <path d="M22 2h-10v10h10V2Z"></path>
+            </svg>
+          </div>
+          <div class="metric-content">
+            <div class="metric-title">
+              Services
+              <span class="info-icon" [appTooltip]="descriptions.getDescription('services')" position="top">i</span>
+            </div>
+            <div class="metric-value">{{ metrics.spring.serviceCount }}</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+              <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+              <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+            </svg>
+          </div>
+          <div class="metric-content">
+            <div class="metric-title">
+              Repositories
+              <span class="info-icon" [appTooltip]="descriptions.getDescription('repositories')" position="top">i</span>
+            </div>
+            <div class="metric-value">{{ metrics.spring.repositoryCount }}</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 11a9 9 0 0 1 9 9"></path>
+              <path d="M4 4a16 16 0 0 1 16 16"></path>
+              <circle cx="5" cy="19" r="2"></circle>
+            </svg>
+          </div>
+          <div class="metric-content">
+            <div class="metric-title">
+              Components
+              <span class="info-icon" [appTooltip]="descriptions.getDescription('components')" position="top">i</span>
+            </div>
+            <div class="metric-value">{{ metrics.spring.componentCount }}</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </div>
+          <div class="metric-content">
+            <div class="metric-title">
+              Configurations
+              <span class="info-icon" [appTooltip]="descriptions.getDescription('configurations')" position="top">i</span>
+            </div>
+            <div class="metric-value">{{ metrics.spring.configurationCount }}</div>
+          </div>
+        </div>
+
+        <div class="metric-card clickable" (click)="openEndpointsPopup()">
+          <div class="metric-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+            </svg>
+          </div>
+          <div class="metric-content">
+            <div class="metric-title">
+              Endpoints
+              <span class="info-icon" [appTooltip]="descriptions.getDescription('endpoints')" position="top">i</span>
+            </div>
+            <div class="metric-value">{{ metrics.spring.endpointCount }}</div>
+            <div class="metric-subtitle">Click to view details</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Kafka Metrics Section -->
+    <section class="metrics-section" *ngIf="metrics.kafka.topicCount > 0 || metrics.kafka.consumerCount > 0 || metrics.kafka.producerCount > 0 || metrics.kafka.listenerCount > 0">
+      <h2>Kafka Metrics</h2>
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15V6"></path>
+              <path d="M18.5 18a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"></path>
+              <path d="M12 12H3"></path>
+              <path d="M16 6H3"></path>
+              <path d="M12 18H3"></path>
+            </svg>
+          </div>
+          <div class="metric-content">
+            <div class="metric-title">
+              Topics
+              <span class="info-icon" [appTooltip]="descriptions.getDescription('topics')" position="top">i</span>
+            </div>
+            <div class="metric-value">{{ metrics.kafka.topicCount }}</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 12c2-2.96 0-7-1-8 0 3.038-1.773 4.741-3 6-1.226 1.26-2 3.24-2 5a6 6 0 1 0 12 0c0-1.532-1.056-3.94-2-5-1.786 3-2 4-4 2Z"></path>
+            </svg>
+          </div>
+          <div class="metric-content">
+            <div class="metric-title">
+              Consumers
+              <span class="info-icon" [appTooltip]="descriptions.getDescription('consumers')" position="top">i</span>
+            </div>
+            <div class="metric-value">{{ metrics.kafka.consumerCount }}</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 2 11 13"></path>
+              <path d="M22 2 15 22 11 13 2 9 22 2z"></path>
+            </svg>
+          </div>
+          <div class="metric-content">
+            <div class="metric-title">
+              Producers
+              <span class="info-icon" [appTooltip]="descriptions.getDescription('producers')" position="top">i</span>
+            </div>
+            <div class="metric-value">{{ metrics.kafka.producerCount }}</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
+              <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
+            </svg>
+          </div>
+          <div class="metric-content">
+            <div class="metric-title">
+              Listeners
+              <span class="info-icon" [appTooltip]="descriptions.getDescription('listeners')" position="top">i</span>
+            </div>
+            <div class="metric-value">{{ metrics.kafka.listenerCount }}</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Feign Client Metrics Section -->
+    <section class="metrics-section" *ngIf="metrics.feign.clientCount > 0">
+      <h2>Feign Client Metrics</h2>
+      <div class="metrics-grid">
+        <div class="metric-card clickable" (click)="openFeignClientsPopup()">
+          <div class="metric-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+            </svg>
+          </div>
+          <div class="metric-content">
+            <div class="metric-title">
+              Feign Clients
+              <span class="info-icon" [appTooltip]="descriptions.getDescription('feign-clients')" position="top">i</span>
+            </div>
+            <div class="metric-value">{{ metrics.feign.clientCount }}</div>
+            <div class="metric-subtitle">Click to view details</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect>
+              <line x1="3" y1="9" x2="21" y2="9"></line>
+              <line x1="9" y1="21" x2="9" y2="9"></line>
+            </svg>
+          </div>
+          <div class="metric-content">
+            <div class="metric-title">
+              Client Methods
+              <span class="info-icon" [appTooltip]="descriptions.getDescription('client-methods')" position="top">i</span>
+            </div>
+            <div class="metric-value">{{ metrics.feign.methodCount }}</div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Client Details Popup -->
+  <app-client-details-popup
+    [isVisible]="showClientPopup"
+    [clientType]="clientPopupType"
+    [clients]="clientDetails"
+    (close)="closeClientPopup()"
+  ></app-client-details-popup>
+</div>

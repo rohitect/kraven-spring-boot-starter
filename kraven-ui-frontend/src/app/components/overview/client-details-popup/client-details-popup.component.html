@@ -1,0 +1,119 @@
+<div class="popup-overlay" *ngIf="isVisible" (click)="closePopup()" [@fadeAnimation]>
+  <div class="popup-container" (click)="$event.stopPropagation()" [@scaleAnimation]>
+    <div class="popup-header">
+      <h2>
+        <span class="header-icon" [ngClass]="{'endpoint-icon': clientType === 'endpoint', 'feign-icon': clientType === 'feign'}"></span>
+        {{ clientType === 'endpoint' ? 'API Endpoints' : 'Feign Clients' }}
+      </h2>
+      <button class="close-btn" (click)="closePopup()" title="Close">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <div class="popup-content">
+      <div class="popup-sidebar">
+        <div class="search-container">
+          <input
+            type="text"
+            placeholder="Search {{ clientType === 'endpoint' ? 'endpoints' : 'clients' }}..."
+            [(ngModel)]="searchTerm"
+            (input)="onSearch()"
+            [attr.aria-label]="'Search ' + (clientType === 'endpoint' ? 'endpoints' : 'clients')"
+            autocomplete="off"
+          >
+          <button *ngIf="searchTerm" class="clear-search" (click)="clearSearch()" title="Clear search">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <div class="client-list">
+          <div
+            *ngFor="let client of filteredClients; let i = index"
+            class="client-item"
+            [class.active]="selectedClient?.name === client.name"
+            (click)="onClientSelect(client)"
+            [@itemAnimation]="{value: '', params: {delay: i * 50}}"
+            [attr.aria-selected]="selectedClient?.name === client.name"
+            [attr.role]="'option'"
+          >
+            <span class="client-icon" [ngClass]="{'endpoint-icon': clientType === 'endpoint', 'feign-icon': clientType === 'feign'}"></span>
+            <span class="client-name">{{ client.name }}</span>
+          </div>
+
+          <div *ngIf="filteredClients.length === 0" class="no-results" [@fadeAnimation]>
+            <span class="no-results-icon"></span>
+            <p>No {{ clientType === 'endpoint' ? 'endpoints' : 'clients' }} found</p>
+            <button *ngIf="searchTerm" class="reset-search" (click)="clearSearch()">
+              Reset search
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="popup-details" *ngIf="selectedClient" [@fadeAnimation]>
+        <div class="client-header">
+          <h3>
+            <span class="client-type-badge" [ngClass]="{'endpoint-badge': clientType === 'endpoint', 'feign-badge': clientType === 'feign'}">
+              {{ clientType === 'endpoint' ? 'API' : 'Feign' }}
+            </span>
+            {{ selectedClient.name }}
+          </h3>
+          <button class="navigate-btn" (click)="navigateToPlayground()" title="Open in API Playground">
+            <span>Open in Playground</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+          </button>
+        </div>
+
+        <div class="client-methods" *ngIf="selectedClient.methods && selectedClient.methods.length > 0" [@slideAnimation]>
+          <h4>Available Methods</h4>
+          <ul>
+            <li *ngFor="let method of selectedClient.methods; let i = index" [@itemAnimation]="{value: '', params: {delay: i * 50}}">
+              <span class="method-name">{{ method }}</span>
+              <button class="copy-method" (click)="copyToClipboard(method)" title="Copy method">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        <div class="client-path" *ngIf="selectedClient.path" [@slideAnimation]>
+          <h4>Path</h4>
+          <div class="code-container">
+            <code>{{ selectedClient.path }}</code>
+            <button class="copy-path" (click)="copyToClipboard(selectedClient.path)" title="Copy path">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="no-details" *ngIf="!selectedClient.methods && !selectedClient.path" [@fadeAnimation]>
+          <p>No additional details available for this {{ clientType === 'endpoint' ? 'endpoint' : 'client' }}</p>
+          <button class="navigate-btn small" (click)="navigateToPlayground()">
+            <span>Try in Playground</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

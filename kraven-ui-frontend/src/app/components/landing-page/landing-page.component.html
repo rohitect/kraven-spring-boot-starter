@@ -3,6 +3,35 @@
   <main>
     <div class="container py-10">
       <div class="grid grid-cols-1 md:grid-cols-3 mt-12">
+      <!-- Overview Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="flex items-center justify-between mb-4">
+            <div class="icon-container">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+                <path d="M3 3v18h18" />
+                <path d="m9 9 3 3 5-5" />
+                <path d="M14 15h5v5" />
+                <path d="M9 18l3-3 2 2" />
+              </svg>
+            </div>
+          </div>
+          <h3 class="card-title">Overview</h3>
+          <p class="card-description">Monitor your application metrics, JVM stats, and system health</p>
+        </div>
+        <div class="card-footer">
+          <a routerLink="/overview">
+            <button class="btn btn-primary">
+              View Dashboard
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-2 h-4 w-4">
+                <path d="M5 12h14" />
+                <path d="m12 5 7 7-7 7" />
+              </svg>
+            </button>
+          </a>
+        </div>
+      </div>
+
       <!-- API Playground Card -->
       <div class="card">
         <div class="card-header">

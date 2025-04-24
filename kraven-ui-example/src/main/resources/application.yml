@@ -46,7 +46,7 @@ kraven:
       enabled: true
       base-packages: io.github.rohitect.kraven.example.client
     logging:
-      level: DEBUG
+      level: INFO
 
 # SpringDoc OpenAPI Configuration
 springdoc:
@@ -70,9 +70,9 @@ management:
 # Logging Configuration
 logging:
   level:
-    io.github.rohitect.kraven: DEBUG
+    io.github.rohitect.kraven: INFO
     org.springframework.web: INFO
-    org.springframework.context.annotation: DEBUG
-    org.springframework.beans.factory.support: DEBUG
+    org.springframework.context.annotation: INFO
+    org.springframework.beans.factory.support: INFO
     org.springframework.kafka: INFO
     org.apache.kafka: WARN
