@@ -1,5 +1,6 @@
 package io.github.rohitect.kraven.springboot;
 
+import io.github.rohitect.kraven.springboot.config.KravenUiEnhancedProperties;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -33,6 +34,7 @@ import java.nio.charset.StandardCharsets;
 public class KravenUiIndexController {
 
     private final KravenUiProperties properties;
+    private final KravenUiEnhancedProperties enhancedProperties;
 
     @Value("${springdoc.api-docs.path:/v3/api-docs}")
     private String apiDocsPath;
@@ -40,8 +42,9 @@ public class KravenUiIndexController {
     @Value("${kraven.ui.development-mode:false}")
     private boolean developmentMode;
 
-    public KravenUiIndexController(KravenUiProperties properties) {
+    public KravenUiIndexController(KravenUiProperties properties, KravenUiEnhancedProperties enhancedProperties) {
         this.properties = properties;
+        this.enhancedProperties = enhancedProperties;
     }
 
     // Map of file extensions to MIME types
@@ -78,7 +81,7 @@ public class KravenUiIndexController {
         String path = request.getRequestURI();
         String uiPath = properties.getNormalizedPath();
 
-        System.out.println("Handling request for path: " + path);
+        System.out.println("Original KravenUiIndexController handling request for path: " + path);
         System.out.println("UI path configured as: " + uiPath);
 
         // Check if the path contains the UI path
@@ -457,12 +460,23 @@ public class KravenUiIndexController {
         script.append("    theme: {\n");
         script.append("      primaryColor: '").append(properties.getTheme().getPrimaryColor()).append("',\n");
         script.append("      secondaryColor: '").append(properties.getTheme().getSecondaryColor()).append("',\n");
-        script.append("      fontFamily: '").append(properties.getTheme().getFontFamily()).append("'\n");
+        script.append("      fontFamily: 'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif'\n");
         script.append("    },\n");
 
         // Add layout configuration
         script.append("    layout: {\n");
         script.append("      type: '").append(properties.getLayout().getType()).append("'\n");
+        script.append("    },\n");
+
+        // Add API documentation configuration
+        script.append("    apiDocs: {\n");
+        script.append("      enabled: ").append(enhancedProperties.getApiDocs().isEnabled()).append(",\n");
+        script.append("      tryItOutEnabled: ").append(enhancedProperties.getApiDocs().isTryItOutEnabled()).append(",\n");
+        script.append("      showExamples: false,\n");
+        script.append("      expandOperations: false,\n");
+        script.append("      showApiInfo: true,\n");
+        script.append("      syntaxHighlighting: true,\n");
+        script.append("      markdownEnabled: true\n");
         script.append("    },\n");
 
         // Add Feign client configuration

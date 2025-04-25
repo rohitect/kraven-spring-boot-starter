@@ -24,6 +24,17 @@
           </a>
         </li>
         <li>
+          <a routerLink="/overview" routerLinkActive="active" class="nav-link">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon">
+              <rect width="7" height="9" x="3" y="3" rx="1" />
+              <rect width="7" height="5" x="14" y="3" rx="1" />
+              <rect width="7" height="9" x="14" y="12" rx="1" />
+              <rect width="7" height="5" x="3" y="16" rx="1" />
+            </svg>
+            <span *ngIf="!isSidebarCollapsed" class="nav-text">Overview</span>
+          </a>
+        </li>
+        <li>
           <a routerLink="/api-docs" routerLinkActive="active" class="nav-link">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon">
               <rect width="18" height="18" x="3" y="3" rx="2" />
@@ -38,6 +49,16 @@
               <path d="M15 15h.01" />
             </svg>
             <span *ngIf="!isSidebarCollapsed" class="nav-text">API Playground</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="/feign-clients" routerLinkActive="active" class="nav-link">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon">
+              <path d="M17 6.1H3" />
+              <path d="M21 12.1H3" />
+              <path d="M15.1 18H3" />
+            </svg>
+            <span *ngIf="!isSidebarCollapsed" class="nav-text">External Clients</span>
           </a>
         </li>
         <li>

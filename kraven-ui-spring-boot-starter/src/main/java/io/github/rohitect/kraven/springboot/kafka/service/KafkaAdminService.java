@@ -25,14 +25,68 @@ public class KafkaAdminService {
 
     private final KafkaListenerScanner kafkaListenerScanner;
     private final KafkaAdmin kafkaAdmin;
+    private final io.github.rohitect.kraven.springboot.config.KravenUiEnhancedProperties properties;
 
     @Value("${spring.kafka.bootstrap-servers:localhost:9092}")
     private String bootstrapServers;
 
     @Autowired
-    public KafkaAdminService(KafkaListenerScanner kafkaListenerScanner, KafkaAdmin kafkaAdmin) {
+    public KafkaAdminService(KafkaListenerScanner kafkaListenerScanner, KafkaAdmin kafkaAdmin,
+                            io.github.rohitect.kraven.springboot.config.KravenUiEnhancedProperties properties) {
         this.kafkaListenerScanner = kafkaListenerScanner;
         this.kafkaAdmin = kafkaAdmin;
+        this.properties = properties;
+
+        log.info("KafkaAdminService initialized with configuration: enabled={}, streamingEnabled={}, messageProductionEnabled={}, messageConsumptionEnabled={}",
+                properties.getKafka().isEnabled(),
+                properties.getKafka().isStreamingEnabled(),
+                properties.getKafka().isMessageProductionEnabled(),
+                properties.getKafka().isMessageConsumptionEnabled());
+    }
+
+    /**
+     * Checks if streaming is enabled in the configuration.
+     *
+     * @return true if streaming is enabled, false otherwise
+     */
+    public boolean isStreamingEnabled() {
+        return properties.getKafka().isStreamingEnabled();
+    }
+
+    /**
+     * Checks if message consumption is enabled in the configuration.
+     *
+     * @return true if message consumption is enabled, false otherwise
+     */
+    public boolean isMessageConsumptionEnabled() {
+        return properties.getKafka().isMessageConsumptionEnabled();
+    }
+
+    /**
+     * Checks if message production is enabled in the configuration.
+     *
+     * @return true if message production is enabled, false otherwise
+     */
+    public boolean isMessageProductionEnabled() {
+        return properties.getKafka().isMessageProductionEnabled();
+    }
+
+    /**
+     * Gets the SSE timeout in milliseconds from the configuration.
+     *
+     * @return the SSE timeout in milliseconds
+     */
+    public long getSseTimeoutMs() {
+        return properties.getKafka().getSseTimeoutMs();
+    }
+
+    /**
+     * Gets the message limit from the configuration.
+     *
+     * @return the message limit
+     */
+    public int getMessageLimit() {
+        return properties.getKafka().getMessageLimit();
     }
 
     /**

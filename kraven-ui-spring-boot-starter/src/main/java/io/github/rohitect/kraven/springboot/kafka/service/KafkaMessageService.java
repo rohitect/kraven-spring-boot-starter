@@ -40,10 +40,19 @@ public class KafkaMessageService {
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
     private final String bootstrapServers;
+    private final io.github.rohitect.kraven.springboot.config.KravenUiEnhancedProperties properties;
 
     @Autowired
-    public KafkaMessageService(KafkaAdminService kafkaAdminService) {
+    public KafkaMessageService(KafkaAdminService kafkaAdminService,
+                              io.github.rohitect.kraven.springboot.config.KravenUiEnhancedProperties properties) {
         this.bootstrapServers = kafkaAdminService.getClusterInfo().getBootstrapServers();
+        this.properties = properties;
+
+        log.info("KafkaMessageService initialized with configuration: enabled={}, messageLimit={}, streamingEnabled={}, sseTimeoutMs={}",
+                properties.getKafka().isEnabled(),
+                properties.getKafka().getMessageLimit(),
+                properties.getKafka().isStreamingEnabled(),
+                properties.getKafka().getSseTimeoutMs());
     }
 
     /**

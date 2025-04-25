@@ -42,13 +42,13 @@ kraven:
   ui:
     path: /kraven
     development-mode: true
-    feign-client:
-      enabled: true
-      base-packages: io.github.rohitect.kraven.example.client
     logging:
       level: INFO
+    # theme:
+    #   dark-primary-color: "#ff5722" 
+    #   dark-secondary-color: "#607d8b"
 
-# SpringDoc OpenAPI Configuration
+# SpringDoc OpenAPI Configuration 
 springdoc:
   api-docs:
     path: /v3/api-docs

@@ -32,6 +32,11 @@ export class HeaderComponent implements OnInit {
   }
 
   isActive(route: string): boolean {
-    return this.router.url === route;
+    // For the home route, require an exact match
+    if (route === '/') {
+      return this.router.url === route;
+    }
+    // For other routes, check if the URL starts with the route
+    return this.router.url.startsWith(route);
   }
 }

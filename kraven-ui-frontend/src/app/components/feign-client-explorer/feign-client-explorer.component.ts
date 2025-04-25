@@ -133,6 +133,15 @@ export class FeignClientExplorerComponent implements OnInit {
   }
 
   /**
+   * Checks if try-it-out is enabled in the configuration.
+   * @returns true if try-it-out is enabled, false otherwise
+   */
+  isTryItOutEnabled(): boolean {
+    const config = this.configService.getConfig();
+    return config.feignClient?.tryItOutEnabled !== false; // Default to true if not specified
+  }
+
+  /**
    * Debug Feign clients by checking various endpoints.
    */
   debugFeignClients(): void {
@@ -178,9 +187,20 @@ export class FeignClientExplorerComponent implements OnInit {
     this.loading = true;
     this.error = null;
 
+    // Initialize feignClients as an empty array to prevent "not iterable" errors
+    this.feignClients = [];
+    this.filteredClients = [];
+
     this.feignClientService.getFeignClients().subscribe({
       next: (clients) => {
-        this.feignClients = clients || [];
+        // Ensure clients is always an array
+        if (Array.isArray(clients)) {
+          this.feignClients = clients;
+        } else {
+          console.warn('Received non-array response for Feign clients:', clients);
+          this.feignClients = [];
+        }
+
         this.filteredClients = [...this.feignClients]; // Initialize filtered clients
         this.loading = false;
 
@@ -196,6 +216,10 @@ export class FeignClientExplorerComponent implements OnInit {
         console.error('Error loading Feign clients:', error);
         this.error = 'Failed to load Feign clients. Please check the server connection.';
         this.loading = false;
+
+        // Ensure feignClients is an array even on error
+        this.feignClients = [];
+        this.filteredClients = [];
       }
     });
   }
@@ -204,6 +228,12 @@ export class FeignClientExplorerComponent implements OnInit {
    * Filter clients based on search query
    */
   filterClients(): void {
+    // Ensure feignClients is an array
+    if (!Array.isArray(this.feignClients)) {
+      console.warn('feignClients is not an array:', this.feignClients);
+      this.feignClients = [];
+    }
+
     if (!this.searchQuery) {
       this.filteredClients = [...this.feignClients];
       return;
@@ -234,6 +264,12 @@ export class FeignClientExplorerComponent implements OnInit {
    * @param name the name of the Feign client
    */
   selectClientByName(name: string): void {
+    // Ensure feignClients is an array
+    if (!Array.isArray(this.feignClients)) {
+      console.warn('feignClients is not an array:', this.feignClients);
+      this.feignClients = [];
+    }
+
     // First check if the client is already loaded
     const client = this.feignClients.find(c => c.name === name);
     if (client) {
@@ -327,6 +363,13 @@ export class FeignClientExplorerComponent implements OnInit {
    */
   private loadRecentlyUsedClientsFromStorage(): void {
     try {
+      // Ensure feignClients is an array
+      if (!Array.isArray(this.feignClients)) {
+        console.warn('feignClients is not an array:', this.feignClients);
+        this.feignClients = [];
+        return;
+      }
+
       const storedClients = localStorage.getItem('recentlyUsedFeignClients');
       if (storedClients) {
         const clientNames = JSON.parse(storedClients) as string[];
@@ -337,6 +380,7 @@ export class FeignClientExplorerComponent implements OnInit {
       }
     } catch (error) {
       console.error('Failed to load recently used clients from local storage:', error);
+      this.recentlyUsedClients = [];
     }
   }
 
@@ -422,6 +466,13 @@ export class FeignClientExplorerComponent implements OnInit {
   toggleTryItOut(method: FeignMethod, event: Event): void {
     event.stopPropagation();
 
+    // Check if try-it-out is enabled in the configuration
+    const config = this.configService.getConfig();
+    if (config.feignClient?.tryItOutEnabled === false) {
+      console.warn('Try-it-out is disabled in the configuration');
+      return;
+    }
+
     // Initialize the showTryItOut property if it doesn't exist
     if (method.showTryItOut === undefined) {
       method.showTryItOut = false;
@@ -478,6 +529,13 @@ export class FeignClientExplorerComponent implements OnInit {
    */
   executeMethod(client: FeignClient, method: FeignMethod): void {
     if (!client || !method) return;
+
+    // Check if try-it-out is enabled in the configuration
+    const config = this.configService.getConfig();
+    if (config.feignClient?.tryItOutEnabled === false) {
+      console.warn('Try-it-out is disabled in the configuration');
+      return;
+    }
 
     this.isExecuting = true;
     this.responseData = null;

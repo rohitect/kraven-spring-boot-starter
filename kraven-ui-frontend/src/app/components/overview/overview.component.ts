@@ -51,7 +51,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
   showSummaryDropdown = false;
 
   constructor(
-    private metricsService: MetricsService,
+    public metricsService: MetricsService,
     private themeService: ThemeService,
     public descriptions: MetricDescriptionsService,
     private route: ActivatedRoute,
@@ -67,7 +67,17 @@ export class OverviewComponent implements OnInit, OnDestroy {
       this.isDarkTheme = theme === 'dark';
     });
 
-    // Check for refresh interval in query params
+    // Initialize auto-refresh from configuration if enabled
+    if (this.metricsService.isAutoRefreshEnabled()) {
+      const refreshSeconds = Math.floor(this.metricsService.getRefreshIntervalMs() / 1000);
+      // Find the closest refresh option
+      const closestOption = this.refreshOptions.reduce((prev, curr) => {
+        return Math.abs(curr.value - refreshSeconds) < Math.abs(prev.value - refreshSeconds) ? curr : prev;
+      });
+      this.selectedRefreshInterval = closestOption.value;
+    }
+
+    // Check for refresh interval in query params (overrides configuration)
     this.routeSubscription = this.route.queryParams.subscribe(params => {
       if (params['refresh']) {
         const refreshValue = parseInt(params['refresh'], 10);
@@ -75,6 +85,9 @@ export class OverviewComponent implements OnInit, OnDestroy {
           this.selectedRefreshInterval = refreshValue;
           this.setupAutoRefresh();
         }
+      } else if (this.metricsService.isAutoRefreshEnabled()) {
+        // If no query param but auto-refresh is enabled in config, set it up
+        this.setupAutoRefresh();
       }
     });
 
@@ -195,6 +208,11 @@ export class OverviewComponent implements OnInit, OnDestroy {
    * Downloads a thread dump.
    */
   downloadThreadDump(): void {
+    if (!this.metricsService.isThreadDumpEnabled()) {
+      this.error = 'Thread dump generation is disabled in the configuration.';
+      return;
+    }
+
     this.metricsService.downloadThreadDump().subscribe({
       next: (blob) => {
         const url = window.URL.createObjectURL(blob);
@@ -217,6 +235,11 @@ export class OverviewComponent implements OnInit, OnDestroy {
    * Downloads a heap dump.
    */
   downloadHeapDump(): void {
+    if (!this.metricsService.isHeapDumpEnabled()) {
+      this.error = 'Heap dump generation is disabled in the configuration.';
+      return;
+    }
+
     // Show a confirmation dialog as heap dumps can be large
     if (confirm('Generating a heap dump may temporarily pause the application and create a large file. Continue?')) {
       this.metricsService.downloadHeapDump().subscribe({

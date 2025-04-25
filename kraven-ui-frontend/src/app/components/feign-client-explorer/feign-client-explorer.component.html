@@ -110,7 +110,7 @@
                 <div class="client-name">{{ client.name }}</div>
                 <div class="client-meta">
                   <span class="client-path" *ngIf="client.path">{{ client.path }}</span>
-                  <span class="client-methods-count">{{ client.methods?.length || 0 }} methods</span>
+                  <span class="client-methods-count">{{ client.methods.length || 0 }} methods</span>
                 </div>
               </div>
             </div>
@@ -161,7 +161,7 @@
                 <div class="client-name">{{ client.name }}</div>
                 <div class="client-meta">
                   <span class="client-path" *ngIf="client.path">{{ client.path }}</span>
-                  <span class="client-methods-count">{{ client.methods?.length || 0 }} methods</span>
+                  <span class="client-methods-count">{{ client.methods.length || 0 }} methods</span>
                 </div>
               </div>
             </div>
@@ -184,7 +184,7 @@
               <div class="client-card-content">
                 <div class="client-name">{{ client.name }}</div>
                 <div class="client-card-footer">
-                  <span class="client-methods-count">{{ client.methods?.length || 0 }} methods</span>
+                  <span class="client-methods-count">{{ client.methods.length || 0 }} methods</span>
                 </div>
               </div>
             </div>
@@ -294,7 +294,7 @@
                 <div class="method-right">
                   <div class="method-return-type">{{ getReturnTypeDisplay(method) }}</div>
                   <div class="method-actions">
-                    <button class="btn btn-sm btn-primary try-button" (click)="toggleTryItOut(method, $event)"
+                    <button *ngIf="isTryItOutEnabled()" class="btn btn-sm btn-primary try-button" (click)="toggleTryItOut(method, $event)"
                       [class.active]="method.showTryItOut">{{ method.showTryItOut ? 'Cancel' : 'Try It' }}</button>
                   </div>
                 </div>

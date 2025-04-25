@@ -29,7 +29,7 @@
       <!-- Left Sidebar: API Endpoints List -->
       <div class="left-sidebar">
         <!-- API Title Button -->
-        <div class="api-title-button" (click)="showApiInfo()">
+        <div class="api-title-button" (click)="showApiInfo()" *ngIf="apiDocsConfig.showApiInfo">
           <div class="api-title-content">
             <h3 class="sidebar-api-title">{{ apiDocs.info?.title || 'API Documentation' }}</h3>
             <span class="api-version-badge" *ngIf="apiDocs.info?.version">v{{ apiDocs.info.version }}</span>
@@ -130,7 +130,7 @@
           </div>
 
           <div class="api-info-details-content">
-            <div class="api-info-description" [innerHTML]="(apiDocs.info?.description || 'No description available') | markdown"></div>
+            <div class="api-info-description" [innerHTML]="apiDocsConfig.markdownEnabled ? ((apiDocs.info?.description || 'No description available') | markdown) : (apiDocs.info?.description || 'No description available')"></div>
 
             <div class="api-info-contact" *ngIf="apiDocs.info?.contact">
               <h3>Contact</h3>
@@ -228,7 +228,7 @@
 
           <!-- Endpoint Description -->
           <div class="endpoint-description">
-            <div [innerHTML]="(selectedEndpoint.method.operation.description || 'No description available') | markdown"></div>
+            <div [innerHTML]="apiDocsConfig.markdownEnabled ? ((selectedEndpoint.method.operation.description || 'No description available') | markdown) : (selectedEndpoint.method.operation.description || 'No description available')"></div>
           </div>
 
           <!-- Parameters Section -->
@@ -258,7 +258,7 @@
                     <span class="param-type">{{ getParameterType(param) }}</span>
                   </div>
                   <div class="param-desc-col">
-                    <div class="param-description" [innerHTML]="param.description || 'No description' | markdown"></div>
+                    <div class="param-description" [innerHTML]="apiDocsConfig.markdownEnabled ? ((param.description || 'No description') | markdown) : (param.description || 'No description')"></div>
                     <div class="param-constraints" *ngIf="getParameterConstraints(param)">
                       <span class="constraint-label">Constraints:</span> {{ getParameterConstraints(param) }}
                     </div>
@@ -284,7 +284,7 @@
               <span class="required-badge">Required</span>
             </div>
             <div class="request-body-description" *ngIf="selectedEndpoint.method.operation.requestBody?.description">
-              <div [innerHTML]="selectedEndpoint.method.operation.requestBody.description | markdown"></div>
+              <div [innerHTML]="apiDocsConfig.markdownEnabled ? (selectedEndpoint.method.operation.requestBody.description | markdown) : selectedEndpoint.method.operation.requestBody.description"></div>
             </div>
 
             <div class="content-types-tabs">
@@ -370,6 +370,7 @@
         <!-- Tabs for Try It Out and Response Samples -->
         <div class="right-pane-tabs">
           <button
+            *ngIf="apiDocsConfig.tryItOutEnabled"
             class="right-pane-tab"
             [class.active]="rightPaneActiveTab === 'try-it-out'"
             (click)="setRightPaneTab('try-it-out')">
@@ -379,6 +380,7 @@
             Try It Out
           </button>
           <button
+            *ngIf="apiDocsConfig.showExamples"
             class="right-pane-tab"
             [class.active]="rightPaneActiveTab === 'response-samples'"
             [class.disabled]="!selectedResponseCode"
@@ -394,6 +396,7 @@
         <!-- Try It Out Section -->
         <div class="right-pane-content try-it-out-container" [hidden]="rightPaneActiveTab !== 'try-it-out'">
           <app-try-it-out
+            *ngIf="apiDocsConfig.tryItOutEnabled"
             #tryItOutComponent
             [path]="selectedEndpoint.path"
             [method]="selectedEndpoint.method.type"
@@ -405,10 +408,13 @@
             (onCancel)="hideTryItOut()"
             (onResponse)="handleResponse($event)"
           ></app-try-it-out>
+          <div *ngIf="!apiDocsConfig.tryItOutEnabled" class="try-it-out-disabled">
+            <p>Try It Out feature is disabled in the configuration.</p>
+          </div>
         </div>
 
         <!-- Response Samples Section -->
-        <div class="right-pane-content response-samples" [hidden]="rightPaneActiveTab !== 'response-samples' || !selectedResponseCode">
+        <div class="right-pane-content response-samples" [hidden]="rightPaneActiveTab !== 'response-samples' || !selectedResponseCode || !apiDocsConfig.showExamples">
           <div class="response-samples-header">
             <h3 class="samples-title">Response samples</h3>
             <div class="samples-tabs">
@@ -454,13 +460,14 @@
             <div class="sample-code-container">
               <app-json-viewer
                 #jsonViewer
-                *ngIf="selectedResponseCode && responseSamples[selectedResponseCode]"
+                *ngIf="selectedResponseCode && responseSamples[selectedResponseCode] && apiDocsConfig.syntaxHighlighting"
                 [json]="responseSamples[selectedResponseCode]"
                 [expanded]="jsonViewerExpanded"
                 [showKeys]="false"
                 [isRoot]="true">
               </app-json-viewer>
-              <pre class="sample-code" *ngIf="!selectedResponseCode || !responseSamples[selectedResponseCode]">{{ getFormattedResponseSample() }}</pre>
+              <pre class="sample-code" *ngIf="(!selectedResponseCode || !responseSamples[selectedResponseCode]) && apiDocsConfig.syntaxHighlighting">{{ getFormattedResponseSample() }}</pre>
+              <pre class="sample-code" *ngIf="selectedResponseCode && responseSamples[selectedResponseCode] && !apiDocsConfig.syntaxHighlighting">{{ getFormattedResponseSample() }}</pre>
             </div>
           </div>
         </div>
@@ -495,7 +502,7 @@
       </button>
     </div>
     <div class="curl-popup-content">
-      <pre class="curl-code">{{ curlCommand }}</pre>
+      <pre class="curl-code" [ngClass]="{'syntax-highlighted': apiDocsConfig.syntaxHighlighting}">{{ curlCommand }}</pre>
     </div>
     <div class="curl-popup-footer">
       <button class="copy-button" (click)="copyCurlCommand()">
@@ -543,7 +550,7 @@
         <span class="schema-optional" *ngIf="!isPropertyRequired(prop[0], required)">-</span>
       </div>
       <div class="schema-desc-col">
-        <div class="schema-description" [innerHTML]="prop[1].description || 'No description' | markdown"></div>
+        <div class="schema-description" [innerHTML]="apiDocsConfig.markdownEnabled ? ((prop[1].description || 'No description') | markdown) : (prop[1].description || 'No description')"></div>
         <div class="schema-constraints" *ngIf="getPropertyConstraints(prop[1])">
           <span class="constraint-label">Constraints:</span> {{ getPropertyConstraints(prop[1]) }}
         </div>

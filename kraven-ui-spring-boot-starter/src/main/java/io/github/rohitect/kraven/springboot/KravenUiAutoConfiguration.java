@@ -3,6 +3,7 @@ package io.github.rohitect.kraven.springboot;
 import io.github.rohitect.kraven.springboot.feign.FeignClientController;
 import io.github.rohitect.kraven.springboot.feign.FeignClientExecutor;
 import io.github.rohitect.kraven.springboot.feign.FeignClientScanner;
+import io.github.rohitect.kraven.springboot.config.KravenUiEnhancedProperties;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -38,7 +39,7 @@ import java.util.Map;
  */
 @Configuration
 @ConditionalOnWebApplication
-@EnableConfigurationProperties(KravenUiProperties.class)
+@EnableConfigurationProperties({KravenUiProperties.class, KravenUiEnhancedProperties.class})
 @ConditionalOnProperty(prefix = "kraven.ui", name = "enabled", matchIfMissing = true)
 @PropertySource("classpath:kraven-ui.properties")
 @ComponentScan(basePackages = {
@@ -50,10 +51,12 @@ import java.util.Map;
 public class KravenUiAutoConfiguration {
 
     private final KravenUiProperties properties;
+    private final KravenUiEnhancedProperties enhancedProperties;
     private final Environment environment;
 
-    public KravenUiAutoConfiguration(KravenUiProperties properties, Environment environment) {
+    public KravenUiAutoConfiguration(KravenUiProperties properties, KravenUiEnhancedProperties enhancedProperties, Environment environment) {
         this.properties = properties;
+        this.enhancedProperties = enhancedProperties;
         this.environment = environment;
 
         // Try to get the version from the environment, fallback to the default in KravenUiProperties
@@ -75,26 +78,30 @@ public class KravenUiAutoConfiguration {
 
     /**
      * Configures the kraven UI index controller.
+     * This bean is conditionally created only if the enhanced version is disabled.
      *
      * @return the kraven UI index controller
      */
     @Bean
-    @ConditionalOnMissingBean
+    @ConditionalOnMissingBean(name = "kravenUiIndexController")
+    @ConditionalOnProperty(name = "kraven.ui.enhanced.enabled", havingValue = "false")
     public KravenUiIndexController kravenUiIndexController() {
-        return new KravenUiIndexController(properties);
+        System.out.println("Creating original KravenUiIndexController (enhanced mode disabled)");
+        return new KravenUiIndexController(properties, enhancedProperties);
     }
 
     /**
      * Configures the Feign client scanner.
      *
      * @param applicationContext the application context
+     * @param enhancedProperties the enhanced properties
      * @return the Feign client scanner
      */
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnClass(name = "org.springframework.cloud.openfeign.FeignClient")
-    public FeignClientScanner feignClientScanner(ApplicationContext applicationContext) {
-        return new FeignClientScanner(applicationContext);
+    public FeignClientScanner feignClientScanner(ApplicationContext applicationContext, KravenUiEnhancedProperties enhancedProperties) {
+        return new FeignClientScanner(applicationContext, enhancedProperties);
     }
 
     /**
@@ -122,7 +129,7 @@ public class KravenUiAutoConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnClass(name = "org.springframework.cloud.openfeign.FeignClient")
     public FeignClientController feignClientController(FeignClientScanner feignClientScanner, FeignClientExecutor feignClientExecutor) {
-        return new FeignClientController(feignClientScanner, feignClientExecutor, properties);
+        return new FeignClientController(feignClientScanner, feignClientExecutor, enhancedProperties);
     }
 
     /**

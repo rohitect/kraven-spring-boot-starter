@@ -1267,6 +1267,14 @@
     font-size: 0.875rem;
     color: var(--foreground-color);
     margin: 0;
+
+    &.syntax-highlighted {
+      color: #333;
+
+      .dark-theme & {
+        color: #f8f8f2;
+      }
+    }
   }
 }
 

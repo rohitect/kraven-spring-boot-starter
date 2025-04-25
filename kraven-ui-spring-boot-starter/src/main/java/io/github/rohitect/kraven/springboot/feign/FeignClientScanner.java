@@ -1,5 +1,6 @@
 package io.github.rohitect.kraven.springboot.feign;
 
+import io.github.rohitect.kraven.springboot.config.KravenUiEnhancedProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
@@ -10,6 +11,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,17 +29,14 @@ import java.util.stream.Collectors;
 public class FeignClientScanner implements ApplicationListener<ApplicationReadyEvent> {
 
     private final ApplicationContext applicationContext;
+    private final KravenUiEnhancedProperties properties;
     private List<FeignClientMetadata> feignClients;
-
-    @Value("${kraven.ui.feign-client.enabled:true}")
-    private boolean feignClientEnabled;
-
-    @Value("${kraven.ui.feign-client.base-packages:io.github,com,org,net}")
-    private String[] basePackages;
+    private long lastScanTime = 0;
 
     @Autowired
-    public FeignClientScanner(ApplicationContext applicationContext) {
+    public FeignClientScanner(ApplicationContext applicationContext, KravenUiEnhancedProperties properties) {
         this.applicationContext = applicationContext;
+        this.properties = properties;
     }
 
     /**
@@ -48,7 +47,8 @@ public class FeignClientScanner implements ApplicationListener<ApplicationReadyE
      */
     @Override
     public void onApplicationEvent(ApplicationReadyEvent event) {
-        if (feignClientEnabled) {
+        if (properties.getFeignClient().isEnabled()) {
+            String[] basePackages = properties.getFeignClient().getBasePackages();
             System.out.println("Application is ready. Initializing Feign client scanner with base packages: " + String.join(", ", basePackages));
             try {
                 // Check if Spring Cloud OpenFeign is available
@@ -64,24 +64,52 @@ public class FeignClientScanner implements ApplicationListener<ApplicationReadyE
     }
 
     /**
+     * Scheduled method to refresh Feign client metadata if scan interval is set.
+     * This method will be called at the configured interval to refresh the Feign client metadata.
+     */
+    @Scheduled(fixedDelayString = "${kraven.ui.feign-client.scan-interval-ms:0}")
+    public void refreshFeignClients() {
+        // Only refresh if scan interval is greater than 0 and enough time has passed since the last scan
+        if (properties.getFeignClient().getScanIntervalMs() > 0 &&
+            System.currentTimeMillis() - lastScanTime >= properties.getFeignClient().getScanIntervalMs()) {
+
+            System.out.println("Refreshing Feign client metadata...");
+            String[] basePackages = properties.getFeignClient().getBasePackages();
+            try {
+                // Check if Spring Cloud OpenFeign is available
+                Class.forName("org.springframework.cloud.openfeign.FeignClient");
+
+                // Clear the cache and rescan
+                feignClients = null;
+                scanFeignClients(basePackages);
+
+                System.out.println("Feign client metadata refreshed");
+            } catch (ClassNotFoundException e) {
+                System.err.println("WARNING: Spring Cloud OpenFeign is not available on the classpath. Feign client scanning is disabled.");
+            }
+        }
+    }
+
+    /**
      * Scans for Feign clients in the specified packages.
      *
      * @param basePackages the base packages to scan
      * @return the list of Feign client metadata
      */
     public List<FeignClientMetadata> scanFeignClients(String... basePackages) {
-        // If feignClients is already initialized, return it
-        if (feignClients != null && !feignClients.isEmpty()) {
+        // If caching is enabled and feignClients is already initialized, return it
+        if (properties.getFeignClient().isCacheMetadata() && feignClients != null && !feignClients.isEmpty()) {
             System.out.println("Returning cached Feign clients: " + feignClients.size());
             return feignClients;
         }
 
         // If no base packages are provided, use the configured ones
         if (basePackages == null || basePackages.length == 0) {
-            basePackages = this.basePackages;
+            basePackages = properties.getFeignClient().getBasePackages();
         }
 
         feignClients = new ArrayList<>();
+        lastScanTime = System.currentTimeMillis();
 
         try {
             // Try to load the FeignClient annotation class

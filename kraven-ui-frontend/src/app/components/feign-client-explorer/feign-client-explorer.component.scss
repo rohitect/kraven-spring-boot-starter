@@ -24,6 +24,22 @@
   --right-panel-input-bg: #ffffff;
 }
 
+// Dark theme overrides
+:host-context(.dark-theme) {
+  --right-panel-bg: #1e1e2d;
+  --right-panel-text: #e2e8f0;
+  --right-panel-tabs-bg: #2d2d3d;
+  --right-panel-border: #2d2d3d;
+  --right-panel-tab-text: #94a3b8;
+  --right-panel-tab-hover-text: #e2e8f0;
+  --right-panel-tab-hover-bg: rgba(255, 255, 255, 0.05);
+  --right-panel-tab-active-text: #ffffff;
+  --right-panel-button-bg: #2d2d3d;
+  --right-panel-button-hover-bg: #3d3d4d;
+  --right-panel-code-bg: #2d2d3d;
+  --right-panel-input-bg: #2d2d3d;
+}
+
 // Define variables at the component level as well
 .feign-client-container {
   --sidebar-width: 280px;
@@ -114,13 +130,25 @@
   border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
-  background-color: var(--background-secondary);
+  background-color: var(--card-bg, var(--background-color));
   overflow: hidden; /* Hide overflow for the container */
   height: 100%; /* Take full height of parent */
   z-index: 10;
   flex-shrink: 0;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.1), 0 4px 8px -2px rgba(0, 0, 0, 0.06);
   transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(var(--primary-color-rgb), 0.05) 0%, transparent 100%);
+    pointer-events: none;
+  }
 }
 
 // Sidebar Components
@@ -128,22 +156,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.25rem 1rem;
+  padding: 1.5rem 1rem 1rem 1rem;
   border-bottom: 1px solid var(--border-color);
-  background-color: var(--background-secondary);
   position: relative;
   transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease;
-
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 1px;
-    background: linear-gradient(to right, transparent, var(--primary-color), transparent);
-    opacity: 0.3;
-  }
 }
 
 .sidebar-title-content {
@@ -166,8 +182,8 @@
 }
 
 .sidebar-title {
-  margin: 0;
-  font-size: 1.25rem;
+  margin: 0 0 0.25rem 0;
+  font-size: 1.5rem;
   font-weight: 600;
   color: var(--foreground-color);
   line-height: 1.2;
@@ -367,39 +383,48 @@
   padding: 0.75rem;
   border-radius: var(--border-radius);
   cursor: pointer;
-  transition: all var(--transition-speed) ease;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   border: 1px solid var(--border-color);
   position: relative;
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background-color: var(--card-color);
+  background-color: var(--card-bg, var(--background-color));
   margin-bottom: 0.75rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(var(--primary-color-rgb), 0.05) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
 
   &:hover {
-    background-color: var(--hover-color);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     border-color: var(--primary-color);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 15px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+    &::before {
+      opacity: 1;
+    }
   }
 
   &.active {
-    background-color: var(--hover-color);
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 1px var(--primary-color), 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: rgba(var(--primary-color-rgb), 0.08);
+    box-shadow: 0 0 0 1px var(--primary-color), 0 8px 15px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 
-    // Add a left border indicator
     &::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      height: 100%;
-      width: 3px;
-      background-color: var(--primary-color);
-      border-top-left-radius: var(--border-radius);
-      border-bottom-left-radius: var(--border-radius);
+      opacity: 1;
+      background: linear-gradient(135deg, rgba(var(--primary-color-rgb), 0.1) 0%, transparent 70%);
     }
 
     // Make the client name more prominent
@@ -410,6 +435,17 @@
     // Change the icon color
     .client-icon svg {
       color: var(--primary-color);
+    }
+  }
+
+  // Add a subtle animation when items appear
+  animation: fadeInUp 0.4s ease-out forwards;
+  opacity: 0;
+  transform: translateY(10px);
+
+  @for $i from 1 through 20 {
+    &:nth-child(#{$i}) {
+      animation-delay: #{$i * 0.05}s;
     }
   }
 }
@@ -534,10 +570,10 @@
 .client-card {
   border-radius: var(--border-radius);
   border: 1px solid var(--border-color);
-  background-color: var(--card-color);
+  background-color: var(--card-bg, var(--background-color));
   padding: 1rem;
   cursor: pointer;
-  transition: all var(--transition-speed) ease;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -546,26 +582,37 @@
   position: relative;
   overflow: hidden;
 
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(var(--primary-color-rgb), 0.05) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+
   &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     border-color: var(--primary-color);
-    background-color: var(--hover-color);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 15px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+    &::before {
+      opacity: 1;
+    }
   }
 
   &.active {
-    background-color: var(--hover-color);
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 1px var(--primary-color), 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: rgba(var(--primary-color-rgb), 0.08);
+    box-shadow: 0 0 0 1px var(--primary-color), 0 8px 15px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 
     &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background-color: var(--primary-color);
+      opacity: 1;
+      background: linear-gradient(135deg, rgba(var(--primary-color-rgb), 0.1) 0%, transparent 70%);
     }
 
     .client-card-icon svg {
@@ -574,6 +621,17 @@
 
     .client-name {
       color: var(--primary-color);
+    }
+  }
+
+  // Add a subtle animation when items appear
+  animation: fadeInUp 0.4s ease-out forwards;
+  opacity: 0;
+  transform: translateY(10px);
+
+  @for $i from 1 through 20 {
+    &:nth-child(#{$i}) {
+      animation-delay: #{$i * 0.05}s;
     }
   }
 }
@@ -742,20 +800,55 @@
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
   overflow: hidden;
-  transition: all var(--transition-speed) ease;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   margin-bottom: 1rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   background-color: var(--card-bg, var(--background-color));
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(var(--primary-color-rgb), 0.05) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
 
   &:hover {
     border-color: var(--primary-color);
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 8px 15px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     transform: translateY(-2px);
+
+    &::before {
+      opacity: 1;
+    }
   }
 
   &.active {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 1px var(--primary-color), 0 3px 10px rgba(0, 0, 0, 0.1);
+    background-color: rgba(var(--primary-color-rgb), 0.08);
+    box-shadow: 0 0 0 1px var(--primary-color), 0 8px 15px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+    &::before {
+      opacity: 1;
+      background: linear-gradient(135deg, rgba(var(--primary-color-rgb), 0.1) 0%, transparent 70%);
+    }
+  }
+
+  // Add a subtle animation when items appear
+  animation: fadeInUp 0.4s ease-out forwards;
+  opacity: 0;
+  transform: translateY(10px);
+
+  @for $i from 1 through 20 {
+    &:nth-child(#{$i}) {
+      animation-delay: #{$i * 0.05}s;
+    }
   }
 }
 
@@ -2205,5 +2298,16 @@
   .right-pane-content {
     height: auto;
     max-height: none;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

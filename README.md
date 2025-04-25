@@ -47,10 +47,13 @@ A ridiculously good-looking, highly readable, and customizable documentation UI 
 </p>
 
 ### 📈 Application Monitoring
-- 🧠 **JVM Metrics** - Memory usage, thread stats, and more nerdy details
+- 🧠 **JVM Metrics** - Memory usage, thread stats, garbage collection, and more nerdy details
 - ⚙️ **Spring Metrics** - Bean count, endpoints, and other Spring-related metrics
+- 🔍 **Detailed Memory Analysis** - Heap, non-heap, and memory pool breakdowns with usage visualization
 - 📊 **Interactive Visualizations** - Pretty charts that make monitoring almost fun
 - 🔄 **Auto-refresh** - Watch your application slowly die in real-time
+- 📥 **Thread & Heap Dumps** - Generate and download thread dumps and heap dumps for debugging
+- 📊 **Metrics Export** - Download metrics summaries in text and JSON formats
 
 <p align="center">
   <img src="docs/screenshots/kraven_application_overview.png" alt="Kraven UI Application Overview" width="800" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
@@ -179,33 +182,63 @@ Start your Spring Boot application and navigate to the configured path (e.g., `h
 
 ## ⚙️ Configuration Options (For Control Freaks)
 
-Kraven UI can be configured using the following properties in your `application.properties` or `application.yml` file:
+Kraven UI offers a powerful configuration system that supports both application properties and environment variables with JSON format. Here's a quick overview:
+
+### Application Properties/YAML
 
 ```properties
-# Enable or disable Kraven UI (but why would you disable it?)
+# Basic configuration
 kraven.ui.enabled=true
-
-# The path where the Kraven UI will be served
 kraven.ui.path=/kraven
 
-# The layout type to use (three-pane, two-pane, single-pane)
+# Layout configuration
 kraven.ui.layout.type=three-pane
+kraven.ui.layout.middle-pane-width=600
+kraven.ui.layout.right-pane-width=400
 
-# Theme configuration (make it match your brand or mood)
-kraven.ui.theme.primary-color=#1976d2
-kraven.ui.theme.secondary-color=#424242
-kraven.ui.theme.font-family=Inter, system-ui, Avenir, Helvetica, Arial, sans-serif
-kraven.ui.theme.custom-css-path=
-kraven.ui.theme.custom-js-path=
+# Theme configuration
+kraven.ui.theme.dark-primary-color=#1976d2
+kraven.ui.theme.dark-secondary-color=#424242
+kraven.ui.theme.dark-background-color=#121212
+kraven.ui.theme.light-primary-color=#1976d2
+kraven.ui.theme.light-secondary-color=#424242
+kraven.ui.theme.light-background-color=#ffffff
+kraven.ui.theme.default-theme=dark
 
 # Feign Client Explorer configuration
 kraven.ui.feign-client.enabled=true
 kraven.ui.feign-client.api-path=/kraven/v1/feign-clients
+kraven.ui.feign-client.try-it-out-enabled=true
 
 # Kafka Management configuration
 kraven.ui.kafka.enabled=true
 kraven.ui.kafka.message-limit=100
+kraven.ui.kafka.streaming-enabled=true
+kraven.ui.kafka.message-production-enabled=true
+kraven.ui.kafka.message-consumption-enabled=true
+
+# Metrics configuration
+kraven.ui.metrics.enabled=true
+kraven.ui.metrics.api-path=/api/kraven-metrics
+kraven.ui.metrics.jvm-metrics-enabled=true
+kraven.ui.metrics.spring-metrics-enabled=true
+kraven.ui.metrics.kafka-metrics-enabled=true
+kraven.ui.metrics.feign-metrics-enabled=true
+kraven.ui.metrics.refresh-interval-ms=5000
+kraven.ui.metrics.auto-refresh-enabled=false
+kraven.ui.metrics.thread-dump-enabled=true
+kraven.ui.metrics.heap-dump-enabled=false
 ```
+
+### Environment Variables
+
+You can also configure Kraven UI using the `KRAVEN_UI_CONFIG` environment variable with a JSON string:
+
+```bash
+export KRAVEN_UI_CONFIG='{"path":"/api-docs","theme":{"darkPrimaryColor":"#ff5722","darkSecondaryColor":"#607d8b","darkBackgroundColor":"#121212","lightPrimaryColor":"#2196f3","lightSecondaryColor":"#ff9800","lightBackgroundColor":"#ffffff","defaultTheme":"dark"},"kafka":{"messageLimit":200},"metrics":{"refreshIntervalMs":10000,"autoRefreshEnabled":true,"threadDumpEnabled":true,"heapDumpEnabled":false}}'
+```
+
+For a complete list of all configuration options, see the [Configuration Guide](CONFIGURATION.md).
 
 ## 🎮 Feature Showcase: What Makes Kraven UI Special
 
@@ -245,12 +278,16 @@ Manage your Kafka clusters with ease:
 
 Get insights into your application's performance:
 
-- **JVM Metrics**: Memory usage, garbage collection, threads
-- **Memory Pools**: Detailed breakdown of memory usage by pool
-- **Thread Information**: Active threads and thread dumps
-- **Spring Metrics**: Bean count, endpoint details
-- **Auto-Refresh**: Configurable auto-refresh intervals
-- **Data Export**: Download metrics in various formats
+- **JVM Metrics**: Memory usage, garbage collection, threads, class loading
+- **Memory Pools**: Detailed breakdown of memory usage by pool with visual progress bars
+- **Thread Information**: Active threads, daemon threads, and thread dumps
+- **Spring Metrics**: Bean count, controllers, services, repositories, and endpoint details
+- **Kafka Metrics**: Topic count, consumer groups, producers, and listeners
+- **Feign Client Metrics**: Client count and method count
+- **Auto-Refresh**: Configurable auto-refresh intervals with visual progress indicator
+- **Thread & Heap Dumps**: Generate and download thread dumps and heap dumps for debugging
+- **Data Export**: Download metrics summaries in text and JSON formats
+- **Customizable**: Configure which metrics to collect and display
 
 ## 📋 Example: Using Kraven UI in a Spring Boot REST API
 
@@ -352,9 +389,30 @@ springdoc.swagger-ui.enabled=false
 kraven.ui.enabled=true
 kraven.ui.path=/kraven
 kraven.ui.layout.type=three-pane
-kraven.ui.theme.primary-color=#1976d2
+
+# Theme configuration
+kraven.ui.theme.dark-primary-color=#1976d2
+kraven.ui.theme.dark-secondary-color=#424242
+kraven.ui.theme.dark-background-color=#121212
+kraven.ui.theme.light-primary-color=#1976d2
+kraven.ui.theme.light-secondary-color=#424242
+kraven.ui.theme.light-background-color=#ffffff
+kraven.ui.theme.default-theme=dark
+
+# Feature configurations
 kraven.ui.feign-client.enabled=true
 kraven.ui.kafka.enabled=true
+
+# Metrics configuration
+kraven.ui.metrics.enabled=true
+kraven.ui.metrics.jvm-metrics-enabled=true
+kraven.ui.metrics.spring-metrics-enabled=true
+kraven.ui.metrics.kafka-metrics-enabled=true
+kraven.ui.metrics.feign-metrics-enabled=true
+kraven.ui.metrics.refresh-interval-ms=5000
+kraven.ui.metrics.auto-refresh-enabled=false
+kraven.ui.metrics.thread-dump-enabled=true
+kraven.ui.metrics.heap-dump-enabled=false
 ```
 
 ### 4. Configure Spring Security (If Applicable)

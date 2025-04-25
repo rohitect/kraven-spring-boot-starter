@@ -39,13 +39,21 @@
   --sidebar-collapsed-width: 70px;
   --sidebar-transition: width 0.3s ease;
 
+  /* Theme variables that will be set dynamically */
+  --primary-color-dark: #1976d2;
+  --secondary-color-dark: #424242;
+  --background-color-dark: #121212;
+  --primary-color-light: #1976d2;
+  --secondary-color-light: #424242;
+  --background-color-light: #ffffff;
+
   /* Dark theme (default) */
-  --background-color: #0f172a;
+  --background-color: var(--background-color-dark);
   --foreground-color: #e2e8f0;
-  --primary-color: #f8fafc;
+  --primary-color: var(--primary-color-dark);
   --primary-hover-color: #e2e8f0;
   --primary-foreground-color: #020617;
-  --secondary-color: #1e293b;
+  --secondary-color: var(--secondary-color-dark);
   --secondary-foreground-color: #f8fafc;
   --muted-color: #1e293b;
   --muted-hover-color: rgba(73, 144, 226, 0.12);
@@ -53,7 +61,7 @@
   --accent-color: #1e293b;
   --accent-foreground-color: #f8fafc;
   --border-color: #334155;
-  --card-color: #0f172a;
+  --card-color: var(--background-color-dark);
   --card-foreground-color: #e2e8f0;
   --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
   --hover-brightness: 1.1;
@@ -63,12 +71,12 @@
 
 :root.light-theme, html.light-theme {
   /* Light theme */
-  --background-color: #f8fafc;
+  --background-color: var(--background-color-light);
   --foreground-color: #0f172a;
-  --primary-color: #0f172a;
+  --primary-color: var(--primary-color-light);
   --primary-hover-color: #1e293b;
   --primary-foreground-color: #f8fafc;
-  --secondary-color: #e2e8f0;
+  --secondary-color: var(--secondary-color-light);
   --secondary-foreground-color: #0f172a;
   --muted-color: #e2e8f0;
   --muted-hover-color: rgba(73, 144, 226, 0.08);
@@ -76,7 +84,7 @@
   --accent-color: #e2e8f0;
   --accent-foreground-color: #0f172a;
   --border-color: #cbd5e1;
-  --card-color: #ffffff;
+  --card-color: var(--background-color-light);
   --card-foreground-color: #0f172a;
   --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   --hover-brightness: 0.9;

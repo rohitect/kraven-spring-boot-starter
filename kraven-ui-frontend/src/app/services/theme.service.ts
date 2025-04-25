@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
+import { ConfigService } from './config.service';
 
 export type Theme = 'dark' | 'light';
 
@@ -7,28 +8,49 @@ export type Theme = 'dark' | 'light';
   providedIn: 'root'
 })
 export class ThemeService {
-  private themeSubject = new BehaviorSubject<Theme>(this.getInitialTheme());
+  private themeSubject = new BehaviorSubject<Theme>('dark'); // Default to dark initially
   public theme$ = this.themeSubject.asObservable();
 
-  constructor() {
-    // Apply the initial theme
-    this.applyTheme(this.themeSubject.value);
+  constructor(private configService: ConfigService) {
+    // Initialize theme after constructor
+    setTimeout(() => {
+      const initialTheme = this.getInitialTheme();
+      this.themeSubject.next(initialTheme);
+      this.applyTheme(initialTheme);
+    }, 0);
   }
 
   private getInitialTheme(): Theme {
-    // Check if theme is stored in localStorage
-    const savedTheme = localStorage.getItem('theme') as Theme;
-    if (savedTheme && (savedTheme === 'dark' || savedTheme === 'light')) {
-      return savedTheme;
-    }
+    try {
+      // Check if theme is stored in localStorage first
+      const savedTheme = localStorage.getItem('theme') as Theme;
+      if (savedTheme && (savedTheme === 'dark' || savedTheme === 'light')) {
+        return savedTheme;
+      }
 
-    // Check if user prefers dark mode
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return 'dark';
-    }
+      // Try to get config
+      const config = this.configService.getConfig();
+      if (!config || !config.theme) {
+        console.warn('Theme configuration not available, using default theme');
+        return 'dark';
+      }
 
-    // Default to dark theme
-    return 'dark';
+      // Check if we should respect system preference
+      if (config.theme.respectSystemPreference) {
+        // Check if user prefers dark mode
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          return 'dark';
+        } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+          return 'light';
+        }
+      }
+
+      // Use the default theme from configuration
+      return (config.theme.defaultTheme as Theme) || 'dark';
+    } catch (error) {
+      console.error('Error getting initial theme:', error);
+      return 'dark'; // Fallback to dark theme
+    }
   }
 
   public toggleTheme(): void {

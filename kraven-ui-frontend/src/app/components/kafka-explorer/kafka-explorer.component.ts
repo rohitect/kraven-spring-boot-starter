@@ -52,6 +52,12 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
   topicSearchQuery: string = '';
   filteredTopics: KafkaTopic[] = [];
 
+  // Configuration options
+  messageProductionEnabled = true;
+  messageConsumptionEnabled = true;
+  streamingEnabled = true;
+  messageLimit = 100;
+
   // Message sending
   newMessage: KafkaMessage = {
     id: '',
@@ -107,6 +113,22 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
     this.themeService.theme$.subscribe(theme => {
       this.isDarkTheme = theme === 'dark';
     });
+
+    // Initialize configuration options from config service
+    const config = this.configService.getConfig();
+    if (config.kafka) {
+      this.messageProductionEnabled = config.kafka.messageProductionEnabled !== false;
+      this.messageConsumptionEnabled = config.kafka.messageConsumptionEnabled !== false;
+      this.streamingEnabled = config.kafka.streamingEnabled !== false;
+      this.messageLimit = config.kafka.messageLimit || 100;
+
+      console.log('Kafka Explorer initialized with config:', {
+        messageProductionEnabled: this.messageProductionEnabled,
+        messageConsumptionEnabled: this.messageConsumptionEnabled,
+        streamingEnabled: this.streamingEnabled,
+        messageLimit: this.messageLimit
+      });
+    }
 
     // Initialize filtered messages array
     this.filteredMessages = [];
@@ -199,9 +221,21 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
    * Loads messages for a specific topic with pagination.
    */
   loadMessagesForTopic(topicName: string, sort: string = 'new', page: number = 0): void {
+    // Check if message consumption is enabled
+    if (!this.messageConsumptionEnabled) {
+      console.warn('Message consumption is disabled');
+      this.receivedMessages = [];
+      this.filteredMessages = [];
+      this.totalMessages = 0;
+      this.totalPages = 0;
+      this.currentPage = 0;
+      this.loadingMessages = false;
+      return;
+    }
+
     this.loadingMessages = true;
 
-    this.kafkaService.getMessagesFromTopic(topicName, page, this.pageSize, sort).subscribe({
+    this.kafkaService.getMessagesFromTopic(topicName, page, this.messageLimit, sort).subscribe({
       next: (response) => {
         console.log('Response from getMessagesFromTopic:', response);
 
@@ -339,6 +373,13 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Check if message production is enabled
+    if (!this.messageProductionEnabled) {
+      console.warn('Message production is disabled');
+      alert('Message production is disabled in the configuration');
+      return;
+    }
+
     this.newMessage.timestamp = new Date().toISOString();
 
     this.kafkaService.sendMessage(this.newMessage).subscribe({
@@ -358,6 +399,7 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Error sending message:', error);
+        alert('Error sending message: ' + (error.message || 'Unknown error'));
       }
     });
   }
@@ -493,6 +535,22 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Check if streaming is enabled
+    if (!this.streamingEnabled) {
+      console.warn('Streaming is disabled');
+      alert('Streaming is disabled in the configuration');
+      this.messageViewMode = 'new'; // Fall back to non-streaming mode
+      return;
+    }
+
+    // Check if message consumption is enabled
+    if (!this.messageConsumptionEnabled) {
+      console.warn('Message consumption is disabled');
+      alert('Message consumption is disabled in the configuration');
+      this.messageViewMode = 'new'; // Fall back to non-streaming mode
+      return;
+    }
+
     // Clear any existing streamed messages
     this.streamedMessages = [];
     this.filteredMessages = [];
@@ -502,7 +560,17 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
 
     // Create a new event source
     this.isStreaming = true;
-    this.eventSource = this.kafkaService.streamMessagesFromTopic(this.selectedTopic.name);
+    const eventSource = this.kafkaService.streamMessagesFromTopic(this.selectedTopic.name);
+
+    // Check if event source was created (it might be null if streaming is disabled)
+    if (!eventSource) {
+      console.warn('Failed to create event source');
+      this.isStreaming = false;
+      this.messageViewMode = 'new'; // Fall back to non-streaming mode
+      return;
+    }
+
+    this.eventSource = eventSource;
 
     // Handle connection open
     this.eventSource.onopen = (event) => {

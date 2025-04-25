@@ -1,6 +1,6 @@
 package io.github.rohitect.kraven.springboot.feign;
 
-import io.github.rohitect.kraven.springboot.KravenUiProperties;
+import io.github.rohitect.kraven.springboot.config.KravenUiEnhancedProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
@@ -19,20 +19,22 @@ import java.util.stream.Collectors;
  * Controller for Feign client metadata.
  */
 @RestController
-@RequestMapping("/kraven/v1/feign-clients")
+@RequestMapping("${kraven.ui.feign-client.api-path:/kraven/v1/feign-clients}")
 @ConditionalOnProperty(prefix = "kraven.ui", name = "enabled", matchIfMissing = true)
 public class FeignClientController {
 
     private final FeignClientScanner feignClientScanner;
     private final FeignClientExecutor feignClientExecutor;
-    private final KravenUiProperties properties;
+    private final KravenUiEnhancedProperties properties;
 
     @Autowired
-    public FeignClientController(FeignClientScanner feignClientScanner, FeignClientExecutor feignClientExecutor, KravenUiProperties properties) {
+    public FeignClientController(FeignClientScanner feignClientScanner, FeignClientExecutor feignClientExecutor, KravenUiEnhancedProperties properties) {
         this.feignClientScanner = feignClientScanner;
         this.feignClientExecutor = feignClientExecutor;
         this.properties = properties;
-        System.out.println("FeignClientController initialized with path: /kraven/v1/feign-clients");
+
+        String apiPath = properties.getFeignClient().getApiPath();
+        System.out.println("FeignClientController initialized with path: " + apiPath);
     }
 
     /**
@@ -40,9 +42,11 @@ public class FeignClientController {
      *
      * @return a simple message
      */
-    @GetMapping("/debug")
+    @GetMapping(value = "/debug", produces = "application/json")
     public ResponseEntity<Map<String, String>> debug() {
-        return ResponseEntity.ok(Map.of("status", "ok", "message", "FeignClientController is working"));
+        return ResponseEntity.ok()
+            .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+            .body(Map.of("status", "ok", "message", "FeignClientController is working"));
     }
 
     /**
@@ -50,18 +54,22 @@ public class FeignClientController {
      *
      * @return a list of all client names
      */
-    @GetMapping("/debug/names")
+    @GetMapping(value = "/debug/names", produces = "application/json")
     public ResponseEntity<List<String>> debugNames() {
         try {
             List<FeignClientMetadata> feignClients = feignClientScanner.scanFeignClients();
             List<String> names = feignClients.stream()
                 .map(FeignClientMetadata::getName)
                 .collect(Collectors.toList());
-            return ResponseEntity.ok(names);
+            return ResponseEntity.ok()
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .body(names);
         } catch (Exception e) {
             System.err.println("Error getting client names: " + e.getMessage());
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.emptyList());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .body(Collections.emptyList());
         }
     }
 
@@ -78,12 +86,16 @@ public class FeignClientController {
 
             // The scanner is already initialized with the configured base packages
             List<FeignClientMetadata> feignClients = feignClientScanner.scanFeignClients();
-            return ResponseEntity.ok(feignClients);
+            return ResponseEntity.ok()
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .body(feignClients);
         } catch (ClassNotFoundException e) {
             // Spring Cloud OpenFeign is not available
             System.err.println("WARNING: Spring Cloud OpenFeign is not available on the classpath. Feign client scanning is disabled.");
             System.err.println("To use the Feign client scanner, add the spring-cloud-starter-openfeign dependency to your project.");
-            return ResponseEntity.ok(Collections.emptyList());
+            return ResponseEntity.ok()
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .body(Collections.emptyList());
         }
     }
 
@@ -122,13 +134,22 @@ public class FeignClientController {
                         return matches;
                     })
                     .findFirst();
-            return feignClient.map(ResponseEntity::ok)
-                    .orElseGet(() -> ResponseEntity.notFound().build());
+            if (feignClient.isPresent()) {
+                return ResponseEntity.ok()
+                    .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                    .body(feignClient.get());
+            } else {
+                return ResponseEntity.notFound()
+                    .header("Content-Type", "application/json")
+                    .build();
+            }
         } catch (ClassNotFoundException e) {
             // Spring Cloud OpenFeign is not available
             System.err.println("WARNING: Spring Cloud OpenFeign is not available on the classpath. Feign client scanning is disabled.");
             System.err.println("To use the Feign client scanner, add the spring-cloud-starter-openfeign dependency to your project.");
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.notFound()
+                .header("Content-Type", "application/json")
+                .build();
         }
     }
 
@@ -156,12 +177,16 @@ public class FeignClientController {
             System.out.println("Executing method: " + name + "." + methodName + " with parameters: " + safeParameters);
 
             Object result = feignClientExecutor.executeMethod(name, methodName, safeParameters);
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok()
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .body(result);
         } catch (ClassNotFoundException e) {
             // Spring Cloud OpenFeign is not available
             System.err.println("WARNING: Spring Cloud OpenFeign is not available on the classpath. Feign client execution is disabled.");
             System.err.println("To use the Feign client executor, add the spring-cloud-starter-openfeign dependency to your project.");
-            return ResponseEntity.badRequest().body(Map.of("error", "Spring Cloud OpenFeign is not available on the classpath."));
+            return ResponseEntity.badRequest()
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .body(Map.of("error", "Spring Cloud OpenFeign is not available on the classpath."));
         } catch (Exception e) {
             // Log the full exception for debugging
             System.err.println("Error executing method " + name + "." + methodName + ": " + e.getMessage());
@@ -176,7 +201,9 @@ public class FeignClientController {
             }
 
             errorMessage = errorMessage == null ? e.getMessage() : errorMessage;
-            return ResponseEntity.badRequest().body(Map.of("error", errorMessage));
+            return ResponseEntity.badRequest()
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .body(Map.of("error", errorMessage));
         }
     }
 }

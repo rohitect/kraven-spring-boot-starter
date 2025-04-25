@@ -24,12 +24,21 @@ export class FeignClientService {
     console.log('Fetching Feign clients from:', apiPath);
 
     // First try the debug endpoint to check if the controller is accessible
-    this.http.get(`${apiPath}/debug`).subscribe(
+    this.http.get(`${apiPath}/debug`, { headers: { 'Accept': 'application/json' } }).subscribe(
       response => console.log('Debug endpoint response:', response),
       error => console.error('Debug endpoint error:', error)
     );
 
-    return this.http.get<FeignClient[]>(apiPath).pipe(
+    return this.http.get<FeignClient[]>(apiPath, { headers: { 'Accept': 'application/json' } }).pipe(
+      map(response => {
+        // Ensure we always return an array
+        if (Array.isArray(response)) {
+          return response;
+        } else {
+          console.warn('Response is not an array:', response);
+          return [];
+        }
+      }),
       catchError(error => {
         console.error('Error fetching Feign clients:', error);
         console.error('Response text:', error.error?.text || 'No response text');
@@ -55,12 +64,12 @@ export class FeignClientService {
     console.log('Fetching Feign client from:', url);
 
     // First try the debug endpoint to check if the controller is accessible
-    this.http.get(`${apiPath}/debug`).subscribe(
+    this.http.get(`${apiPath}/debug`, { headers: { 'Accept': 'application/json' } }).subscribe(
       response => console.log('Debug endpoint response before getting client:', response),
       error => console.error('Debug endpoint error before getting client:', error)
     );
 
-    return this.http.get<FeignClient>(url).pipe(
+    return this.http.get<FeignClient>(url, { headers: { 'Accept': 'application/json' } }).pipe(
       catchError(error => {
         console.error('Error fetching Feign client:', error);
         console.error('Response text:', error.error?.text || 'No response text');
@@ -103,7 +112,10 @@ export class FeignClientService {
     console.log('Request payload:', payload);
 
     // Return the raw response without wrapping it
-    return this.http.post(`${apiPath}/${clientName}/methods/${methodName}/execute`, payload, { observe: 'response' }).pipe(
+    return this.http.post(`${apiPath}/${clientName}/methods/${methodName}/execute`, payload, {
+      observe: 'response',
+      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }
+    }).pipe(
       map(response => {
         // Return the raw response body
         return response.body;

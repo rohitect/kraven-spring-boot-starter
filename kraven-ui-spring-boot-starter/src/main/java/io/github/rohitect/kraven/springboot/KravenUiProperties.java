@@ -26,6 +26,22 @@ public class KravenUiProperties {
     private boolean developmentMode = false;
 
     /**
+     * Enhanced configuration options.
+     */
+    private Enhanced enhanced = new Enhanced();
+
+    /**
+     * Enhanced configuration options.
+     */
+    @Data
+    public static class Enhanced {
+        /**
+         * Enable or disable enhanced features.
+         */
+        private boolean enabled = true;
+    }
+
+    /**
      * Get the normalized path with a leading slash.
      *
      * @return the normalized path
@@ -81,19 +97,50 @@ public class KravenUiProperties {
     @Data
     public static class Theme {
         /**
-         * The primary color for the UI.
+         * The primary color for the dark theme.
          */
+        private String darkPrimaryColor = "#1976d2";
+
+        /**
+         * The secondary color for the dark theme.
+         */
+        private String darkSecondaryColor = "#424242";
+
+        /**
+         * The background color for the dark theme.
+         */
+        private String darkBackgroundColor = "#121212";
+
+        /**
+         * The primary color for the light theme.
+         */
+        private String lightPrimaryColor = "#1976d2";
+
+        /**
+         * The secondary color for the light theme.
+         */
+        private String lightSecondaryColor = "#424242";
+
+        /**
+         * The background color for the light theme.
+         */
+        private String lightBackgroundColor = "#ffffff";
+
+        /**
+         * @deprecated Use darkPrimaryColor or lightPrimaryColor instead.
+         * Kept for backward compatibility.
+         */
+        @Deprecated
         private String primaryColor = "#1976d2";
 
         /**
-         * The secondary color for the UI.
+         * @deprecated Use darkSecondaryColor or lightSecondaryColor instead.
+         * Kept for backward compatibility.
          */
+        @Deprecated
         private String secondaryColor = "#424242";
 
-        /**
-         * The font family to use.
-         */
-        private String fontFamily = "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif";
+
 
         /**
          * Custom CSS file path to include.
@@ -104,6 +151,16 @@ public class KravenUiProperties {
          * Custom JavaScript file path to include.
          */
         private String customJsPath;
+
+        /**
+         * The default theme to use (light or dark).
+         */
+        private String defaultTheme = "dark";
+
+        /**
+         * Whether to respect the user's system preference for light/dark mode.
+         */
+        private boolean respectSystemPreference = true;
     }
 
     /**

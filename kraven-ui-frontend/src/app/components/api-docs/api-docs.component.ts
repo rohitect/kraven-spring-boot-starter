@@ -109,6 +109,18 @@ export class ApiDocsComponent implements OnInit {
   // Right pane state
   rightPaneActiveTab: 'try-it-out' | 'response-samples' = 'try-it-out';
 
+  // API documentation configuration
+  apiDocsConfig = {
+    enabled: true,
+    tryItOutEnabled: true,
+    // Default values for removed properties
+    showExamples: true,
+    expandOperations: false,
+    showApiInfo: true,
+    syntaxHighlighting: true,
+    markdownEnabled: true
+  };
+
   // JSON viewer state
   jsonViewerExpanded = true;
 
@@ -123,7 +135,16 @@ export class ApiDocsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.title = this.configService.getConfig().title;
+    const config = this.configService.getConfig();
+    this.title = config.title;
+
+    // Load API documentation configuration from config service
+    if (config.apiDocs) {
+      this.apiDocsConfig = {
+        ...this.apiDocsConfig,
+        ...config.apiDocs
+      };
+    }
 
     // Get the current theme from the theme service
     this.isDarkTheme = this.themeService.getCurrentTheme() === 'dark';
@@ -199,6 +220,13 @@ export class ApiDocsComponent implements OnInit {
     this.loading = true;
     this.error = null;
     this.paths = [];
+
+    // Check if API documentation is enabled
+    if (!this.apiDocsConfig.enabled) {
+      this.loading = false;
+      this.error = 'API documentation is disabled in the configuration.';
+      return Promise.resolve();
+    }
 
     return new Promise<void>((resolve) => {
       this.apiDocsService.getApiDocs().subscribe({
@@ -842,8 +870,8 @@ export class ApiDocsComponent implements OnInit {
       .map(method => ({
         type: method.toUpperCase(),
         operation: pathItem[method],
-        isExpanded: false, // Initially collapsed
-        autoExpand: false // Initially not auto-expanded
+        isExpanded: this.apiDocsConfig.expandOperations, // Respect expandOperations configuration
+        autoExpand: this.apiDocsConfig.expandOperations // Auto-expand if expandOperations is true
       }));
   }
 

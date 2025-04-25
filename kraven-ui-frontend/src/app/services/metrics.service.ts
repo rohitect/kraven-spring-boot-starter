@@ -91,6 +91,16 @@ export interface ApplicationMetrics {
 })
 export class MetricsService {
   private baseUrl: string;
+  private apiPath: string;
+  private jvmMetricsEnabled: boolean;
+  private springMetricsEnabled: boolean;
+  private kafkaMetricsEnabled: boolean;
+  private feignMetricsEnabled: boolean;
+  private refreshIntervalMs: number;
+  private autoRefreshEnabled: boolean;
+  private threadDumpEnabled: boolean;
+  private heapDumpEnabled: boolean;
+  private enabled: boolean;
 
   constructor(
     private http: HttpClient,
@@ -98,13 +108,57 @@ export class MetricsService {
   ) {
     const config = this.configService.getConfig();
     this.baseUrl = config.basePath || '';
+
+    // Initialize metrics configuration from config
+    if (config.metrics) {
+      this.apiPath = config.metrics.apiPath || '/api/kraven-metrics';
+      this.jvmMetricsEnabled = config.metrics.jvmMetricsEnabled !== false;
+      this.springMetricsEnabled = config.metrics.springMetricsEnabled !== false;
+      this.kafkaMetricsEnabled = config.metrics.kafkaMetricsEnabled !== false;
+      this.feignMetricsEnabled = config.metrics.feignMetricsEnabled !== false;
+      this.refreshIntervalMs = config.metrics.refreshIntervalMs || 5000;
+      this.autoRefreshEnabled = config.metrics.autoRefreshEnabled === true;
+      this.threadDumpEnabled = config.metrics.threadDumpEnabled !== false;
+      this.heapDumpEnabled = config.metrics.heapDumpEnabled === true;
+      this.enabled = config.metrics.enabled !== false;
+    } else {
+      // Default values if metrics config is not provided
+      this.apiPath = '/api/kraven-metrics';
+      this.jvmMetricsEnabled = true;
+      this.springMetricsEnabled = true;
+      this.kafkaMetricsEnabled = true;
+      this.feignMetricsEnabled = true;
+      this.refreshIntervalMs = 5000;
+      this.autoRefreshEnabled = false;
+      this.threadDumpEnabled = true;
+      this.heapDumpEnabled = false;
+      this.enabled = true;
+    }
+
+    console.log('Metrics service initialized with config:', {
+      apiPath: this.apiPath,
+      jvmMetricsEnabled: this.jvmMetricsEnabled,
+      springMetricsEnabled: this.springMetricsEnabled,
+      kafkaMetricsEnabled: this.kafkaMetricsEnabled,
+      feignMetricsEnabled: this.feignMetricsEnabled,
+      refreshIntervalMs: this.refreshIntervalMs,
+      autoRefreshEnabled: this.autoRefreshEnabled,
+      threadDumpEnabled: this.threadDumpEnabled,
+      heapDumpEnabled: this.heapDumpEnabled,
+      enabled: this.enabled
+    });
   }
 
   /**
    * Gets all application metrics.
    */
   getMetrics(): Observable<ApplicationMetrics> {
-    return this.http.get<ApplicationMetrics>('/api/kraven-metrics').pipe(
+    if (!this.enabled) {
+      console.warn('Metrics service is disabled');
+      return of(this.getEmptyMetrics());
+    }
+
+    return this.http.get<ApplicationMetrics>(`${this.apiPath}`).pipe(
       catchError(error => {
         console.error('Error fetching metrics:', error);
         return of(this.getEmptyMetrics());
@@ -116,7 +170,12 @@ export class MetricsService {
    * Gets JVM metrics.
    */
   getJvmMetrics(): Observable<JvmMetrics> {
-    return this.http.get<JvmMetrics>('/api/kraven-metrics/jvm').pipe(
+    if (!this.enabled || !this.jvmMetricsEnabled) {
+      console.warn('JVM metrics are disabled');
+      return of(this.getEmptyJvmMetrics());
+    }
+
+    return this.http.get<JvmMetrics>(`${this.apiPath}/jvm`).pipe(
       catchError(error => {
         console.error('Error fetching JVM metrics:', error);
         return of(this.getEmptyJvmMetrics());
@@ -128,7 +187,12 @@ export class MetricsService {
    * Gets application metrics.
    */
   getAppMetrics(): Observable<AppMetrics> {
-    return this.http.get<AppMetrics>('/api/kraven-metrics/application').pipe(
+    if (!this.enabled) {
+      console.warn('Metrics service is disabled');
+      return of(this.getEmptyAppMetrics());
+    }
+
+    return this.http.get<AppMetrics>(`${this.apiPath}/application`).pipe(
       catchError(error => {
         console.error('Error fetching application metrics:', error);
         return of(this.getEmptyAppMetrics());
@@ -140,7 +204,12 @@ export class MetricsService {
    * Gets Spring metrics.
    */
   getSpringMetrics(): Observable<SpringMetrics> {
-    return this.http.get<SpringMetrics>('/api/kraven-metrics/spring').pipe(
+    if (!this.enabled || !this.springMetricsEnabled) {
+      console.warn('Spring metrics are disabled');
+      return of(this.getEmptySpringMetrics());
+    }
+
+    return this.http.get<SpringMetrics>(`${this.apiPath}/spring`).pipe(
       catchError(error => {
         console.error('Error fetching Spring metrics:', error);
         return of(this.getEmptySpringMetrics());
@@ -152,7 +221,12 @@ export class MetricsService {
    * Gets Kafka metrics.
    */
   getKafkaMetrics(): Observable<KafkaMetrics> {
-    return this.http.get<KafkaMetrics>('/api/kraven-metrics/kafka').pipe(
+    if (!this.enabled || !this.kafkaMetricsEnabled) {
+      console.warn('Kafka metrics are disabled');
+      return of(this.getEmptyKafkaMetrics());
+    }
+
+    return this.http.get<KafkaMetrics>(`${this.apiPath}/kafka`).pipe(
       catchError(error => {
         console.error('Error fetching Kafka metrics:', error);
         return of(this.getEmptyKafkaMetrics());
@@ -164,7 +238,12 @@ export class MetricsService {
    * Gets Feign client metrics.
    */
   getFeignMetrics(): Observable<FeignMetrics> {
-    return this.http.get<FeignMetrics>('/api/kraven-metrics/feign').pipe(
+    if (!this.enabled || !this.feignMetricsEnabled) {
+      console.warn('Feign metrics are disabled');
+      return of(this.getEmptyFeignMetrics());
+    }
+
+    return this.http.get<FeignMetrics>(`${this.apiPath}/feign`).pipe(
       catchError(error => {
         console.error('Error fetching Feign metrics:', error);
         return of(this.getEmptyFeignMetrics());
@@ -176,7 +255,12 @@ export class MetricsService {
    * Downloads a thread dump.
    */
   downloadThreadDump(): Observable<Blob> {
-    return this.http.get('/api/kraven-metrics/thread-dump', {
+    if (!this.enabled || !this.threadDumpEnabled) {
+      console.warn('Thread dump is disabled');
+      return new Observable(observer => observer.error('Thread dump is disabled'));
+    }
+
+    return this.http.get(`${this.apiPath}/thread-dump`, {
       responseType: 'blob'
     });
   }
@@ -185,9 +269,42 @@ export class MetricsService {
    * Downloads a heap dump.
    */
   downloadHeapDump(): Observable<Blob> {
-    return this.http.get('/api/kraven-metrics/heap-dump', {
+    if (!this.enabled || !this.heapDumpEnabled) {
+      console.warn('Heap dump is disabled');
+      return new Observable(observer => observer.error('Heap dump is disabled'));
+    }
+
+    return this.http.get(`${this.apiPath}/heap-dump`, {
       responseType: 'blob'
     });
+  }
+
+  /**
+   * Gets the refresh interval in milliseconds.
+   */
+  getRefreshIntervalMs(): number {
+    return this.refreshIntervalMs;
+  }
+
+  /**
+   * Checks if auto-refresh is enabled.
+   */
+  isAutoRefreshEnabled(): boolean {
+    return this.autoRefreshEnabled;
+  }
+
+  /**
+   * Checks if thread dump is enabled.
+   */
+  isThreadDumpEnabled(): boolean {
+    return this.threadDumpEnabled;
+  }
+
+  /**
+   * Checks if heap dump is enabled.
+   */
+  isHeapDumpEnabled(): boolean {
+    return this.heapDumpEnabled;
   }
 
   /**

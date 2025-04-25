@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
  * REST controller for Kafka management operations.
  */
 @RestController
-@RequestMapping("/api/kraven-kafka-management")
+@RequestMapping("${kraven.ui.kafka.api-path:/api/kraven-kafka-management}")
 @Tag(name = "Kraven Kafka Management", description = "Kraven Kafka management APIs")
 @RequiredArgsConstructor
 @ConditionalOnClass(name = "org.springframework.kafka.core.KafkaAdmin")
@@ -183,29 +183,41 @@ public class KafkaManagementController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved messages",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = KafkaMessage.class))),
+            @ApiResponse(responseCode = "403", description = "Message consumption is disabled", content = @Content),
             @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
     })
     public ResponseEntity<Map<String, Object>> getMessagesFromTopic(
             @PathVariable("name") String name,
             @Parameter(description = "Maximum number of messages per page")
-            @RequestParam(name = "limit", defaultValue = "20") int limit,
+            @RequestParam(name = "limit", defaultValue = "0") int limit,
             @Parameter(description = "Page number (0-based)")
             @RequestParam(name = "page", defaultValue = "0") int page,
             @Parameter(description = "Sort order: 'new' for newest first, 'old' for oldest first")
             @RequestParam(name = "sort", defaultValue = "new") String sort) {
 
-        log.info("Getting messages from topic: {}, limit: {}, page: {}, sort: {}", name, limit, page, sort);
+        // Check if message consumption is enabled
+        if (!kafkaAdminService.isMessageConsumptionEnabled()) {
+            log.warn("Message consumption is disabled. Rejecting request for topic: {}", name);
+            throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.FORBIDDEN,
+                "Message fetching is disabled in the configuration. To enable it, set 'kraven.ui.kafka.message-consumption-enabled=true' in your application properties.");
+        }
+
+        // Use configured message limit if not specified
+        int actualLimit = limit > 0 ? limit : kafkaAdminService.getMessageLimit();
+
+        log.info("Getting messages from topic: {}, limit: {}, page: {}, sort: {}", name, actualLimit, page, sort);
 
         boolean sortNewestFirst = !"old".equalsIgnoreCase(sort);
-        int offset = page * limit;
-        List<KafkaMessage> messages = kafkaMessageService.getMessagesFromTopic(name, limit, offset, sortNewestFirst);
+        int offset = page * actualLimit;
+        List<KafkaMessage> messages = kafkaMessageService.getMessagesFromTopic(name, actualLimit, offset, sortNewestFirst);
         long totalMessages = kafkaMessageService.getTopicMessageCount(name);
-        int totalPages = (int) Math.ceil((double) totalMessages / limit);
+        int totalPages = (int) Math.ceil((double) totalMessages / actualLimit);
 
         Map<String, Object> response = new HashMap<>();
         response.put("messages", messages);
         response.put("page", page);
-        response.put("limit", limit);
+        response.put("limit", actualLimit);
         response.put("totalMessages", totalMessages);
         response.put("totalPages", totalPages);
 
@@ -219,6 +231,7 @@ public class KafkaManagementController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully established stream connection",
                     content = @Content(mediaType = "text/event-stream")),
+            @ApiResponse(responseCode = "403", description = "Streaming is disabled", content = @Content),
             @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content)
     })
     public SseEmitter streamMessagesFromTopic(
@@ -226,8 +239,25 @@ public class KafkaManagementController {
 
         log.info("Establishing SSE stream for topic: {}", name);
 
-        // Create a new emitter with a timeout
-        SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
+        // Check if streaming is enabled
+        if (!kafkaAdminService.isStreamingEnabled()) {
+            log.warn("Streaming is disabled. Rejecting SSE request for topic: {}", name);
+            throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.FORBIDDEN,
+                "Streaming is disabled in the configuration. To enable it, set 'kraven.ui.kafka.streaming-enabled=true' in your application properties.");
+        }
+
+        // Check if message consumption is enabled
+        if (!kafkaAdminService.isMessageConsumptionEnabled()) {
+            log.warn("Message consumption is disabled. Rejecting SSE request for topic: {}", name);
+            throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.FORBIDDEN,
+                "Message fetching is disabled in the configuration. To enable it, set 'kraven.ui.kafka.message-consumption-enabled=true' in your application properties.");
+        }
+
+        // Create a new emitter with the configured timeout
+        long sseTimeoutMs = kafkaAdminService.getSseTimeoutMs();
+        SseEmitter emitter = new SseEmitter(sseTimeoutMs);
 
         // Add the emitter to our list
         emitters.add(emitter);
@@ -239,7 +269,7 @@ public class KafkaManagementController {
         });
 
         emitter.onTimeout(() -> {
-            log.info("SSE stream timed out for topic: {}", name);
+            log.info("SSE stream timed out for topic: {} after {} ms", name, sseTimeoutMs);
             emitters.remove(emitter);
         });
 
