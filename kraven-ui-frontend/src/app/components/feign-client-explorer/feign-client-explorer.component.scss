@@ -26,18 +26,51 @@
 
 // Dark theme overrides
 :host-context(.dark-theme) {
-  --right-panel-bg: #1e1e2d;
-  --right-panel-text: #e2e8f0;
-  --right-panel-tabs-bg: #2d2d3d;
-  --right-panel-border: #2d2d3d;
-  --right-panel-tab-text: #94a3b8;
+  --right-panel-bg: #212338; /* Slightly lighter than background */
+  --right-panel-text: #f8fafc;
+  --right-panel-tabs-bg: #252a41; /* Slightly lighter than muted color */
+  --right-panel-border: #2d3452; /* Same as border-color */
+  --right-panel-tab-text: #a0aec0; /* Same as muted-foreground-color */
   --right-panel-tab-hover-text: #e2e8f0;
-  --right-panel-tab-hover-bg: rgba(255, 255, 255, 0.05);
+  --right-panel-tab-hover-bg: rgba(108, 92, 231, 0.1); /* Purple with opacity */
   --right-panel-tab-active-text: #ffffff;
-  --right-panel-button-bg: #2d2d3d;
-  --right-panel-button-hover-bg: #3d3d4d;
-  --right-panel-code-bg: #2d2d3d;
-  --right-panel-input-bg: #2d2d3d;
+  --right-panel-button-bg: #2d3452; /* Same as border-color */
+  --right-panel-button-hover-bg: #3d3f63; /* Lighter than button-bg */
+  --right-panel-code-bg: #1a1b2e; /* Same as background-color-dark */
+  --right-panel-input-bg: #2d3452; /* Same as border-color */
+
+  // Enhanced purple accents
+  .client-item.active {
+    border-left-color: #6c5ce7;
+    background-color: rgba(108, 92, 231, 0.15);
+  }
+
+  .client-item:hover {
+    border-left-color: rgba(108, 92, 231, 0.5);
+    background-color: rgba(108, 92, 231, 0.08);
+  }
+
+  .method-item.active {
+    border-left-color: #6c5ce7;
+  }
+
+  .method-item:hover {
+    border-left-color: rgba(108, 92, 231, 0.5);
+  }
+
+  .method-badge {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  .execute-button {
+    background: linear-gradient(135deg, #6c5ce7, #8e44ad);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+
+    &:hover {
+      background: linear-gradient(135deg, #7d71e8, #9b59b6);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+  }
 }
 
 // Define variables at the component level as well
@@ -371,6 +404,23 @@
   height: 0; /* This forces the container to respect the flex layout and enable scrolling */
   display: flex;
   flex-direction: column;
+  max-height: calc(100% - 200px); /* Account for header and search */
+  overscroll-behavior: contain; /* Prevent scroll chaining */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: var(--border-color);
+    border-radius: 3px;
+  }
 }
 
 .client-list {

@@ -74,9 +74,9 @@ export class ConfigService {
     apiDocsPath: '/v3/api-docs',
     title: 'API Documentation',
     theme: {
-      darkPrimaryColor: '#1976d2',
-      darkSecondaryColor: '#424242',
-      darkBackgroundColor: '#121212',
+      darkPrimaryColor: '#6c5ce7', // Vibrant purple
+      darkSecondaryColor: '#00b894', // Mint green
+      darkBackgroundColor: '#1a1b2e', // Rich navy blue
       lightPrimaryColor: '#1976d2',
       lightSecondaryColor: '#424242',
       lightBackgroundColor: '#ffffff',

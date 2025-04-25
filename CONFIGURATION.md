@@ -15,7 +15,7 @@ Kraven UI supports multiple configuration methods, with the following precedence
 You can configure Kraven UI using the `KRAVEN_UI_CONFIG` environment variable with a JSON string:
 
 ```bash
-export KRAVEN_UI_CONFIG='{"path":"/api-docs","theme":{"darkPrimaryColor":"#ff5722","darkSecondaryColor":"#607d8b","darkBackgroundColor":"#121212","lightPrimaryColor":"#2196f3","lightSecondaryColor":"#ff9800","lightBackgroundColor":"#ffffff","defaultTheme":"dark"},"kafka":{"messageLimit":100,"messageProductionEnabled":true,"messageConsumptionEnabled":true}}'
+export KRAVEN_UI_CONFIG='{"path":"/api-docs","theme":{"darkPrimaryColor":"#6c5ce7","darkSecondaryColor":"#00b894","darkBackgroundColor":"#1a1b2e","lightPrimaryColor":"#2196f3","lightSecondaryColor":"#ff9800","lightBackgroundColor":"#ffffff","defaultTheme":"dark"},"kafka":{"messageLimit":100,"messageProductionEnabled":true,"messageConsumptionEnabled":true}}'
 ```
 
 This is particularly useful for containerized environments or when you want to override configuration without changing application files.
@@ -35,9 +35,9 @@ kraven.ui.version=1.0.1
 
 
 # Theme configuration
-kraven.ui.theme.dark-primary-color=#1976d2
-kraven.ui.theme.dark-secondary-color=#424242
-kraven.ui.theme.dark-background-color=#121212
+kraven.ui.theme.dark-primary-color=#6c5ce7
+kraven.ui.theme.dark-secondary-color=#00b894
+kraven.ui.theme.dark-background-color=#1a1b2e
 kraven.ui.theme.light-primary-color=#1976d2
 kraven.ui.theme.light-secondary-color=#424242
 kraven.ui.theme.light-background-color=#ffffff
@@ -88,9 +88,9 @@ kraven:
 
     theme:
       # Dark theme specific colors
-      dark-primary-color: "#1976d2"
-      dark-secondary-color: "#424242"
-      dark-background-color: "#121212"
+      dark-primary-color: "#6c5ce7"
+      dark-secondary-color: "#00b894"
+      dark-background-color: "#1a1b2e"
 
       # Light theme specific colors
       light-primary-color: "#1976d2"
@@ -155,9 +155,9 @@ kraven:
 
 | Property | Description | Default Value |
 |----------|-------------|---------------|
-| `kraven.ui.theme.dark-primary-color` | The primary color for the dark theme | `#1976d2` |
-| `kraven.ui.theme.dark-secondary-color` | The secondary color for the dark theme | `#424242` |
-| `kraven.ui.theme.dark-background-color` | The background color for the dark theme | `#121212` |
+| `kraven.ui.theme.dark-primary-color` | The primary color for the dark theme | `#6c5ce7` |
+| `kraven.ui.theme.dark-secondary-color` | The secondary color for the dark theme | `#00b894` |
+| `kraven.ui.theme.dark-background-color` | The background color for the dark theme | `#1a1b2e` |
 | `kraven.ui.theme.light-primary-color` | The primary color for the light theme | `#1976d2` |
 | `kraven.ui.theme.light-secondary-color` | The secondary color for the light theme | `#424242` |
 | `kraven.ui.theme.light-background-color` | The background color for the light theme | `#ffffff` |
@@ -233,7 +233,7 @@ services:
   app:
     image: your-spring-boot-app:latest
     environment:
-      - KRAVEN_UI_CONFIG={"path":"/api-docs","theme":{"darkPrimaryColor":"#ff5722","darkSecondaryColor":"#607d8b","darkBackgroundColor":"#121212","lightPrimaryColor":"#2196f3","lightSecondaryColor":"#ff9800","lightBackgroundColor":"#ffffff","defaultTheme":"dark"},"kafka":{"messageLimit":100,"messageProductionEnabled":true,"messageConsumptionEnabled":true},"metrics":{"refreshIntervalMs":5000,"autoRefreshEnabled":false,"threadDumpEnabled":true,"heapDumpEnabled":false}}
+      - KRAVEN_UI_CONFIG={"path":"/api-docs","theme":{"darkPrimaryColor":"#6c5ce7","darkSecondaryColor":"#00b894","darkBackgroundColor":"#1a1b2e","lightPrimaryColor":"#2196f3","lightSecondaryColor":"#ff9800","lightBackgroundColor":"#ffffff","defaultTheme":"dark"},"kafka":{"messageLimit":100,"messageProductionEnabled":true,"messageConsumptionEnabled":true},"metrics":{"refreshIntervalMs":5000,"autoRefreshEnabled":false,"threadDumpEnabled":true,"heapDumpEnabled":false}}
     ports:
       - "8080:8080"
 ```
@@ -262,7 +262,7 @@ spec:
         image: your-spring-boot-app:latest
         env:
         - name: KRAVEN_UI_CONFIG
-          value: '{"path":"/api-docs","theme":{"darkPrimaryColor":"#ff5722","darkSecondaryColor":"#607d8b","darkBackgroundColor":"#121212","lightPrimaryColor":"#2196f3","lightSecondaryColor":"#ff9800","lightBackgroundColor":"#ffffff","defaultTheme":"dark"},"kafka":{"messageLimit":100,"messageProductionEnabled":true,"messageConsumptionEnabled":true},"metrics":{"refreshIntervalMs":5000,"autoRefreshEnabled":false,"threadDumpEnabled":true,"heapDumpEnabled":false}}'
+          value: '{"path":"/api-docs","theme":{"darkPrimaryColor":"#6c5ce7","darkSecondaryColor":"#00b894","darkBackgroundColor":"#1a1b2e","lightPrimaryColor":"#2196f3","lightSecondaryColor":"#ff9800","lightBackgroundColor":"#ffffff","defaultTheme":"dark"},"kafka":{"messageLimit":100,"messageProductionEnabled":true,"messageConsumptionEnabled":true},"metrics":{"refreshIntervalMs":5000,"autoRefreshEnabled":false,"threadDumpEnabled":true,"heapDumpEnabled":false}}'
         ports:
         - containerPort: 8080
 ```

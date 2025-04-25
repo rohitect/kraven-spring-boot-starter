@@ -40,9 +40,9 @@
   --sidebar-transition: width 0.3s ease;
 
   /* Theme variables that will be set dynamically */
-  --primary-color-dark: #1976d2;
-  --secondary-color-dark: #424242;
-  --background-color-dark: #121212;
+  --primary-color-dark: #6c5ce7; /* Vibrant purple */
+  --secondary-color-dark: #00b894; /* Mint green */
+  --background-color-dark: #1a1b2e; /* Rich navy blue */
   --primary-color-light: #1976d2;
   --secondary-color-light: #424242;
   --background-color-light: #ffffff;
@@ -51,22 +51,22 @@
   --background-color: var(--background-color-dark);
   --foreground-color: #e2e8f0;
   --primary-color: var(--primary-color-dark);
-  --primary-hover-color: #e2e8f0;
-  --primary-foreground-color: #020617;
+  --primary-hover-color: #a29bfe; /* Lighter purple */
+  --primary-foreground-color: #ffffff;
   --secondary-color: var(--secondary-color-dark);
   --secondary-foreground-color: #f8fafc;
-  --muted-color: #1e293b;
-  --muted-hover-color: rgba(73, 144, 226, 0.12);
-  --muted-foreground-color: #94a3b8;
-  --accent-color: #1e293b;
+  --muted-color: #252a41; /* Slightly lighter than background */
+  --muted-hover-color: rgba(108, 92, 231, 0.15); /* Purple with opacity */
+  --muted-foreground-color: #a0aec0;
+  --accent-color: #2d3748; /* Dark slate */
   --accent-foreground-color: #f8fafc;
-  --border-color: #334155;
-  --card-color: var(--background-color-dark);
+  --border-color: #2d3452; /* Slightly lighter than background */
+  --card-color: #212338; /* Slightly lighter than background */
   --card-foreground-color: #e2e8f0;
-  --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  --card-shadow: 0 8px 16px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(108, 92, 231, 0.1);
   --hover-brightness: 1.1;
-  --background-secondary: #1a2234;
-  --hover-color: rgba(255, 255, 255, 0.1);
+  --background-secondary: #222442; /* Slightly lighter than background with purple tint */
+  --hover-color: rgba(108, 92, 231, 0.15); /* Purple with opacity */
 }
 
 :root.light-theme, html.light-theme {
@@ -98,6 +98,13 @@
   box-sizing: border-box;
 }
 
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Prevent body scrolling */
+}
+
 body {
   font-family: 'Inter', sans-serif;
   background-color: var(--background-color);
@@ -123,6 +130,12 @@ header {
   top: 0;
   z-index: 100;
   transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.dark-theme header {
+  background-color: var(--background-secondary);
+  border-bottom-color: rgba(108, 92, 231, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 header .container {
@@ -243,10 +256,20 @@ header .right-side {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.dark-theme .btn-primary {
+  background: linear-gradient(135deg, #6c5ce7, #8e44ad);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(108, 92, 231, 0.1);
+}
+
 .btn-primary:hover {
   filter: brightness(var(--hover-brightness));
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   transform: translateY(-2px);
+}
+
+.dark-theme .btn-primary:hover {
+  background: linear-gradient(135deg, #7d71e8, #9b59b6);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(108, 92, 231, 0.2);
 }
 
 .btn-primary:active {
@@ -315,7 +338,7 @@ header .right-side {
 
 .dark-theme .theme-toggle svg {
   color: #ffcc00; /* Sun color for dark theme */
-  filter: drop-shadow(0 0 2px rgba(255, 204, 0, 0.5));
+  filter: drop-shadow(0 0 3px rgba(255, 204, 0, 0.5)) drop-shadow(0 0 5px rgba(108, 92, 231, 0.3));
 }
 
 .light-theme .theme-toggle svg {
@@ -347,14 +370,24 @@ header .right-side {
   left: 0;
   right: 0;
   height: 0;
-  background: linear-gradient(to bottom, var(--primary-color), transparent);
-  opacity: 0.05;
+  background: linear-gradient(135deg, var(--primary-color), #9c88ff, transparent);
+  opacity: 0.08;
   transition: height var(--transition-duration) ease;
 }
 
 .card:hover {
   transform: translateY(-5px);
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+.dark-theme .card {
+  border-color: rgba(108, 92, 231, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(108, 92, 231, 0.1);
+}
+
+.dark-theme .card:hover {
+  border-color: rgba(108, 92, 231, 0.3);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(108, 92, 231, 0.2);
 }
 
 .card:hover::before {

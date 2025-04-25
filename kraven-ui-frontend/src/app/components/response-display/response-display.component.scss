@@ -144,62 +144,63 @@
 // Dark mode adjustments
 :host-context(.dark-theme) {
   .response-container {
-    border-color: #444;
+    border-color: #2d3452; /* Same as border-color */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   }
 
   .response-header,
   .section-header {
-    background-color: #262626;
-    border-color: #444;
+    background-color: #252a41; /* Slightly lighter than muted color */
+    border-color: #2d3452; /* Same as border-color */
   }
 
   .response-title,
   .section-title {
-    color: #e1e1e1;
+    color: #f8fafc;
   }
 
   .headers-section,
   .body-section {
-    border-color: #444;
+    border-color: #2d3452; /* Same as border-color */
   }
 
   .headers-content,
   .body-content {
-    background-color: #333;
+    background-color: #1a1b2e; /* Same as background-color-dark */
   }
 
   .header-name-column,
   .header-value-column {
-    color: #e1e1e1;
+    color: #f8fafc;
   }
 
   .header-row {
-    border-color: #444;
+    border-color: #2d3452; /* Same as border-color */
   }
 
   .header-name {
-    color: #e1e1e1;
+    color: #a29bfe; /* Lighter purple */
   }
 
   .header-value {
-    color: #aaa;
+    color: #a0aec0; /* Same as muted-foreground-color */
   }
 
   .no-headers-message,
   .no-body-message {
-    color: #888;
+    color: #a0aec0; /* Same as muted-foreground-color */
   }
 
   .body-code {
-    color: #e1e1e1;
+    color: #f8fafc;
   }
 
   .status-success {
-    background-color: rgba(73, 204, 144, 0.1);
+    background-color: rgba(0, 184, 148, 0.15); /* Mint green with opacity */
   }
 
   .status-error {
-    background-color: rgba(249, 62, 62, 0.1);
+    background-color: rgba(255, 107, 129, 0.15); /* Soft red with opacity */
   }
 
   .status-redirect {

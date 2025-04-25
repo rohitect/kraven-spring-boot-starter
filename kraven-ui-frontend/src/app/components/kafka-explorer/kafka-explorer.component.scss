@@ -41,18 +41,43 @@
 
 // Dark theme overrides
 :host-context(.dark-theme) {
-  --right-panel-bg: #1e1e2d;
-  --right-panel-text: #e2e8f0;
-  --right-panel-tabs-bg: #2d2d3d;
-  --right-panel-border: #2d2d3d;
-  --right-panel-tab-text: #94a3b8;
+  --right-panel-bg: #212338; /* Slightly lighter than background */
+  --right-panel-text: #f8fafc;
+  --right-panel-tabs-bg: #252a41; /* Slightly lighter than muted color */
+  --right-panel-border: #2d3452; /* Same as border-color */
+  --right-panel-tab-text: #a0aec0; /* Same as muted-foreground-color */
   --right-panel-tab-hover-text: #e2e8f0;
-  --right-panel-tab-hover-bg: rgba(255, 255, 255, 0.05);
+  --right-panel-tab-hover-bg: rgba(108, 92, 231, 0.1); /* Purple with opacity */
   --right-panel-tab-active-text: #ffffff;
-  --right-panel-button-bg: #2d2d3d;
-  --right-panel-button-hover-bg: #3d3d4d;
-  --right-panel-code-bg: #2d2d3d;
-  --right-panel-input-bg: #2d2d3d;
+  --right-panel-button-bg: #2d3452; /* Same as border-color */
+  --right-panel-button-hover-bg: #3d3f63; /* Lighter than button-bg */
+  --right-panel-code-bg: #1a1b2e; /* Same as background-color-dark */
+  --right-panel-input-bg: #2d3452; /* Same as border-color */
+
+  // Enhanced purple accents
+  .topic-item.active {
+    border-left-color: #6c5ce7;
+    background-color: rgba(108, 92, 231, 0.15);
+  }
+
+  .topic-item:hover {
+    border-left-color: rgba(108, 92, 231, 0.5);
+    background-color: rgba(108, 92, 231, 0.08);
+  }
+
+  .tab-button.active {
+    border-bottom-color: #6c5ce7;
+    color: #f8fafc;
+  }
+
+  .message-item {
+    border-left-color: rgba(108, 92, 231, 0.2);
+
+    &:hover {
+      border-left-color: rgba(108, 92, 231, 0.5);
+      background-color: rgba(108, 92, 231, 0.08);
+    }
+  }
 
   // Tag colors (dark theme)
   --tag-info-bg: #1e3a8a;
@@ -475,6 +500,23 @@
   flex: 1;
   overflow-y: auto;
   width: calc(100% - 60px);
+  height: 100%;
+  overscroll-behavior: contain; /* Prevent scroll chaining */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: var(--border-color);
+    border-radius: 3px;
+  }
 }
 
 .tab-header {
@@ -668,6 +710,22 @@
   background-color: var(--background-color);
   border-right: 1px solid var(--border-color);
   box-shadow: inset 0 0 0 1px rgba(var(--border-color-rgb), 0.05);
+  overscroll-behavior: contain; /* Prevent scroll chaining */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: var(--border-color);
+    border-radius: 4px;
+  }
 }
 
 .middle-pane-content {
