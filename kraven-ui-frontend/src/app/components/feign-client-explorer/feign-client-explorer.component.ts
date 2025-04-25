@@ -8,14 +8,13 @@ import { ConfigService } from '../../services/config.service';
 import { ThemeService } from '../../services/theme.service';
 import { trigger, transition, style, animate, state } from '@angular/animations';
 import { FeignClient, FeignMethod, FeignParameter } from '../../models/feign-client.model';
-import { AccordionModule } from 'primeng/accordion';
+
 @Component({
   selector: 'app-feign-client-explorer',
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
-    AccordionModule
+    FormsModule
   ],
   templateUrl: './feign-client-explorer.component.html',
   styleUrls: ['./feign-client-explorer.component.scss'],

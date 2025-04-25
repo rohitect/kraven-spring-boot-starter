@@ -6,7 +6,7 @@
     <parent>
         <groupId>io.github.rohitect</groupId>
         <artifactId>kraven-ui</artifactId>
-        <version>0.1.39</version>
+        <version>1.0.1</version>
     </parent>
 
     <artifactId>kraven-ui-frontend</artifactId>

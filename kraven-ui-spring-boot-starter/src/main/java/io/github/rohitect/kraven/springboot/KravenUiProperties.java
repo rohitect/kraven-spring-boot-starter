@@ -61,7 +61,7 @@ public class KravenUiProperties {
      * The version of Kraven UI.
      * This is automatically set from the kraven.ui.version property.
      */
-    private String version = "0.1.39";
+    private String version = "1.0.1";
 
     /**
      * Layout configuration options.
