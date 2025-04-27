@@ -1,6 +1,8 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { marked } from 'marked';
+
+// Use global variable
+declare var marked: any;
 
 @Pipe({
   name: 'markdown',

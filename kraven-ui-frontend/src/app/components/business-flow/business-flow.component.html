@@ -1,0 +1,214 @@
+<div class="business-flow-container">
+  <!-- Left Pane: Tags List -->
+  <div class="left-pane">
+    <div class="left-pane-header">
+      <div class="title-container">
+        <h2>Business Flows</h2>
+        <div class="subtitle">Visualize application flows</div>
+      </div>
+      <div class="search-container">
+        <div class="search-input-wrapper">
+          <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input
+            type="text"
+            placeholder="Search flows..."
+            [(ngModel)]="searchQuery"
+            (input)="filterTags()"
+            [class.focused]="searchFocused"
+            (focus)="searchFocused = true"
+            (blur)="searchFocused = false"
+          >
+          <button *ngIf="searchQuery" class="clear-search" (click)="clearSearch()" title="Clear search">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <button class="refresh-btn" (click)="refreshBusinessFlows()" [disabled]="refreshing" title="Refresh business flows">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" [class.spinning]="refreshing">
+            <path d="M21 2v6h-6"></path>
+            <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
+            <path d="M3 22v-6h6"></path>
+            <path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="tags-list" *ngIf="!loading; else loadingTemplate">
+      <div class="no-tags" *ngIf="filteredTags.length === 0">
+        <div class="empty-state">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+            <line x1="7" y1="7" x2="7.01" y2="7"></line>
+          </svg>
+          <p class="empty-title">No flows found</p>
+          <p *ngIf="searchQuery" class="empty-message">Try a different search term.</p>
+          <p *ngIf="!searchQuery" class="empty-message">Add KravenTag annotations to your methods to create business flows.</p>
+        </div>
+      </div>
+
+      <div class="tags-container">
+        <div
+          *ngFor="let tag of filteredTags; let i = index"
+          class="tag-item"
+          [class.active]="selectedTag?.name === tag.name"
+          (click)="selectTag(tag)"
+          [@slideInOut]
+          [style.animation-delay]="i * 50 + 'ms'"
+        >
+          <div class="tag-content">
+            <div class="tag-header">
+              <div class="tag-name">{{ tag.name }}</div>
+              <div class="tag-badge" [style.background-color]="getTagColor(tag)">
+                {{ tag.stereotypeCount }}
+              </div>
+            </div>
+            <div class="tag-info">
+              <div class="info-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                </svg>
+                <span>{{ tag.methodCount }} methods</span>
+              </div>
+              <div class="info-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="3" y1="9" x2="21" y2="9"></line>
+                  <line x1="9" y1="21" x2="9" y2="9"></line>
+                </svg>
+                <span>{{ tag.stereotypeCount }} layers</span>
+              </div>
+            </div>
+          </div>
+          <div class="tag-indicator" *ngIf="selectedTag?.name === tag.name"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Middle Pane: Flow Visualization -->
+  <div class="middle-pane">
+    <div class="middle-pane-header">
+      <h2 *ngIf="selectedTag">{{ selectedTag.name }}</h2>
+      <h2 *ngIf="!selectedTag">Select a business flow</h2>
+    </div>
+
+    <div class="flow-visualization" *ngIf="businessFlow && !loading; else selectTagTemplate">
+      <div class="flow-container">
+        <div class="flow-layers">
+          <div
+            *ngFor="let stereotype of getOrderedStereotypes()"
+            class="flow-layer"
+            [@fadeInOut]
+          >
+            <div class="layer-header" [style.background-color]="getStereotypeColor(stereotype)">
+              {{ stereotype }}
+            </div>
+            <div class="layer-methods">
+              <div
+                *ngFor="let method of getMethodsForStereotype(stereotype)"
+                class="method-box"
+                [class.active]="selectedMethod?.methodName === method.methodName && selectedMethod?.className === method.className"
+                (click)="selectMethod(method)"
+              >
+                <div class="method-name">{{ method.simpleClassName }}.{{ method.methodName }}</div>
+                <div class="method-signature">{{ method.methodSignature }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Pane: Method Details -->
+  <div class="right-pane" *ngIf="selectedMethod">
+    <div class="right-pane-header">
+      <h2>Method Details</h2>
+    </div>
+
+    <div class="method-details">
+      <div class="detail-section">
+        <h3>Basic Information</h3>
+        <div class="detail-item">
+          <span class="detail-label">Class:</span>
+          <span class="detail-value">{{ selectedMethod.simpleClassName }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Method:</span>
+          <span class="detail-value">{{ selectedMethod.methodName }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Signature:</span>
+          <span class="detail-value">{{ selectedMethod.methodSignature }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Stereotype:</span>
+          <span class="detail-value" [style.color]="getStereotypeColor(selectedMethod.stereotype)">{{ selectedMethod.stereotype }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Level:</span>
+          <span class="detail-value">{{ selectedMethod.level }}</span>
+        </div>
+      </div>
+
+      <div class="detail-section" *ngIf="selectedMethod.description">
+        <h3>Description</h3>
+        <div class="detail-description">{{ selectedMethod.description }}</div>
+      </div>
+
+      <div class="detail-section">
+        <h3>Package Information</h3>
+        <div class="detail-item">
+          <span class="detail-label">Package:</span>
+          <span class="detail-value">{{ selectedMethod.packageName }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Full Class Name:</span>
+          <span class="detail-value">{{ selectedMethod.className }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading Template -->
+<ng-template #loadingTemplate>
+  <div class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Loading business flows...</p>
+  </div>
+</ng-template>
+
+<!-- Select Tag Template -->
+<ng-template #selectTagTemplate>
+  <div class="select-tag-container" *ngIf="!loading">
+    <div class="select-tag-message">
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+        <path d="M2 17l10 5 10-5"></path>
+        <path d="M2 12l10 5 10-5"></path>
+      </svg>
+      <h3>Select a business flow from the left panel</h3>
+      <p>Business flows help you understand the flow of functionality across different layers of your application.</p>
+    </div>
+  </div>
+</ng-template>
+
+<!-- Error Template -->
+<ng-template #errorTemplate>
+  <div class="error-container">
+    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="12" y1="8" x2="12" y2="12"></line>
+      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+    </svg>
+    <h3>Error</h3>
+    <p>{{ error }}</p>
+  </div>
+</ng-template>

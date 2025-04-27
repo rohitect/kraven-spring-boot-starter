@@ -44,11 +44,17 @@ kraven:
     development-mode: true
     logging:
       level: INFO
-    # theme:
-    #   dark-primary-color: "#ff5722" 
-    #   dark-secondary-color: "#607d8b"
+    theme:
+      dark-primary-color: "#6c5ce7" # Purple
+      dark-secondary-color: "#00b894" # Green
+      dark-background-color: "#1a1b2e" # Dark blue
+    business-flow:
+      enabled: true
+      base-packages:
+        - io.github.rohitect.kraven.example
+      show-detailed-method-info: true
 
-# SpringDoc OpenAPI Configuration 
+# SpringDoc OpenAPI Configuration
 springdoc:
   api-docs:
     path: /v3/api-docs

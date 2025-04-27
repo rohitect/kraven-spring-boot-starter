@@ -37,7 +37,8 @@
               }
             ],
             "styles": [
-              "src/styles.scss"
+              "src/styles.scss",
+              "node_modules/highlight.js/styles/github-dark.css"
             ],
             "scripts": []
           },
@@ -101,7 +102,8 @@
               }
             ],
             "styles": [
-              "src/styles.scss"
+              "src/styles.scss",
+              "node_modules/highlight.js/styles/github-dark.css"
             ],
             "scripts": []
           }

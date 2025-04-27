@@ -82,6 +82,16 @@ public class KravenUiEnhancedProperties {
     private Metrics metrics = new Metrics();
 
     /**
+     * The business flow configuration.
+     */
+    private BusinessFlow businessFlow = new BusinessFlow();
+
+    /**
+     * The documentation configuration.
+     */
+    private Documentation documentation = new Documentation();
+
+    /**
      * Additional configuration properties.
      * This can be used to pass custom configuration to the frontend.
      */
@@ -387,5 +397,90 @@ public class KravenUiEnhancedProperties {
          * Whether to enable heap dump generation.
          */
         private boolean heapDumpEnabled = false;
+    }
+
+    /**
+     * Business flow configuration options.
+     */
+    @Data
+    public static class BusinessFlow {
+        /**
+         * Enable or disable business flow features.
+         */
+        private boolean enabled = true;
+
+        /**
+         * The base packages to scan for KravenTag annotations.
+         */
+        private String[] basePackages = {"io.github", "com", "org", "net"};
+
+        /**
+         * The API path for business flow endpoints.
+         */
+        private String apiPath = "/kraven/v1/business-flows";
+
+        /**
+         * Whether to enable auto-refresh of business flow data.
+         */
+        private boolean autoRefreshEnabled = false;
+
+        /**
+         * The refresh interval in milliseconds for business flow data.
+         * Set to 0 to disable automatic refreshing.
+         */
+        private long refreshIntervalMs = 0;
+
+        /**
+         * Whether to show detailed method information in the UI.
+         */
+        private boolean showDetailedMethodInfo = true;
+    }
+
+    /**
+     * Documentation configuration options.
+     */
+    @Data
+    public static class Documentation {
+        /**
+         * Enable or disable documentation features.
+         */
+        private boolean enabled = true;
+
+        /**
+         * The path to the documentation files.
+         * Default is classpath:kraven-docs/
+         */
+        private String path = "";
+
+        /**
+         * The API path for documentation endpoints.
+         */
+        private String apiPath = "/kraven/v1/documentation";
+
+        /**
+         * Whether to enable Mermaid diagram support.
+         */
+        private boolean mermaidEnabled = true;
+
+        /**
+         * Whether to enable syntax highlighting for code blocks.
+         */
+        private boolean syntaxHighlightingEnabled = true;
+
+        /**
+         * Whether to enable business flow tag support in documentation.
+         */
+        private boolean businessFlowTagsEnabled = true;
+
+        /**
+         * Whether to enable auto-refresh of documentation.
+         */
+        private boolean autoRefreshEnabled = false;
+
+        /**
+         * The refresh interval in milliseconds for documentation.
+         * Set to 0 to disable automatic refreshing.
+         */
+        private long refreshIntervalMs = 0;
     }
 }

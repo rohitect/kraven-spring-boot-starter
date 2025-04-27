@@ -45,7 +45,9 @@ import java.util.Map;
 @ComponentScan(basePackages = {
     "io.github.rohitect.kraven.springboot.feign",
     "io.github.rohitect.kraven.springboot.kafka",
-    "io.github.rohitect.kraven.springboot.metrics"
+    "io.github.rohitect.kraven.springboot.metrics",
+    "io.github.rohitect.kraven.springboot.businessflow",
+    "io.github.rohitect.kraven.springboot.documentation"
 })
 @EnableCaching
 public class KravenUiAutoConfiguration {

@@ -74,6 +74,20 @@ kraven.ui.metrics.refresh-interval-ms=5000
 kraven.ui.metrics.auto-refresh-enabled=false
 kraven.ui.metrics.thread-dump-enabled=true
 kraven.ui.metrics.heap-dump-enabled=false
+
+# Business Flow configuration
+kraven.ui.business-flow.enabled=true
+kraven.ui.business-flow.base-packages=io.github,com,org,net
+kraven.ui.business-flow.show-detailed-method-info=true
+
+# Documentation configuration
+kraven.ui.documentation.enabled=true
+kraven.ui.documentation.path=classpath:kraven-docs/
+kraven.ui.documentation.mermaid-enabled=true
+kraven.ui.documentation.syntax-highlighting-enabled=true
+kraven.ui.documentation.business-flow-tags-enabled=true
+kraven.ui.documentation.auto-refresh-enabled=false
+kraven.ui.documentation.refresh-interval-ms=0
 ```
 
 ### application.yml
@@ -136,6 +150,24 @@ kraven:
       auto-refresh-enabled: false
       thread-dump-enabled: true
       heap-dump-enabled: false
+
+    business-flow:
+      enabled: true
+      base-packages:
+        - io.github
+        - com
+        - org
+        - net
+      show-detailed-method-info: true
+
+    documentation:
+      enabled: true
+      path: classpath:kraven-docs/
+      mermaid-enabled: true
+      syntax-highlighting-enabled: true
+      business-flow-tags-enabled: true
+      auto-refresh-enabled: false
+      refresh-interval-ms: 0
 ```
 
 ## Configuration Properties Reference
@@ -206,6 +238,26 @@ kraven:
 | `kraven.ui.metrics.auto-refresh-enabled` | Whether to enable auto-refresh of metrics | `false` |
 | `kraven.ui.metrics.thread-dump-enabled` | Whether to enable thread dump generation | `true` |
 | `kraven.ui.metrics.heap-dump-enabled` | Whether to enable heap dump generation | `false` |
+
+### Business Flow Configuration
+
+| Property | Description | Default Value |
+|----------|-------------|---------------|
+| `kraven.ui.business-flow.enabled` | Enable or disable business flow features | `true` |
+| `kraven.ui.business-flow.base-packages` | The base packages to scan for KravenTag annotations | `io.github,com,org,net` |
+| `kraven.ui.business-flow.show-detailed-method-info` | Whether to show detailed method information in the UI | `true` |
+
+### Documentation Configuration
+
+| Property | Description | Default Value |
+|----------|-------------|---------------|
+| `kraven.ui.documentation.enabled` | Enable or disable documentation features | `true` |
+| `kraven.ui.documentation.path` | The path to the documentation files | `classpath:kraven-docs/` |
+| `kraven.ui.documentation.mermaid-enabled` | Whether to enable Mermaid diagram support | `true` |
+| `kraven.ui.documentation.syntax-highlighting-enabled` | Whether to enable syntax highlighting for code blocks | `true` |
+| `kraven.ui.documentation.business-flow-tags-enabled` | Whether to enable business flow tag support in documentation | `true` |
+| `kraven.ui.documentation.auto-refresh-enabled` | Whether to enable auto-refresh of documentation | `false` |
+| `kraven.ui.documentation.refresh-interval-ms` | The refresh interval in milliseconds for documentation | `0` |
 
 ## Additional Properties
 

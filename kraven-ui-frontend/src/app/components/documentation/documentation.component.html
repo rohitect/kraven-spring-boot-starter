@@ -1,0 +1,240 @@
+<div class="documentation-container">
+  <!-- Left Pane: Groups and Files -->
+  <div class="left-pane">
+    <div class="left-pane-header">
+      <div class="title-container">
+        <h2>Documentation</h2>
+        <div class="subtitle">Service Documentation</div>
+      </div>
+      <div class="search-container">
+        <div class="search-input-wrapper">
+          <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input
+            type="text"
+            placeholder="Search documentation..."
+            [(ngModel)]="searchQuery"
+            (input)="filterDocumentation()"
+            [class.focused]="searchFocused"
+            (focus)="searchFocused = true"
+            (blur)="searchFocused = false"
+          >
+          <button *ngIf="searchQuery" class="clear-search" (click)="clearSearch()" title="Clear search">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <button class="refresh-btn" (click)="refreshDocumentation()" [disabled]="refreshing" title="Refresh documentation">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" [class.spinning]="refreshing">
+            <path d="M21 2v6h-6"></path>
+            <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
+            <path d="M3 22v-6h6"></path>
+            <path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="groups-list" *ngIf="!loading; else loadingTemplate">
+      <div class="no-groups" *ngIf="filteredGroups.length === 0">
+        <div class="empty-state">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+            <polyline points="13 2 13 9 20 9"></polyline>
+          </svg>
+          <p class="empty-title">No documentation found</p>
+          <p *ngIf="searchQuery" class="empty-message">Try a different search term.</p>
+          <p *ngIf="!searchQuery" class="empty-message">Add documentation files to the kraven-docs directory.</p>
+        </div>
+      </div>
+
+      <div class="groups-container">
+        <div *ngFor="let group of filteredGroups; let i = index" class="group-item" [@slideInOut] [style.animation-delay]="i * 50 + 'ms'">
+          <div class="group-header" (click)="selectGroup(group)" [class.active]="selectedGroup?.id === group.id">
+            <div class="group-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                <polyline points="13 2 13 9 20 9"></polyline>
+              </svg>
+            </div>
+            <div class="group-title">{{ group.title }}</div>
+            <div class="group-badge">{{ group.files.length }}</div>
+          </div>
+
+          <div class="files-list" *ngIf="selectedGroup?.id === group.id">
+            <div
+              *ngFor="let file of group.files"
+              class="file-item"
+              [class.active]="selectedFile?.id === file.id"
+              (click)="selectFile(file)"
+            >
+              <div class="file-icon">
+                <svg *ngIf="file.isOverview" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="16" x2="12" y2="12"></line>
+                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                <svg *ngIf="!file.isOverview" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                  <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+              </div>
+              <div class="file-title">{{ file.title }}</div>
+              <div class="file-indicator" *ngIf="selectedFile?.id === file.id"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Middle Pane: Documentation Content -->
+  <div class="middle-pane">
+    <div class="middle-pane-content" *ngIf="selectedFile; else noFileSelected">
+      <div class="file-header">
+        <div class="header-content">
+          <h1>{{ selectedFile.title }}</h1>
+          <div class="file-meta">
+            <div class="meta-item">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+              </svg>
+              <span class="file-path">{{ selectedFile.path }}</span>
+            </div>
+            <div class="meta-item">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              <span class="file-date">Last updated: {{ selectedFile.lastModified | date:'medium' }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button class="action-button" title="Copy link to this document" (click)="copyDocumentLink()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+            </svg>
+          </button>
+          <button class="action-button" title="Print this document" (click)="printDocument()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 6 2 18 2 18 9"></polyline>
+              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+              <rect x="6" y="14" width="12" height="8"></rect>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="content-container">
+        <div class="table-of-contents">
+          <div class="toc-header">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="21" y1="10" x2="3" y2="10"></line>
+              <line x1="21" y1="6" x2="3" y2="6"></line>
+              <line x1="21" y1="14" x2="3" y2="14"></line>
+              <line x1="21" y1="18" x2="3" y2="18"></line>
+            </svg>
+            <span>On this page</span>
+          </div>
+          <div class="toc-links">
+            <ng-container *ngIf="tocItems.length > 0; else noTocItems">
+              <a
+                *ngFor="let item of tocItems"
+                href="#{{item.id}}"
+                class="toc-link"
+                [class.active]="activeSection === item.id"
+                [style.paddingLeft.px]="(item.level - 1) * 8 + 12"
+                (click)="scrollToSection(item.id, $event)"
+              >
+                {{item.title}}
+              </a>
+            </ng-container>
+            <ng-template #noTocItems>
+              <div class="toc-empty">No sections found</div>
+            </ng-template>
+          </div>
+        </div>
+
+        <div class="markdown-content" #markdownContent>
+          <app-markdown [content]="selectedFile.content" [businessFlowTags]="businessFlowTags" (businessFlowTagClick)="onBusinessFlowTagClick($event)"></app-markdown>
+        </div>
+      </div>
+    </div>
+
+    <ng-template #noFileSelected>
+      <div class="no-file-selected" *ngIf="!loading">
+        <div class="empty-state">
+          <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+            <polyline points="13 2 13 9 20 9"></polyline>
+          </svg>
+          <h2>Select a documentation file</h2>
+          <p>Choose a file from the sidebar to view its content.</p>
+        </div>
+      </div>
+    </ng-template>
+  </div>
+</div>
+
+<!-- Loading Template -->
+<ng-template #loadingTemplate>
+  <div class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Loading documentation...</p>
+  </div>
+</ng-template>
+
+<!-- Business Flow Dialog -->
+<div class="business-flow-dialog-backdrop" *ngIf="showBusinessFlowDialog" (click)="closeBusinessFlowDialog()"></div>
+<div class="business-flow-dialog" *ngIf="showBusinessFlowDialog" [@fadeInOut] #businessFlowDialog style="display: flex;">
+  <div class="dialog-header">
+    <h2>Business Flow: {{ selectedBusinessFlowTag?.name }}</h2>
+    <button class="close-btn" (click)="closeBusinessFlowDialog()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+  </div>
+
+  <div class="dialog-content">
+    <div class="flow-description" *ngIf="selectedBusinessFlowTag?.description">
+      {{ selectedBusinessFlowTag?.description }}
+    </div>
+
+    <div class="flow-methods">
+      <div *ngFor="let method of selectedBusinessFlowTag?.methods" class="flow-method">
+        <div class="method-header">
+          <div class="method-stereotype" [style.background-color]="getStereotypeColor(method.stereotype)">
+            {{ method.stereotype }}
+          </div>
+          <div class="method-name">
+            <span class="class-name">{{ method.simpleClassName }}</span>
+            <span class="method-signature">{{ method.methodSignature }}</span>
+          </div>
+        </div>
+
+        <div class="method-description" *ngIf="method.description">
+          {{ method.description }}
+        </div>
+
+        <div class="method-connector" *ngIf="!method.isLast">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <polyline points="19 12 12 19 5 12"></polyline>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

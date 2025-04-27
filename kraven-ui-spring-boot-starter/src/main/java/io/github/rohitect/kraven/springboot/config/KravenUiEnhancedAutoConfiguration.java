@@ -138,6 +138,16 @@ public class KravenUiEnhancedAutoConfiguration {
         kafka.setBasePackages(enhancedProperties.getKafka().getBasePackages());
         properties.setKafka(kafka);
 
+        // Copy Business Flow properties if available
+        try {
+            KravenUiProperties.BusinessFlowConfig businessFlow = new KravenUiProperties.BusinessFlowConfig();
+            businessFlow.setEnabled(enhancedProperties.getBusinessFlow().isEnabled());
+            businessFlow.setBasePackages(enhancedProperties.getBusinessFlow().getBasePackages());
+            properties.setBusinessFlow(businessFlow);
+        } catch (Exception e) {
+            log.warn("Failed to copy business flow properties: {}", e.getMessage());
+        }
+
         return properties;
     }
 }

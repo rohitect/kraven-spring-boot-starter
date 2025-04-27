@@ -5,6 +5,7 @@ import { FeignClientExplorerComponent } from './components/feign-client-explorer
 import { KafkaExplorerComponent } from './components/kafka-explorer/kafka-explorer.component';
 import { OverviewComponent } from './components/overview/overview.component';
 import { LayoutComponent } from './components/layout/layout.component';
+import { DocumentationComponent } from './components/documentation/documentation.component';
 
 export const routes: Routes = [
   {
@@ -18,7 +19,10 @@ export const routes: Routes = [
       { path: 'api-docs/info', component: ApiDocsComponent },
       { path: 'feign-clients', component: FeignClientExplorerComponent },
       { path: 'feign-clients/:client', component: FeignClientExplorerComponent },
-      { path: 'kafka', component: KafkaExplorerComponent }
+      { path: 'kafka', component: KafkaExplorerComponent },
+      { path: 'documentation', component: DocumentationComponent },
+      { path: 'documentation/:groupId', component: DocumentationComponent },
+      { path: 'documentation/:groupId/:fileId', component: DocumentationComponent }
     ]
   },
   { path: '**', redirectTo: '' }

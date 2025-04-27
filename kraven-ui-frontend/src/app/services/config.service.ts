@@ -4,6 +4,7 @@ interface KravenConfig {
   basePath: string;
   apiDocsPath: string;
   title: string;
+  path?: string; // Added for backward compatibility
   theme: {
     /** @deprecated Use darkPrimaryColor or lightPrimaryColor instead */
     primaryColor?: string;
@@ -56,6 +57,14 @@ interface KravenConfig {
     autoRefreshEnabled: boolean;
     threadDumpEnabled: boolean;
     heapDumpEnabled: boolean;
+  };
+  businessFlow?: {
+    enabled: boolean;
+    apiPath: string;
+    basePackages: string[];
+    autoRefreshEnabled: boolean;
+    refreshIntervalMs: number;
+    showDetailedMethodInfo: boolean;
   };
 }
 
@@ -121,6 +130,14 @@ export class ConfigService {
       autoRefreshEnabled: false,
       threadDumpEnabled: true,
       heapDumpEnabled: false
+    },
+    businessFlow: {
+      enabled: true,
+      apiPath: '/kraven/v1/business-flows',
+      basePackages: ['io.github'],
+      autoRefreshEnabled: false,
+      refreshIntervalMs: 0,
+      showDetailedMethodInfo: true
     }
   };
 

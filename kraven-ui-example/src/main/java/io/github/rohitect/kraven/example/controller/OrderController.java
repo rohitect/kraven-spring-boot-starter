@@ -2,6 +2,7 @@ package io.github.rohitect.kraven.example.controller;
 
 import io.github.rohitect.kraven.example.model.Order;
 import io.github.rohitect.kraven.example.service.OrderService;
+import io.github.rohitect.kraven.springboot.businessflow.annotation.KravenTag;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -37,6 +38,7 @@ public class OrderController {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved orders",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = Order.class)))
     })
+    @KravenTag(tag = "order-management", description = "Entry point for retrieving all orders")
     public ResponseEntity<List<Order>> getAllOrders() {
         return ResponseEntity.ok(orderService.getAllOrders());
     }
@@ -48,6 +50,7 @@ public class OrderController {
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = Order.class))),
             @ApiResponse(responseCode = "404", description = "Order not found", content = @Content)
     })
+    @KravenTag(tag = "order-details", description = "Entry point for retrieving order details")
     public ResponseEntity<Order> getOrderById(
             @Parameter(description = "ID of the order to retrieve", required = true)
             @PathVariable(name = "id") Long id) {
@@ -63,6 +66,7 @@ public class OrderController {
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = Order.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input", content = @Content)
     })
+    @KravenTag(tag = "order-creation", description = "Entry point for creating a new order")
     public ResponseEntity<Order> createOrder(
             @Parameter(description = "Order details", required = true)
             @Valid @RequestBody Order order) {

@@ -74,6 +74,11 @@ public class KravenUiProperties {
     private KafkaConfig kafka = new KafkaConfig();
 
     /**
+     * The Business Flow configuration.
+     */
+    private BusinessFlowConfig businessFlow = new BusinessFlowConfig();
+
+    /**
      * The version of Kraven UI.
      * This is automatically set from the kraven.ui.version property.
      */
@@ -191,6 +196,22 @@ public class KravenUiProperties {
 
         /**
          * The base packages to scan for Kafka listeners.
+         */
+        private String[] basePackages = {"io.github", "com", "org", "net"};
+    }
+
+    /**
+     * Business flow configuration options.
+     */
+    @Data
+    public static class BusinessFlowConfig {
+        /**
+         * Enable or disable business flow features.
+         */
+        private boolean enabled = true;
+
+        /**
+         * The base packages to scan for KravenTag annotations.
          */
         private String[] basePackages = {"io.github", "com", "org", "net"};
     }

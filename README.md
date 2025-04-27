@@ -48,6 +48,18 @@ More than just API documentation, Kraven UI is a **complete development and debu
   <img src="docs/screenshots/kraven_kafka_explorer.png" alt="Kraven UI Kafka Explorer" width="800" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
 </p>
 
+### 📚 Documentation Hub (Alpha)
+- 📝 **Markdown Documentation** - Write beautiful documentation in Markdown format
+- 📊 **Mermaid Diagrams** - Create interactive diagrams with Mermaid.js
+- 🏷️ **Business Flow Tags** - Define business flows directly in your documentation
+- 🔍 **Flow Visualization** - See how functionality flows through different layers of your application
+- 🧩 **Organized Structure** - Group documentation into logical sections
+- 🔄 **Documentation Refresh** - Update documentation on-demand as your application evolves
+
+<p align="center">
+  <img src="docs/screenshots/documentation.png" alt="Kraven UI Documentation" width="800" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+</p>
+
 ### 📈 Application Monitoring
 - 🧠 **JVM Metrics** - Memory usage, thread stats, garbage collection, and more nerdy details
 - ⚙️ **Spring Metrics** - Bean count, endpoints, and other Spring-related metrics
@@ -118,6 +130,7 @@ This project is actively maintained by developers who care way too much about UI
 - ✅ **Feign Client Explorer** - Complete and ready to make your life easier
 - ✅ **Kafka Management** - Fully operational and waiting for your Kafka clusters
 - ✅ **Application Monitoring** - Ready to show you all the metrics you never knew you needed
+- 🔄 **Documentation Hub** - Alpha feature for creating beautiful documentation with Mermaid diagrams and business flow tags
 
 ## 🚦 Getting Started in 3... 2... 1... (Your Development Environment Will Thank You)
 
@@ -333,6 +346,20 @@ Get insights into your application's performance:
 - **Data Export**: Download metrics summaries in text and JSON formats
 - **Customizable**: Configure which metrics to collect and display
 
+### 📚 Documentation Hub
+
+Create and organize beautiful documentation for your service:
+
+- **Markdown Support**: Write documentation in Markdown format with full formatting capabilities
+- **Mermaid Diagrams**: Create interactive diagrams using Mermaid.js syntax
+- **Business Flow Tags**: Define business flows directly in your documentation using a custom DSL
+- **Flow Visualization**: See how functionality flows through different layers of your application
+- **Documentation Organization**: Group documentation into logical sections with a configurable structure
+- **Search Functionality**: Find specific documentation quickly with full-text search
+- **Refresh On Demand**: Update documentation as your application evolves
+- **Syntax Highlighting**: Beautiful code highlighting for code blocks
+- **Customizable**: Configure documentation path, features, and appearance
+
 ## 📋 Example: Supercharge Your Spring Boot Development with Kraven UI
 
 Here's a complete example of how to set up a Spring Boot REST API with Kraven UI to create the ultimate development environment (because we know you'll just copy-paste this anyway):
@@ -446,6 +473,7 @@ kraven.ui.theme.default-theme=dark
 # Feature configurations
 kraven.ui.feign-client.enabled=true
 kraven.ui.kafka.enabled=true
+kraven.ui.business-flow.enabled=true
 
 # Metrics configuration
 kraven.ui.metrics.enabled=true
@@ -457,6 +485,13 @@ kraven.ui.metrics.refresh-interval-ms=5000
 kraven.ui.metrics.auto-refresh-enabled=false
 kraven.ui.metrics.thread-dump-enabled=true
 kraven.ui.metrics.heap-dump-enabled=false
+
+# Documentation configuration
+kraven.ui.documentation.enabled=true
+kraven.ui.documentation.path=classpath:kraven-docs/
+kraven.ui.documentation.mermaid-enabled=true
+kraven.ui.documentation.syntax-highlighting-enabled=true
+kraven.ui.documentation.business-flow-tags-enabled=true
 ```
 
 ### 4. Configure Spring Security (If Applicable)

@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -71,6 +72,7 @@ public class EnhancedKravenUiIndexController {
     /**
      * Handles all requests under the Kraven UI path.
      * This includes serving static files if they exist, or falling back to index.html for client-side routing.
+     * Excludes API paths that start with /v1/ to allow API controllers to handle those requests.
      *
      * @param request the HTTP request
      * @return the appropriate response based on the request path
@@ -82,6 +84,12 @@ public class EnhancedKravenUiIndexController {
         // Get the request path
         String path = request.getRequestURI();
         String uiPath = properties.getNormalizedPath();
+
+        // Skip API paths to allow API controllers to handle them
+        if (path.contains(uiPath + "/v1/")) {
+            log.debug("Skipping API path: {}", path);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
 
         log.debug("Handling request for path: {}", path);
         log.debug("UI path configured as: {}", uiPath);

@@ -2,7 +2,7 @@
   <!-- Main Content -->
   <main>
     <div class="container py-10">
-      <div class="grid grid-cols-1 md:grid-cols-3 mt-12">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
       <!-- Overview Card -->
       <div class="card">
         <div class="card-header">
@@ -118,6 +118,35 @@
           <a routerLink="/kafka">
             <button class="btn btn-primary">
               Open Kafka
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-2 h-4 w-4">
+                <path d="M5 12h14" />
+                <path d="m12 5 7 7-7 7" />
+              </svg>
+            </button>
+          </a>
+        </div>
+      </div>
+
+      <!-- Documentation Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="flex items-center justify-between mb-4">
+            <div class="icon-container">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
+                <path d="M8 7h6" />
+                <path d="M8 11h8" />
+                <path d="M8 15h6" />
+              </svg>
+            </div>
+          </div>
+          <h3 class="card-title">Documentation</h3>
+          <p class="card-description">Browse through your application's documentation with interactive diagrams and business flows</p>
+        </div>
+        <div class="card-footer">
+          <a routerLink="/documentation">
+            <button class="btn btn-primary">
+              View Docs
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-2 h-4 w-4">
                 <path d="M5 12h14" />
                 <path d="m12 5 7 7-7 7" />
