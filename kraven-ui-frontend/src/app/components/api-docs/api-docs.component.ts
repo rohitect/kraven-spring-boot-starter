@@ -89,11 +89,13 @@ export class ApiDocsComponent implements OnInit {
   showCurlModal = false;
   showApiInfoModal = false;
   showAuthModal = false;
+  isExportPostmanModalVisible = false;
   showingApiInfo = true; // Show API info by default
   curlCommand = '';
   curlCopied = false;
   showMainDropdown = false;
   showExportMainDropdown = false;
+  selectedTagForExport: string | null = null;
 
   // Request body state
   selectedRequestBodyContentType = '';
@@ -510,7 +512,45 @@ export class ApiDocsComponent implements OnInit {
   }
 
   /**
-   * Export as Postman collection
+   * Show export Postman modal
+   */
+  showExportPostmanModal(): void {
+    this.isExportPostmanModalVisible = true;
+    this.selectedTagForExport = null;
+  }
+
+  /**
+   * Close export Postman modal
+   */
+  closeExportPostmanModal(): void {
+    this.isExportPostmanModalVisible = false;
+    this.selectedTagForExport = null;
+  }
+
+  /**
+   * Export a specific tag as Postman collection
+   */
+  exportTagAsPostman(tagName: string): void {
+    // Close modal
+    this.isExportPostmanModalVisible = false;
+
+    // Generate Postman collection for the specific tag
+    const postmanCollection = this.generatePostmanCollectionForTag(tagName);
+
+    // Create a blob and download it
+    const blob = new Blob([JSON.stringify(postmanCollection, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${tagName}-postman-collection.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  /**
+   * Export as Postman collection (full API)
    */
   exportAsPostman(): void {
     // Close all dropdowns
@@ -530,6 +570,123 @@ export class ApiDocsComponent implements OnInit {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  }
+
+  /**
+   * Generate a Postman collection for a specific tag
+   */
+  private generatePostmanCollectionForTag(tagName: string): any {
+    const collection: any = {
+      info: {
+        name: `${tagName} API Collection`,
+        description: `Endpoints for ${tagName}`,
+        schema: 'https://schema.getpostman.com/json/collection/v2.1.0/collection.json'
+      },
+      item: []
+    };
+
+    // Get the server URL from the OpenAPI spec
+    const serverUrl = this.apiDocs.servers && this.apiDocs.servers.length > 0
+      ? this.apiDocs.servers[0].url
+      : window.location.origin;
+
+    // Find the tag
+    const tag = this.tags.find(t => t.name === tagName);
+    if (!tag) {
+      return collection;
+    }
+
+    // Add endpoints from this tag
+    tag.endpoints.forEach(endpoint => {
+      const item: any = {
+        name: `${endpoint.method.type} ${endpoint.method.operation.summary || endpoint.path}`,
+        request: {
+          method: endpoint.method.type,
+          header: [
+            {
+              key: 'Content-Type',
+              value: 'application/json'
+            }
+          ],
+          url: {
+            raw: `${serverUrl}${endpoint.path}`,
+            host: [serverUrl.replace(/^https?:\/\//, '').replace(/\/$/, '')],
+            path: endpoint.path.split('/').filter(p => p)
+          },
+          description: endpoint.method.operation.description || ''
+        },
+        response: []
+      };
+
+      // Add request body if needed
+      if (endpoint.method.type !== 'GET' && endpoint.method.type !== 'DELETE' && endpoint.method.operation.requestBody) {
+        if (endpoint.method.operation.requestBody.content && endpoint.method.operation.requestBody.content['application/json']) {
+          const schema = endpoint.method.operation.requestBody.content['application/json'].schema;
+          if (schema) {
+            item.request.body = {
+              mode: 'raw',
+              raw: this.generateSampleFromSchema(schema),
+              options: {
+                raw: {
+                  language: 'json'
+                }
+              }
+            };
+          }
+        }
+      }
+
+      // Add parameters if any
+      if (endpoint.method.operation.parameters && endpoint.method.operation.parameters.length > 0) {
+        item.request.url.query = endpoint.method.operation.parameters
+          .filter((param: any) => param.in === 'query')
+          .map((param: any) => ({
+            key: param.name,
+            value: this.getParameterExample(param),
+            description: param.description || '',
+            disabled: !param.required
+          }));
+
+        // Add path parameters to the URL
+        endpoint.method.operation.parameters
+          .filter((param: any) => param.in === 'path')
+          .forEach((param: any) => {
+            item.request.url.raw = item.request.url.raw.replace(`{${param.name}}`, `:${param.name}`);
+            item.request.url.path = item.request.url.path.map((p: string) =>
+              p.includes(`{${param.name}}`) ? p.replace(`{${param.name}}`, `:${param.name}`) : p
+            );
+          });
+      }
+
+      collection.item.push(item);
+    });
+
+    return collection;
+  }
+
+  /**
+   * Get example value for a parameter
+   */
+  private getParameterExample(param: any): string {
+    if (param.example !== undefined) {
+      return param.example.toString();
+    }
+
+    if (param.schema) {
+      if (param.schema.example !== undefined) {
+        return param.schema.example.toString();
+      }
+
+      if (param.schema.type === 'string') {
+        return param.schema.enum && param.schema.enum.length > 0 ? param.schema.enum[0] : 'string';
+      } else if (param.schema.type === 'number' || param.schema.type === 'integer') {
+        return param.schema.enum && param.schema.enum.length > 0 ? param.schema.enum[0].toString() : '0';
+      } else if (param.schema.type === 'boolean') {
+        return 'false';
+      }
+    }
+
+    return '';
   }
 
   /**

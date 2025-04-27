@@ -55,6 +55,16 @@
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
           </div>
+          <div class="sidebar-actions">
+            <button class="sidebar-action-button" title="Export to Postman Collection" (click)="showExportPostmanModal()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>Export</span>
+            </button>
+          </div>
         </div>
 
         <!-- API Endpoints List -->
@@ -530,6 +540,41 @@
       <app-global-authentication
         [securitySchemes]="securitySchemesArray"
       ></app-global-authentication>
+    </div>
+  </div>
+</div>
+
+<!-- Export Postman Modal -->
+<div class="modal-overlay" *ngIf="isExportPostmanModalVisible" (click)="closeExportPostmanModal()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Export to Postman Collection</h2>
+      <button class="close-button" (click)="closeExportPostmanModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-content">
+      <p class="modal-description">Select an endpoint group to export as a Postman collection:</p>
+
+      <div class="tag-list">
+        <div class="tag-item" *ngFor="let tag of tags" (click)="exportTagAsPostman(tag.name)">
+          <div class="tag-name">{{ tag.name }}</div>
+          <div class="tag-count">{{ tag.endpoints.length }} endpoints</div>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tag-icon">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="modal-button secondary" (click)="closeExportPostmanModal()">Cancel</button>
+        <button class="modal-button primary" (click)="exportAsPostman()">Export All Endpoints</button>
+      </div>
     </div>
   </div>
 </div>

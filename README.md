@@ -87,6 +87,7 @@ Tired of juggling between Swagger UI, Postman, Kafka UIs, and monitoring tools? 
 - **Global Authentication**: Set authentication once and use it across all API calls
 - **Live Streaming**: Watch Kafka messages arrive in real-time as your system processes them
 - **Export Options**: Export API definitions to Postman or as cURL commands
+- **Targeted Postman Exports**: Export specific endpoint groups to Postman collections for focused testing
 
 ### Simplicity Without Sacrifice
 - **Zero Configuration**: Works out of the box with sensible defaults
@@ -294,6 +295,8 @@ The API Documentation UI is where Kraven UI really shines:
 - **Schema Visualization**: Clear, collapsible schema representations
 - **Response Samples**: Auto-generated response examples
 - **Export Options**: Export API definitions to Postman and other formats
+- **Endpoint Group Export**: Export specific endpoint groups to Postman with a single click
+- **Postman Integration**: Generate ready-to-use Postman collections with proper authentication, headers, and example request bodies
 
 ### 🕵️ Feign Client Explorer
 
