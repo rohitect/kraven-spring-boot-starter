@@ -6,6 +6,7 @@ import { KafkaExplorerComponent } from './components/kafka-explorer/kafka-explor
 import { OverviewComponent } from './components/overview/overview.component';
 import { LayoutComponent } from './components/layout/layout.component';
 import { DocumentationComponent } from './components/documentation/documentation.component';
+import { MermaidTestComponent } from './components/mermaid-test/mermaid-test.component';
 
 export const routes: Routes = [
   {
@@ -22,7 +23,8 @@ export const routes: Routes = [
       { path: 'kafka', component: KafkaExplorerComponent },
       { path: 'documentation', component: DocumentationComponent },
       { path: 'documentation/:groupId', component: DocumentationComponent },
-      { path: 'documentation/:groupId/:fileId', component: DocumentationComponent }
+      { path: 'documentation/:groupId/:fileId', component: DocumentationComponent },
+      { path: 'mermaid-test', component: MermaidTestComponent }
     ]
   },
   { path: '**', redirectTo: '' }

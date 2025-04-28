@@ -1,7 +1,7 @@
 import { ApplicationConfig, provideZoneChangeDetection, SecurityContext } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withFetch } from '@angular/common/http';
-import { MARKED_OPTIONS, provideMarkdown } from 'ngx-markdown';
+import { MARKED_OPTIONS, MERMAID_OPTIONS, provideMarkdown } from 'ngx-markdown';
 
 import { routes } from './app.routes';
 
@@ -15,13 +15,35 @@ export const appConfig: ApplicationConfig = {
         provide: MARKED_OPTIONS,
         useValue: {
           gfm: true,          // GitHub flavored markdown
-          breaks: true,       // Convert \n to <br>
-          pedantic: false    // Don't be too strict with original markdown spec
+          breaks: true       // Convert \n to <br>
+          // pedantic: false    // Don't be too strict with original markdown spec
 
           // The breaks: true option will handle most of our needs for whitespace
         }
       },
-      sanitize: SecurityContext.NONE  // Don't sanitize HTML to allow custom elements
+      mermaidOptions: {
+        provide: MERMAID_OPTIONS,
+        useValue: {
+          theme: 'dark',
+          securityLevel: 'loose',
+          fontFamily: 'inherit',
+          logLevel: 'debug',
+          flowchart: {
+            htmlLabels: true,
+            curve: 'basis'
+          },
+          er: {
+            useMaxWidth: false
+          },
+          sequence: {
+            useMaxWidth: false
+          },
+          gantt: {
+            useMaxWidth: false
+          }
+        }
+      }
+      // sanitize: SecurityContext.NONE  // Don't sanitize HTML to allow custom elements
     }),
   ]
 };

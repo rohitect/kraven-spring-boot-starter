@@ -85,7 +85,8 @@ export class MarkdownComponent implements OnChanges, AfterViewInit, OnDestroy {
     // Instead of using &nbsp;, we'll rely on CSS to preserve whitespace
     // We'll just make sure consecutive newlines are preserved
     // by ensuring there are no more than 2 consecutive newlines
-    // content = content.replace(/\n{3,}/g, '\n\n');
+    content = content.replace(/\n{3,}/g, '\n\n');
+    // content = content.replace(/\n/g, '\<br\/\>');
 
     // Process business flow tags
     this.processedContent = content;//this.processBusinessFlowTags(content);
@@ -97,10 +98,11 @@ export class MarkdownComponent implements OnChanges, AfterViewInit, OnDestroy {
    * Called when markdown rendering is complete
    */
   onMarkdownReady(): void {
-    // Set up business flow tag click handlers and render mermaid diagrams
+    // Set up business flow tag click handlers
     setTimeout(() => {
       this.setupBusinessFlowTagClickHandlers();
-      this.renderMermaidDiagrams();
+      // Note: We no longer need to manually render mermaid diagrams
+      // as ngx-markdown will handle this for us with [mermaid]="true"
     }, 100);
   }
 

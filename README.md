@@ -21,7 +21,6 @@ More than just API documentation, Kraven UI is a **complete development and debu
 - 📱 **Responsive Layout** - Three layout options that actually work on all devices (shocking, we know)
 - 🔍 **Markdown Support** - Write API descriptions that don't look like they're from 1997
 - 🧪 **Interactive Try-It-Out** - Test your APIs without switching to Postman (revolutionary concept)
-- 🔐 **Global Authentication** - Support for Basic, Bearer, and API Key auth (because security matters... sometimes)
 - 📦 **Sample Request Bodies** - Auto-generated examples so you don't have to guess the format
 
 <p align="center">
@@ -96,7 +95,6 @@ Tired of juggling between Swagger UI, Postman, Kafka UIs, and monitoring tools? 
 
 ### Time-Saving Features for Developers
 - **Auto-Generated Request Bodies**: No more guessing the correct JSON structure
-- **Global Authentication**: Set authentication once and use it across all API calls
 - **Live Streaming**: Watch Kafka messages arrive in real-time as your system processes them
 - **Export Options**: Export API definitions to Postman or as cURL commands
 - **Targeted Postman Exports**: Export specific endpoint groups to Postman collections for focused testing
@@ -152,7 +150,7 @@ Add the following dependency to your Spring Boot application's `pom.xml` (copy-p
 <dependency>
     <groupId>io.github.rohitect</groupId>
     <artifactId>kraven-ui-spring-boot-starter</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
 </dependency>
 ```
 
@@ -182,56 +180,7 @@ springdoc.api-docs.path=/v3/api-docs
 springdoc.swagger-ui.enabled=false  # Ditch Swagger UI, you've upgraded
 ```
 
-#### 4. Configure Spring Security (If You're Using It)
-
-If your application uses Spring Security, you'll need to allow access to the Kraven UI path. Add the following configuration:
-
-```java
-@Configuration
-@EnableWebSecurity
-public class SecurityConfig {
-
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
-            .authorizeHttpRequests(authorize -> authorize
-                // Allow access to Kraven UI paths
-                .requestMatchers("/kraven/**", "/kraven").permitAll()
-                // Or use the configured path from properties
-                // .requestMatchers(antMatcher(kravenUiProperties.getPath() + "/**")).permitAll()
-
-                // Your other security rules...
-                // .anyRequest().authenticated()
-            )
-            // Other security configuration...
-            .build();
-    }
-}
-```
-
-For Spring Boot 2.x with older Spring Security versions:
-
-```java
-@Configuration
-@EnableWebSecurity
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
-
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http
-            .authorizeRequests()
-                // Allow access to Kraven UI paths
-                .antMatchers("/kraven/**", "/kraven").permitAll()
-                // Your other security rules...
-                // .anyRequest().authenticated()
-                ;
-
-        // Other security configuration...
-    }
-}
-```
-
-#### 5. Run Your Application
+#### 4. Run Your Application
 
 Start your Spring Boot application and navigate to the configured path (e.g., `http://localhost:8080/kraven`). Prepare to be amazed... or at least mildly impressed.
 
@@ -304,12 +253,11 @@ The API Documentation UI is where Kraven UI really shines:
 - **Three-Pane Layout**: Left navigation, middle details, right try-it-out panel
 - **Markdown Support**: Write API descriptions with proper formatting, code blocks, and links
 - **Interactive Try-It-Out**: Test your APIs directly from the documentation
-- **Authentication**: Global authentication settings for all API calls
 - **Schema Visualization**: Clear, collapsible schema representations
 - **Response Samples**: Auto-generated response examples
 - **Export Options**: Export API definitions to Postman and other formats
 - **Endpoint Group Export**: Export specific endpoint groups to Postman with a single click
-- **Postman Integration**: Generate ready-to-use Postman collections with proper authentication, headers, and example request bodies
+- **Postman Integration**: Generate ready-to-use Postman collections with headers and example request bodies
 
 ### 🕵️ Feign Client Explorer
 
@@ -397,7 +345,7 @@ Here's a complete example of how to set up a Spring Boot REST API with Kraven UI
         <dependency>
             <groupId>io.github.rohitect</groupId>
             <artifactId>kraven-ui-spring-boot-starter</artifactId>
-            <version>1.0.1</version>
+            <version>1.0.2</version>
         </dependency>
     </dependencies>
 </project>
@@ -494,43 +442,7 @@ kraven.ui.documentation.syntax-highlighting-enabled=true
 kraven.ui.documentation.business-flow-tags-enabled=true
 ```
 
-### 4. Configure Spring Security (If Applicable)
-
-If your application uses Spring Security, add this configuration to allow access to Kraven UI:
-
-```java
-// SecurityConfig.java
-package com.example.config;
-
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.web.SecurityFilterChain;
-
-@Configuration
-@EnableWebSecurity
-public class SecurityConfig {
-
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
-            .authorizeHttpRequests(authorize -> authorize
-                // Allow access to API docs endpoint
-                .requestMatchers("/v3/api-docs/**").permitAll()
-                // Allow access to Kraven UI
-                .requestMatchers("/kraven/**", "/kraven").permitAll()
-                // Secure other endpoints as needed
-                .anyRequest().authenticated()
-            )
-            // Disable CSRF for API endpoints if needed
-            .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
-            .build();
-    }
-}
-```
-
-### 5. Run the Application
+### 4. Run the Application
 
 Start your Spring Boot application and navigate to `http://localhost:8080/kraven` to see your API documentation with Kraven UI.
 
