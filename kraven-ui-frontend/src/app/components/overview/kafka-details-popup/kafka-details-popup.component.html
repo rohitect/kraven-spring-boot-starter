@@ -1,0 +1,260 @@
+<div class="popup-overlay" *ngIf="isVisible" (click)="closePopup()" [@fadeAnimation]>
+  <div class="popup-container" (click)="$event.stopPropagation()" [@scaleAnimation]>
+    <div class="popup-header">
+      <h2>
+        <span class="header-icon" [ngClass]="{'consumer-icon': kafkaType === 'consumer', 'producer-icon': kafkaType === 'producer'}"></span>
+        {{ kafkaType === 'consumer' ? 'Kafka Consumers' : 'Kafka Producers' }}
+      </h2>
+      <button class="close-btn" (click)="closePopup()" title="Close">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <div class="popup-content">
+      <div class="popup-sidebar">
+        <div class="search-container">
+          <input
+            type="text"
+            placeholder="Search {{ kafkaType === 'consumer' ? 'consumers' : 'producers' }}..."
+            [(ngModel)]="searchTerm"
+            (input)="onSearch()"
+            [attr.aria-label]="'Search ' + (kafkaType === 'consumer' ? 'consumers' : 'producers')"
+            autocomplete="off"
+          >
+          <button *ngIf="searchTerm" class="clear-search" (click)="clearSearch()" title="Clear search">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <div class="item-list">
+          <!-- Consumer Groups -->
+          <div *ngIf="kafkaType === 'consumer'">
+            <div
+              *ngFor="let item of filteredItems; let i = index"
+              class="item-entry"
+              [class.active]="selectedItem?.groupId === item.groupId"
+              (click)="onItemSelect(item)"
+              [@itemAnimation]="{value: '', params: {delay: i * 50}}"
+              [attr.aria-selected]="selectedItem?.groupId === item.groupId"
+              [attr.role]="'option'"
+            >
+              <span class="item-icon consumer-icon"></span>
+              <div class="item-details">
+                <span class="item-name">{{ item.groupId }}</span>
+                <span class="tag {{ getConsumerGroupStateSeverity(item.state) }}">{{ item.state }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Producers (Listeners) -->
+          <div *ngIf="kafkaType === 'producer'">
+            <div
+              *ngFor="let item of filteredItems; let i = index"
+              class="item-entry"
+              [class.active]="selectedItem?.id === item.id"
+              (click)="onItemSelect(item)"
+              [@itemAnimation]="{value: '', params: {delay: i * 50}}"
+              [attr.aria-selected]="selectedItem?.id === item.id"
+              [attr.role]="'option'"
+            >
+              <span class="item-icon producer-icon"></span>
+              <div class="item-details">
+                <span class="item-name">{{ item.id || item.methodName }}</span>
+                <div class="item-topics">
+                  <span class="tag info" *ngFor="let topic of item.topics?.slice(0, 1)">{{ topic }}</span>
+                  <span class="tag count" *ngIf="item.topics?.length > 1">+{{ item.topics.length - 1 }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="filteredItems.length === 0" class="no-results" [@fadeAnimation]>
+            <span class="no-results-icon"></span>
+            <p>No {{ kafkaType === 'consumer' ? 'consumers' : 'producers' }} found</p>
+            <button *ngIf="searchTerm" class="reset-search" (click)="clearSearch()">
+              Reset search
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="popup-details" *ngIf="selectedItem" [@fadeAnimation]>
+        <!-- Consumer Group Details -->
+        <div *ngIf="kafkaType === 'consumer'">
+          <div class="item-header">
+            <h3>
+              <span class="item-type-badge consumer-badge">Consumer</span>
+              {{ selectedItem.groupId }}
+            </h3>
+            <button class="navigate-btn" (click)="navigateToKafkaExplorer()" title="Open in Kafka Explorer">
+              <span>Open in Kafka Explorer</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line>
+              </svg>
+            </button>
+          </div>
+
+          <div class="item-status" [@slideAnimation]>
+            <h4>Status</h4>
+            <div class="status-details">
+              <div class="status-item">
+                <span class="status-label">State:</span>
+                <span class="tag {{ getConsumerGroupStateSeverity(selectedItem.state) }}">{{ selectedItem.state }}</span>
+              </div>
+              <div class="status-item">
+                <span class="status-label">Members:</span>
+                <span class="status-value">{{ selectedItem.members?.length || 0 }}</span>
+              </div>
+              <div class="status-item">
+                <span class="status-label">Total Lag:</span>
+                <span class="status-value">{{ getTotalLag(selectedItem) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="item-members" *ngIf="selectedItem.members?.length > 0" [@slideAnimation]>
+            <h4>Members</h4>
+            <div class="members-list">
+              <div class="member-item" *ngFor="let member of selectedItem.members; let i = index" [@itemAnimation]="{value: '', params: {delay: i * 50}}">
+                <div class="member-header">
+                  <span class="member-id">{{ member.memberId }}</span>
+                </div>
+                <div class="member-details">
+                  <div class="member-detail">
+                    <span class="detail-label">Client ID:</span>
+                    <span class="detail-value">{{ member.clientId }}</span>
+                  </div>
+                  <div class="member-detail">
+                    <span class="detail-label">Host:</span>
+                    <span class="detail-value">{{ member.host }}</span>
+                  </div>
+                  <div class="member-detail" *ngIf="member.assignment">
+                    <span class="detail-label">Assignment:</span>
+                    <span class="detail-value">{{ member.assignment }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="item-partitions" *ngIf="selectedItem.topicPartitions?.length > 0" [@slideAnimation]>
+            <h4>Topic Partitions</h4>
+            <div class="partitions-list">
+              <div class="partition-item" *ngFor="let partition of selectedItem.topicPartitions; let i = index" [@itemAnimation]="{value: '', params: {delay: i * 50}}">
+                <div class="partition-header">
+                  <span class="partition-topic">{{ partition.topic }}</span>
+                  <span class="partition-id">Partition {{ partition.partition }}</span>
+                </div>
+                <div class="partition-details">
+                  <div class="partition-detail">
+                    <span class="detail-label">Current Offset:</span>
+                    <span class="detail-value">{{ partition.currentOffset }}</span>
+                  </div>
+                  <div class="partition-detail">
+                    <span class="detail-label">Log End Offset:</span>
+                    <span class="detail-value">{{ partition.logEndOffset }}</span>
+                  </div>
+                  <div class="partition-detail">
+                    <span class="detail-label">Lag:</span>
+                    <span class="detail-value lag-value" [class.high-lag]="partition.lag > 1000">{{ partition.lag }}</span>
+                  </div>
+                  <div class="partition-detail" *ngIf="partition.memberId">
+                    <span class="detail-label">Member ID:</span>
+                    <span class="detail-value">{{ partition.memberId }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Producer (Listener) Details -->
+        <div *ngIf="kafkaType === 'producer'">
+          <div class="item-header">
+            <h3>
+              <span class="item-type-badge producer-badge">Producer</span>
+              {{ selectedItem.id || selectedItem.methodName }}
+            </h3>
+            <button class="navigate-btn" (click)="navigateToKafkaExplorer()" title="Open in Kafka Explorer">
+              <span>Open in Kafka Explorer</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line>
+              </svg>
+            </button>
+          </div>
+
+          <div class="item-topics" *ngIf="selectedItem.topics?.length > 0" [@slideAnimation]>
+            <h4>Topics</h4>
+            <div class="topics-list">
+              <div class="topic-item" *ngFor="let topic of selectedItem.topics; let i = index" [@itemAnimation]="{value: '', params: {delay: i * 50}}">
+                <div class="topic-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                    <path d="M2 17l10 5 10-5"></path>
+                    <path d="M2 12l10 5 10-5"></path>
+                  </svg>
+                </div>
+                <span class="topic-name">{{ topic }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="item-implementation" [@slideAnimation]>
+            <h4>Implementation</h4>
+            <div class="implementation-details-container">
+              <!-- Left column for class and method -->
+              <div class="implementation-column">
+                <div class="implementation-detail full-width">
+                  <span class="detail-label">Class:</span>
+                  <div class="detail-value code-value">{{ selectedItem.className }}</div>
+                </div>
+                <div class="implementation-detail full-width">
+                  <span class="detail-label">Method:</span>
+                  <div class="detail-value">{{ selectedItem.methodName }}</div>
+                </div>
+              </div>
+
+              <!-- Right column for bean, group ID, and message type -->
+              <div class="implementation-column">
+                <div class="implementation-detail" *ngIf="selectedItem.beanName">
+                  <span class="detail-label">Bean:</span>
+                  <div class="detail-value">{{ selectedItem.beanName }}</div>
+                </div>
+                <div class="implementation-detail" *ngIf="selectedItem.groupId">
+                  <span class="detail-label">Group ID:</span>
+                  <div class="detail-value">{{ selectedItem.groupId }}</div>
+                </div>
+                <div class="implementation-detail" *ngIf="selectedItem.messageType">
+                  <span class="detail-label">Message Type:</span>
+                  <div class="detail-value code-value">{{ selectedItem.messageType }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="no-details" *ngIf="!selectedItem" [@fadeAnimation]>
+          <p>No additional details available for this {{ kafkaType === 'consumer' ? 'consumer' : 'producer' }}</p>
+          <button class="navigate-btn small" (click)="navigateToKafkaExplorer()">
+            <span>Open in Kafka Explorer</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

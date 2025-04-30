@@ -134,11 +134,8 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
     // Initialize filtered messages array
     this.filteredMessages = [];
 
-    // Load Kafka cluster info
-    this.loadClusterInfo();
-
-    // Load received messages
-    this.loadReceivedMessages();
+    // Load Kafka cluster info and handle query parameters
+    this.loadClusterInfoAndHandleParams();
   }
 
   /**
@@ -149,45 +146,169 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Loads Kafka cluster information.
+   * Loads Kafka cluster information and handles query parameters.
+   * Handles the simplified 'tab' and 'item' query parameters.
    */
-  loadClusterInfo(): void {
+  loadClusterInfoAndHandleParams(): void {
     this.loading = true;
     this.error = null;
 
-    this.kafkaService.getClusterInfo().subscribe({
-      next: (clusterInfo) => {
-        this.clusterInfo = clusterInfo;
-        this.loading = false;
+    // Get query parameters
+    this.route.queryParams.subscribe(params => {
+      const tabParam = params['tab'];
+      const itemParam = params['item'];
 
-        // Initialize filtered topics
-        this.filteredTopics = [...clusterInfo.topics];
+      this.kafkaService.getClusterInfo().subscribe({
+        next: (clusterInfo) => {
+          this.clusterInfo = clusterInfo;
+          this.loading = false;
 
-        // Select the first topic if available
-        if (clusterInfo.topics.length > 0) {
-          this.selectTopic(clusterInfo.topics[0]);
+          // Initialize filtered topics
+          this.filteredTopics = [...clusterInfo.topics];
+
+          // Handle tab selection from query params
+          const activeTab = tabParam ? parseInt(tabParam, 10) || 0 : 0;
+          this.activeTabIndex = activeTab;
+
+          // Handle item selection based on query params
+          let itemSelected = false;
+
+          if (itemParam) {
+            switch (activeTab) {
+              case 0: // Topics
+                // For topics, the item is a composite of topic name and active tab
+                const [topicName, topicTab] = itemParam.split(':');
+                if (topicName && clusterInfo.topics.length > 0) {
+                  const topic = clusterInfo.topics.find(t => t.name === topicName);
+                  if (topic) {
+                    this.selectTopic(topic);
+                    // Set the active topic tab if specified
+                    if (topicTab) {
+                      this.activeTopicTab = topicTab;
+                    }
+                    itemSelected = true;
+                  }
+                }
+                break;
+
+              case 1: // Brokers
+                if (clusterInfo.brokers.length > 0) {
+                  const brokerId = parseInt(itemParam, 10);
+                  const broker = clusterInfo.brokers.find(b => b.id === brokerId);
+                  if (broker) {
+                    this.selectBroker(broker);
+                    itemSelected = true;
+                  }
+                }
+                break;
+
+              case 2: // Consumer Groups
+                if (clusterInfo.consumerGroups.length > 0) {
+                  const consumerGroup = clusterInfo.consumerGroups.find(cg => cg.groupId === itemParam);
+                  if (consumerGroup) {
+                    this.selectConsumerGroup(consumerGroup);
+                    itemSelected = true;
+                  }
+                }
+                break;
+
+              case 3: // Listeners
+                if (clusterInfo.listeners.length > 0) {
+                  const listener = clusterInfo.listeners.find(l => l.id === itemParam);
+                  if (listener) {
+                    this.selectListener(listener);
+                    itemSelected = true;
+                  }
+                }
+                break;
+            }
+          }
+
+          // If no specific item was selected from query params, select defaults based on active tab
+          if (!itemSelected) {
+            switch (activeTab) {
+              case 0: // Topics
+                // Select the first topic if available
+                if (clusterInfo.topics.length > 0) {
+                  this.selectTopic(clusterInfo.topics[0]);
+                }
+                break;
+
+              case 1: // Brokers
+                // Select the first broker if available
+                if (clusterInfo.brokers.length > 0) {
+                  this.selectBroker(clusterInfo.brokers[0]);
+                }
+                break;
+
+              case 2: // Consumer Groups
+                // Select the first consumer group if available
+                if (clusterInfo.consumerGroups.length > 0) {
+                  this.selectConsumerGroup(clusterInfo.consumerGroups[0]);
+                }
+                break;
+
+              case 3: // Listeners
+                // Select the first listener if available
+                if (clusterInfo.listeners.length > 0) {
+                  this.selectListener(clusterInfo.listeners[0]);
+                }
+                break;
+            }
+          }
+
+          // Load received messages
+          this.loadReceivedMessages();
+        },
+        error: (error) => {
+          console.error('Error loading Kafka cluster info:', error);
+          this.error = 'Failed to load Kafka cluster information. Please check the server connection.';
+          this.loading = false;
         }
+      });
+    });
+  }
 
-        // Select the first broker if available
-        if (clusterInfo.brokers.length > 0) {
-          this.selectBroker(clusterInfo.brokers[0]);
-        }
+  /**
+   * Updates the URL query parameters based on the current selection state.
+   * Uses only 'tab' and 'item' parameters for cleaner URLs.
+   */
+  updateQueryParams(): void {
+    const queryParams: any = {
+      tab: this.activeTabIndex
+    };
 
-        // Select the first consumer group if available
-        if (clusterInfo.consumerGroups.length > 0) {
-          this.selectConsumerGroup(clusterInfo.consumerGroups[0]);
+    // Add the appropriate item ID based on the active tab
+    switch (this.activeTabIndex) {
+      case 0: // Topics
+        if (this.selectedTopic) {
+          // For topics, the item is a composite of topic name and active tab
+          queryParams.item = `${this.selectedTopic.name}:${this.activeTopicTab}`;
         }
+        break;
+      case 1: // Brokers
+        if (this.selectedBroker) {
+          queryParams.item = this.selectedBroker.id.toString();
+        }
+        break;
+      case 2: // Consumer Groups
+        if (this.selectedConsumerGroup) {
+          queryParams.item = this.selectedConsumerGroup.groupId;
+        }
+        break;
+      case 3: // Listeners
+        if (this.selectedListener) {
+          queryParams.item = this.selectedListener.id;
+        }
+        break;
+    }
 
-        // Select the first listener if available
-        if (clusterInfo.listeners.length > 0) {
-          this.selectListener(clusterInfo.listeners[0]);
-        }
-      },
-      error: (error) => {
-        console.error('Error loading Kafka cluster info:', error);
-        this.error = 'Failed to load Kafka cluster information. Please check the server connection.';
-        this.loading = false;
-      }
+    // Update the URL without navigating
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: queryParams,
+      queryParamsHandling: 'replace', // Use 'replace' instead of 'merge' to ensure only these two params
+      replaceUrl: true
     });
   }
 
@@ -457,6 +578,9 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
     // Load messages for this topic
     const sortParam = this.messageViewMode === 'old' ? 'old' : 'new';
     this.loadMessagesForTopic(topic.name, sortParam);
+
+    // Update query parameters
+    this.updateQueryParams();
   }
 
   /**
@@ -465,6 +589,9 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
   selectBroker(broker: KafkaBroker): void {
     this.selectedBroker = broker;
     this.hideProduceMessagePane();
+
+    // Update query parameters
+    this.updateQueryParams();
   }
 
   /**
@@ -473,6 +600,9 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
   selectConsumerGroup(consumerGroup: KafkaConsumerGroup): void {
     this.selectedConsumerGroup = consumerGroup;
     this.hideProduceMessagePane();
+
+    // Update query parameters
+    this.updateQueryParams();
   }
 
   /**
@@ -481,6 +611,9 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
   selectListener(listener: KafkaListener): void {
     this.selectedListener = listener;
     this.hideProduceMessagePane();
+
+    // Update query parameters
+    this.updateQueryParams();
   }
 
   /**
@@ -514,7 +647,7 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
    * Refreshes the Kafka cluster information.
    */
   refreshClusterInfo(): void {
-    this.loadClusterInfo();
+    this.loadClusterInfoAndHandleParams();
   }
 
   /**
@@ -582,7 +715,7 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
     this.eventSource = eventSource;
 
     // Handle connection open
-    this.eventSource.onopen = (event) => {
+    this.eventSource.onopen = () => {
       console.log('SSE connection opened for topic:', this.selectedTopic?.name);
     };
 
@@ -709,10 +842,19 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Sets the active topic tab.
+   * Sets the active tab index and updates the query parameters.
+   */
+  setActiveTabIndex(index: number): void {
+    this.activeTabIndex = index;
+    this.updateQueryParams();
+  }
+
+  /**
+   * Sets the active topic tab and updates the query parameters.
    */
   setActiveTopicTab(tab: string): void {
     this.activeTopicTab = tab;
+    this.updateQueryParams();
   }
 
   // setMessageViewMode is implemented above with live streaming support

@@ -2,17 +2,42 @@ import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { MetricsService, ApplicationMetrics, MemoryPoolMetrics, GarbageCollectorInfo } from '../../services/metrics.service';
+import { HttpClient } from '@angular/common/http';
+import {
+  MetricsService,
+  ApplicationMetrics,
+  MemoryPoolMetrics,
+  GarbageCollectorInfo,
+  SpringBeanDetails,
+  SpringControllerDetails,
+  SpringServiceDetails,
+  SpringRepositoryDetails,
+  SpringComponentDetails,
+  SpringConfigurationDetails,
+  MetricDetail
+} from '../../services/metrics.service';
 import { ThemeService } from '../../services/theme.service';
 import { MetricDescriptionsService } from '../../services/metric-descriptions.service';
+import { ConfigService } from '../../services/config.service';
 import { TooltipDirective } from '../../directives/tooltip.directive';
-import { Subscription } from 'rxjs';
+import { Subscription, forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { ClientDetailsPopupComponent, ClientDetails } from './client-details-popup/client-details-popup.component';
+import { KafkaDetailsPopupComponent } from './kafka-details-popup/kafka-details-popup.component';
+import { MetricDetailsPopupComponent } from './metric-details-popup/metric-details-popup.component';
+import { KafkaService, KafkaConsumerGroup, KafkaListener } from '../../services/kafka.service';
 
 @Component({
   selector: 'app-overview',
   standalone: true,
-  imports: [CommonModule, FormsModule, TooltipDirective, ClientDetailsPopupComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    TooltipDirective,
+    ClientDetailsPopupComponent,
+    KafkaDetailsPopupComponent,
+    MetricDetailsPopupComponent
+  ],
   templateUrl: './overview.component.html',
   styleUrls: ['./overview.component.scss']
 })
@@ -42,10 +67,21 @@ export class OverviewComponent implements OnInit, OnDestroy {
   libraryClassCount = 0;
   kravenLibraryClassCount = 0;
 
-  // Popup state
+  // Client popup state
   showClientPopup = false;
   clientPopupType: 'endpoint' | 'feign' = 'endpoint';
   clientDetails: ClientDetails[] = [];
+
+  // Kafka popup state
+  showKafkaPopup = false;
+  kafkaType: 'consumer' | 'producer' = 'consumer';
+  kafkaItems: KafkaConsumerGroup[] | KafkaListener[] = [];
+
+  // Metric details popup state
+  showMetricDetailsPopup = false;
+  metricDetailsTitle = '';
+  metricDetailsType = '';
+  metricDetails: MetricDetail[] = [];
 
   // Summary dropdown state
   showSummaryDropdown = false;
@@ -55,7 +91,10 @@ export class OverviewComponent implements OnInit, OnDestroy {
     private themeService: ThemeService,
     public descriptions: MetricDescriptionsService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private kafkaService: KafkaService,
+    private http: HttpClient,
+    public configService: ConfigService
   ) {}
 
   ngOnInit(): void {
@@ -468,8 +507,38 @@ export class OverviewComponent implements OnInit, OnDestroy {
     if (!this.metrics?.spring?.endpointCount) return;
 
     this.clientPopupType = 'endpoint';
-    this.clientDetails = this.generateEndpointDetails();
-    this.showClientPopup = true;
+    this.loading = true;
+
+    // Use the SpringMetricsService to get real data about controllers
+    this.http.get<any[]>(`${this.configService.getApiBasePath()}/metrics/controllers`).subscribe({
+      next: (controllers) => {
+        this.clientDetails = controllers.map(controller => {
+          // Format the methods as HTTP_METHOD /path
+          const methods = controller.requestMappings?.map((path: string) => {
+            // For simplicity, we're assuming GET method, but in a real implementation
+            // you would get the actual HTTP methods from the controller methods
+            return `GET ${path}`;
+          }) || [];
+
+          return {
+            type: 'endpoint',
+            name: controller.name,
+            methods: methods,
+            path: controller.baseUrl || ''
+          };
+        });
+        this.showClientPopup = true;
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error loading endpoint details:', err);
+        this.error = 'Failed to load endpoint details. Please try again later.';
+        this.loading = false;
+        // Fallback to empty array if there's an error
+        this.clientDetails = [];
+        this.showClientPopup = true;
+      }
+    });
   }
 
   /**
@@ -479,8 +548,37 @@ export class OverviewComponent implements OnInit, OnDestroy {
     if (!this.metrics?.feign?.clientCount) return;
 
     this.clientPopupType = 'feign';
-    this.clientDetails = this.generateFeignClientDetails();
-    this.showClientPopup = true;
+    this.loading = true;
+
+    // Use the FeignClientService to get real data
+    this.http.get<any[]>(`${this.configService.getApiBasePath()}/feign-clients`).subscribe({
+      next: (clients) => {
+        this.clientDetails = clients.map(client => ({
+          type: 'feign',
+          name: client.name,
+          methods: client.methods?.map((method: any) => `${method.name}(${this.formatParameters(method.parameters)})`) || [],
+          path: client.path || client.url
+        }));
+        this.showClientPopup = true;
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error loading Feign client details:', err);
+        this.error = 'Failed to load Feign client details. Please try again later.';
+        this.loading = false;
+        // Fallback to empty array if there's an error
+        this.clientDetails = [];
+        this.showClientPopup = true;
+      }
+    });
+  }
+
+  /**
+   * Helper method to format method parameters
+   */
+  private formatParameters(parameters: any[]): string {
+    if (!parameters || parameters.length === 0) return '';
+    return parameters.map((param: any) => `${param.type} ${param.name}`).join(', ');
   }
 
   /**
@@ -491,68 +589,279 @@ export class OverviewComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Generates mock endpoint details for the popup
-   * In a real application, this would come from the backend
+   * Opens the Kafka consumers popup
    */
-  private generateEndpointDetails(): ClientDetails[] {
-    // This is a mock implementation - in a real app, this data would come from the backend
-    const endpoints: ClientDetails[] = [
-      {
-        type: 'endpoint',
-        name: 'CustomerController',
-        methods: ['GET /customers', 'GET /customers/{id}', 'POST /customers', 'PUT /customers/{id}', 'DELETE /customers/{id}'],
-        path: '/customers'
-      },
-      {
-        type: 'endpoint',
-        name: 'OrderController',
-        methods: ['GET /orders', 'GET /orders/{id}', 'POST /orders', 'PUT /orders/{id}', 'DELETE /orders/{id}'],
-        path: '/orders'
-      },
-      {
-        type: 'endpoint',
-        name: 'ProductController',
-        methods: ['GET /products', 'GET /products/{id}', 'POST /products', 'PUT /products/{id}', 'DELETE /products/{id}'],
-        path: '/products'
-      },
-      {
-        type: 'endpoint',
-        name: 'KafkaController',
-        methods: ['POST /kafka/produce', 'GET /kafka/topics'],
-        path: '/kafka'
-      }
-    ];
+  openConsumersPopup(): void {
+    if (!this.metrics?.kafka?.consumerCount) return;
 
-    return endpoints;
+    this.kafkaType = 'consumer';
+    this.loadConsumers();
+    this.showKafkaPopup = true;
   }
 
   /**
-   * Generates mock Feign client details for the popup
-   * In a real application, this would come from the backend
+   * Opens the Kafka producers popup
    */
-  private generateFeignClientDetails(): ClientDetails[] {
-    // This is a mock implementation - in a real app, this data would come from the backend
-    const clients: ClientDetails[] = [
-      {
-        type: 'feign',
-        name: 'CustomerClient',
-        methods: ['getCustomers()', 'getCustomer(Long id)', 'createCustomer(Customer customer)', 'updateCustomer(Long id, Customer customer)', 'deleteCustomer(Long id)'],
-        path: '/customers'
-      },
-      {
-        type: 'feign',
-        name: 'OrderClient',
-        methods: ['getOrders()', 'getOrder(Long id)', 'createOrder(Order order)', 'updateOrder(Long id, Order order)', 'deleteOrder(Long id)'],
-        path: '/orders'
-      },
-      {
-        type: 'feign',
-        name: 'ProductClient',
-        methods: ['getProducts()', 'getProduct(Long id)', 'createProduct(Product product)', 'updateProduct(Long id, Product product)', 'deleteProduct(Long id)'],
-        path: '/products'
-      }
-    ];
+  openProducersPopup(): void {
+    if (!this.metrics?.kafka?.producerCount) return;
 
-    return clients;
+    this.kafkaType = 'producer';
+    this.loadProducers();
+    this.showKafkaPopup = true;
+  }
+
+  /**
+   * Opens the Kafka listeners popup
+   */
+  openListenersPopup(): void {
+    if (!this.metrics?.kafka?.listenerCount) return;
+
+    this.kafkaType = 'producer'; // Listeners are treated as producers in the popup
+    this.loadListeners();
+    this.showKafkaPopup = true;
+  }
+
+  /**
+   * Closes the Kafka details popup
+   */
+  closeKafkaPopup(): void {
+    this.showKafkaPopup = false;
+  }
+
+  /**
+   * Loads Kafka consumers from the service
+   */
+  private loadConsumers(): void {
+    this.kafkaService.getClusterInfo().subscribe({
+      next: (clusterInfo) => {
+        this.kafkaItems = clusterInfo.consumerGroups || [];
+      },
+      error: (err) => {
+        console.error('Error loading Kafka consumers:', err);
+        this.error = 'Failed to load Kafka consumers. Please try again later.';
+        this.kafkaItems = [];
+      }
+    });
+  }
+
+  /**
+   * Loads Kafka producers (listeners) from the service
+   */
+  private loadProducers(): void {
+    this.kafkaService.getClusterInfo().subscribe({
+      next: (clusterInfo) => {
+        this.kafkaItems = clusterInfo.listeners || [];
+      },
+      error: (err) => {
+        console.error('Error loading Kafka producers:', err);
+        this.error = 'Failed to load Kafka producers. Please try again later.';
+        this.kafkaItems = [];
+      }
+    });
+  }
+
+  /**
+   * Loads Kafka listeners from the service
+   */
+  private loadListeners(): void {
+    this.kafkaService.getListeners().subscribe({
+      next: (listeners) => {
+        this.kafkaItems = listeners || [];
+      },
+      error: (err) => {
+        console.error('Error loading Kafka listeners:', err);
+        this.error = 'Failed to load Kafka listeners. Please try again later.';
+        this.kafkaItems = [];
+      }
+    });
+  }
+
+
+
+  /**
+   * Opens the metric details popup for beans
+   */
+  openBeansPopup(): void {
+    if (!this.metrics?.spring?.beanCount) return;
+
+    this.metricDetailsTitle = 'Spring Beans';
+    this.metricDetailsType = 'beans';
+    this.loading = true;
+
+    this.metricsService.getBeanDetails().subscribe({
+      next: (beans) => {
+        this.metricDetails = beans.map(bean => ({
+          name: bean.name,
+          value: bean.className,
+          description: `${bean.type} - Scope: ${bean.scope || 'singleton'}${bean.isPrimary ? ' (Primary)' : ''}`,
+          type: bean.type?.toLowerCase(),
+          tags: bean.tags
+        }));
+        this.showMetricDetailsPopup = true;
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error loading bean details:', err);
+        this.error = 'Failed to load bean details. Please try again later.';
+        this.loading = false;
+      }
+    });
+  }
+
+  /**
+   * Opens the metric details popup for controllers
+   */
+  openControllersPopup(): void {
+    if (!this.metrics?.spring?.controllerCount) return;
+
+    this.metricDetailsTitle = 'Spring Controllers';
+    this.metricDetailsType = 'controllers';
+    this.loading = true;
+
+    this.metricsService.getControllerDetails().subscribe({
+      next: (controllers) => {
+        this.metricDetails = controllers.map(controller => ({
+          name: controller.name,
+          value: controller.className,
+          description: `${controller.isRestController ? 'REST Controller' : 'MVC Controller'}${controller.baseUrl ? ' - Base URL: ' + controller.baseUrl : ''}`,
+          type: 'controller',
+          tags: controller.tags
+        }));
+        this.showMetricDetailsPopup = true;
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error loading controller details:', err);
+        this.error = 'Failed to load controller details. Please try again later.';
+        this.loading = false;
+      }
+    });
+  }
+
+  /**
+   * Opens the metric details popup for services
+   */
+  openServicesPopup(): void {
+    if (!this.metrics?.spring?.serviceCount) return;
+
+    this.metricDetailsTitle = 'Spring Services';
+    this.metricDetailsType = 'services';
+    this.loading = true;
+
+    this.metricsService.getServiceDetails().subscribe({
+      next: (services) => {
+        this.metricDetails = services.map(service => ({
+          name: service.name,
+          value: service.className,
+          description: `Spring Service${service.isTransactional ? ' (Transactional)' : ''}`,
+          type: 'service',
+          tags: service.tags
+        }));
+        this.showMetricDetailsPopup = true;
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error loading service details:', err);
+        this.error = 'Failed to load service details. Please try again later.';
+        this.loading = false;
+      }
+    });
+  }
+
+  /**
+   * Opens the metric details popup for repositories
+   */
+  openRepositoriesPopup(): void {
+    if (!this.metrics?.spring?.repositoryCount) return;
+
+    this.metricDetailsTitle = 'Spring Repositories';
+    this.metricDetailsType = 'repositories';
+    this.loading = true;
+
+    this.metricsService.getRepositoryDetails().subscribe({
+      next: (repositories) => {
+        this.metricDetails = repositories.map(repo => ({
+          name: repo.name,
+          value: repo.className,
+          description: `${repo.repositoryType} Repository - Entity: ${repo.entityClass || 'Unknown'}`,
+          type: 'repository',
+          tags: repo.tags
+        }));
+        this.showMetricDetailsPopup = true;
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error loading repository details:', err);
+        this.error = 'Failed to load repository details. Please try again later.';
+        this.loading = false;
+      }
+    });
+  }
+
+  /**
+   * Opens the metric details popup for components
+   */
+  openComponentsPopup(): void {
+    if (!this.metrics?.spring?.componentCount) return;
+
+    this.metricDetailsTitle = 'Spring Components';
+    this.metricDetailsType = 'components';
+    this.loading = true;
+
+    this.metricsService.getComponentDetails().subscribe({
+      next: (components) => {
+        this.metricDetails = components.map(component => ({
+          name: component.name,
+          value: component.className,
+          description: `Spring Component`,
+          type: 'component',
+          tags: component.tags
+        }));
+        this.showMetricDetailsPopup = true;
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error loading component details:', err);
+        this.error = 'Failed to load component details. Please try again later.';
+        this.loading = false;
+      }
+    });
+  }
+
+  /**
+   * Opens the metric details popup for configurations
+   */
+  openConfigurationsPopup(): void {
+    if (!this.metrics?.spring?.configurationCount) return;
+
+    this.metricDetailsTitle = 'Spring Configurations';
+    this.metricDetailsType = 'configurations';
+    this.loading = true;
+
+    this.metricsService.getConfigurationDetails().subscribe({
+      next: (configurations) => {
+        this.metricDetails = configurations.map(config => ({
+          name: config.name,
+          value: config.className,
+          description: `${config.isAutoConfiguration ? 'Auto-Configuration' : 'Configuration'}${config.beanMethods?.length ? ' - Bean Methods: ' + config.beanMethods.length : ''}`,
+          type: 'configuration',
+          tags: config.tags
+        }));
+        this.showMetricDetailsPopup = true;
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error loading configuration details:', err);
+        this.error = 'Failed to load configuration details. Please try again later.';
+        this.loading = false;
+      }
+    });
+  }
+
+  /**
+   * Closes the metric details popup
+   */
+  closeMetricDetailsPopup(): void {
+    this.showMetricDetailsPopup = false;
   }
 }

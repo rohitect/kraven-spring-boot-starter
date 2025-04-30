@@ -1,0 +1,70 @@
+<div class="popup-overlay" *ngIf="isVisible" (click)="closePopup()" [@fadeAnimation]>
+  <div class="popup-container" (click)="$event.stopPropagation()" [@scaleAnimation]>
+    <div class="popup-header">
+      <h2>
+        <span class="header-icon" [ngClass]="{'metric-icon': true}"></span>
+        {{ title }}
+      </h2>
+      <button class="close-btn" (click)="closePopup()" title="Close">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <div class="popup-content">
+      <!-- Sidebar with search and list -->
+      <div class="popup-sidebar">
+        <div class="search-container">
+          <div class="search-input-wrapper">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input 
+              type="text" 
+              class="search-input" 
+              placeholder="Search metrics..." 
+              [(ngModel)]="searchTerm" 
+              (input)="onSearch()"
+              aria-label="Search metrics"
+            >
+            <button 
+              *ngIf="searchTerm" 
+              class="clear-search-btn" 
+              (click)="clearSearch()" 
+              title="Clear search"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="item-list">
+          <div *ngIf="filteredItems.length === 0" class="no-items">
+            <p>No metrics found matching "{{ searchTerm }}"</p>
+          </div>
+
+          <div 
+            *ngFor="let item of filteredItems; let i = index" 
+            class="metric-item"
+            [@itemAnimation]="{value: '', params: {delay: i * 50}}"
+          >
+            <div class="metric-item-name">{{ item.name }}</div>
+            <div class="metric-item-value">{{ item.value }}</div>
+            <div class="metric-item-tags" *ngIf="item.tags && item.tags.length > 0">
+              <span class="tag" *ngFor="let tag of item.tags">{{ tag }}</span>
+            </div>
+            <div class="metric-item-description" *ngIf="item.description">
+              {{ item.description }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

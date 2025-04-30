@@ -16,7 +16,7 @@
     </div>
     <div class="error-title">Error Loading Kafka Information</div>
     <div class="error-message">{{ error }}</div>
-    <button class="btn btn-primary" (click)="loadClusterInfo()">
+    <button class="btn btn-primary" (click)="loadClusterInfoAndHandleParams()">
       Try Again
     </button>
   </div>
@@ -32,7 +32,7 @@
       <div class="left-pane-content">
         <div class="tabs">
           <div class="tab-nav">
-            <div class="tab-nav-item" [class.active]="activeTabIndex === 0" (click)="activeTabIndex = 0" title="Topics">
+            <div class="tab-nav-item" [class.active]="activeTabIndex === 0" (click)="setActiveTabIndex(0)" title="Topics">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M3 3v18h18"/>
                 <path d="M18.4 3a1.5 1.5 0 0 0-3 0v13.5"/>
@@ -40,7 +40,7 @@
                 <path d="M8.4 13.5a1.5 1.5 0 0 0-3 0V18"/>
               </svg>
             </div>
-            <div class="tab-nav-item" [class.active]="activeTabIndex === 1" (click)="activeTabIndex = 1" title="Brokers">
+            <div class="tab-nav-item" [class.active]="activeTabIndex === 1" (click)="setActiveTabIndex(1)" title="Brokers">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
                 <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
@@ -48,7 +48,7 @@
                 <line x1="6" y1="18" x2="6.01" y2="18"></line>
               </svg>
             </div>
-            <div class="tab-nav-item" [class.active]="activeTabIndex === 2" (click)="activeTabIndex = 2" title="Consumer Groups">
+            <div class="tab-nav-item" [class.active]="activeTabIndex === 2" (click)="setActiveTabIndex(2)" title="Consumer Groups">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                 <circle cx="9" cy="7" r="4"></circle>
@@ -56,7 +56,7 @@
                 <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
               </svg>
             </div>
-            <div class="tab-nav-item" [class.active]="activeTabIndex === 3" (click)="activeTabIndex = 3" title="Listeners">
+            <div class="tab-nav-item" [class.active]="activeTabIndex === 3" (click)="setActiveTabIndex(3)" title="Listeners">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
                 <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>

@@ -393,7 +393,7 @@
     <section class="metrics-section">
       <h2>Spring Metrics</h2>
       <div class="metrics-grid">
-        <div class="metric-card">
+        <div class="metric-card clickable" (click)="openBeansPopup()">
           <div class="metric-icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M4 11a9 9 0 0 1 9 9"></path>
@@ -407,10 +407,11 @@
               <span class="info-icon" [appTooltip]="descriptions.getDescription('beans')" position="top">i</span>
             </div>
             <div class="metric-value">{{ metrics.spring.beanCount }}</div>
+            <div class="metric-subtitle">Click to view details</div>
           </div>
         </div>
 
-        <div class="metric-card">
+        <div class="metric-card clickable" (click)="openControllersPopup()">
           <div class="metric-icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 2H3v16h5v4l4-4h5l4-4V2z"></path>
@@ -425,10 +426,11 @@
               <span class="info-icon" [appTooltip]="descriptions.getDescription('controllers')" position="top">i</span>
             </div>
             <div class="metric-value">{{ metrics.spring.controllerCount }}</div>
+            <div class="metric-subtitle">Click to view details</div>
           </div>
         </div>
 
-        <div class="metric-card">
+        <div class="metric-card clickable" (click)="openServicesPopup()">
           <div class="metric-icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 2H2v10h10V2Z"></path>
@@ -443,10 +445,11 @@
               <span class="info-icon" [appTooltip]="descriptions.getDescription('services')" position="top">i</span>
             </div>
             <div class="metric-value">{{ metrics.spring.serviceCount }}</div>
+            <div class="metric-subtitle">Click to view details</div>
           </div>
         </div>
 
-        <div class="metric-card">
+        <div class="metric-card clickable" (click)="openRepositoriesPopup()">
           <div class="metric-icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
@@ -460,10 +463,11 @@
               <span class="info-icon" [appTooltip]="descriptions.getDescription('repositories')" position="top">i</span>
             </div>
             <div class="metric-value">{{ metrics.spring.repositoryCount }}</div>
+            <div class="metric-subtitle">Click to view details</div>
           </div>
         </div>
 
-        <div class="metric-card">
+        <div class="metric-card clickable" (click)="openComponentsPopup()">
           <div class="metric-icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M4 11a9 9 0 0 1 9 9"></path>
@@ -477,10 +481,11 @@
               <span class="info-icon" [appTooltip]="descriptions.getDescription('components')" position="top">i</span>
             </div>
             <div class="metric-value">{{ metrics.spring.componentCount }}</div>
+            <div class="metric-subtitle">Click to view details</div>
           </div>
         </div>
 
-        <div class="metric-card">
+        <div class="metric-card clickable" (click)="openConfigurationsPopup()">
           <div class="metric-icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
@@ -493,6 +498,7 @@
               <span class="info-icon" [appTooltip]="descriptions.getDescription('configurations')" position="top">i</span>
             </div>
             <div class="metric-value">{{ metrics.spring.configurationCount }}</div>
+            <div class="metric-subtitle">Click to view details</div>
           </div>
         </div>
 
@@ -538,7 +544,7 @@
           </div>
         </div>
 
-        <div class="metric-card">
+        <div class="metric-card clickable" (click)="openConsumersPopup()">
           <div class="metric-icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 12c2-2.96 0-7-1-8 0 3.038-1.773 4.741-3 6-1.226 1.26-2 3.24-2 5a6 6 0 1 0 12 0c0-1.532-1.056-3.94-2-5-1.786 3-2 4-4 2Z"></path>
@@ -546,14 +552,15 @@
           </div>
           <div class="metric-content">
             <div class="metric-title">
-              Consumers
+              Consumers Groups
               <span class="info-icon" [appTooltip]="descriptions.getDescription('consumers')" position="top">i</span>
             </div>
             <div class="metric-value">{{ metrics.kafka.consumerCount }}</div>
+            <div class="metric-subtitle">Click to view details</div>
           </div>
         </div>
 
-        <div class="metric-card">
+        <div class="metric-card clickable" (click)="openProducersPopup()">
           <div class="metric-icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M22 2 11 13"></path>
@@ -566,10 +573,11 @@
               <span class="info-icon" [appTooltip]="descriptions.getDescription('producers')" position="top">i</span>
             </div>
             <div class="metric-value">{{ metrics.kafka.producerCount }}</div>
+            <div class="metric-subtitle">Click to view details</div>
           </div>
         </div>
 
-        <div class="metric-card">
+        <div class="metric-card clickable" (click)="openListenersPopup()">
           <div class="metric-icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
@@ -582,6 +590,7 @@
               <span class="info-icon" [appTooltip]="descriptions.getDescription('listeners')" position="top">i</span>
             </div>
             <div class="metric-value">{{ metrics.kafka.listenerCount }}</div>
+            <div class="metric-subtitle">Click to view details</div>
           </div>
         </div>
       </div>
@@ -636,4 +645,21 @@
     [clients]="clientDetails"
     (close)="closeClientPopup()"
   ></app-client-details-popup>
+
+  <!-- Kafka Details Popup -->
+  <app-kafka-details-popup
+    [isVisible]="showKafkaPopup"
+    [kafkaType]="kafkaType"
+    [items]="kafkaItems"
+    (close)="closeKafkaPopup()"
+  ></app-kafka-details-popup>
+
+  <!-- Metric Details Popup -->
+  <app-metric-details-popup
+    [isVisible]="showMetricDetailsPopup"
+    [title]="metricDetailsTitle"
+    [metricType]="metricDetailsType"
+    [items]="metricDetails"
+    (close)="closeMetricDetailsPopup()"
+  ></app-metric-details-popup>
 </div>

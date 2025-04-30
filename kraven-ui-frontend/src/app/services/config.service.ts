@@ -160,4 +160,13 @@ export class ConfigService {
       return this.defaultConfig;
     }
   }
+
+  /**
+   * Gets the base path for API calls
+   */
+  getApiBasePath(): string {
+    // Get the base API path from the window object
+    const baseApiPath = (window as any).__KRAVEN_BASE_API_PATH__ || '/kraven/api';
+    return baseApiPath;
+  }
 }

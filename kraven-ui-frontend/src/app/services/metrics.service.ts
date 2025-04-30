@@ -3,6 +3,50 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, of } from 'rxjs';
 import { ConfigService } from './config.service';
 
+export interface MetricDetail {
+  name: string;
+  value?: string;
+  className?: string;
+  packageName?: string;
+  type?: string;
+  description?: string;
+  tags?: string[];
+}
+
+export interface SpringBeanDetails extends MetricDetail {
+  scope?: string;
+  isPrimary?: boolean;
+  dependencies?: string[];
+}
+
+export interface SpringControllerDetails extends MetricDetail {
+  baseUrl?: string;
+  requestMappings?: string[];
+  dependencies?: string[];
+  isRestController?: boolean;
+}
+
+export interface SpringServiceDetails extends MetricDetail {
+  dependencies?: string[];
+  isTransactional?: boolean;
+}
+
+export interface SpringRepositoryDetails extends MetricDetail {
+  entityClass?: string;
+  repositoryType?: string;
+  methods?: string[];
+}
+
+export interface SpringComponentDetails extends MetricDetail {
+  dependencies?: string[];
+}
+
+export interface SpringConfigurationDetails extends MetricDetail {
+  beanMethods?: string[];
+  importedConfigurations?: string[];
+  isAutoConfiguration?: boolean;
+}
+
 export interface MemoryPoolMetrics {
   name: string;
   init: number;
@@ -220,6 +264,108 @@ export class MetricsService {
       catchError(error => {
         console.error('Error fetching Spring metrics:', error);
         return of(this.getEmptySpringMetrics());
+      })
+    );
+  }
+
+  /**
+   * Gets detailed information about Spring beans
+   */
+  getBeanDetails(): Observable<SpringBeanDetails[]> {
+    if (!this.enabled || !this.springMetricsEnabled) {
+      console.warn('Spring metrics are disabled');
+      return of([]);
+    }
+
+    return this.http.get<SpringBeanDetails[]>(`${this.apiPath}/beans`).pipe(
+      catchError(error => {
+        console.error('Error fetching bean details:', error);
+        return of([]);
+      })
+    );
+  }
+
+  /**
+   * Gets detailed information about Spring controllers
+   */
+  getControllerDetails(): Observable<SpringControllerDetails[]> {
+    if (!this.enabled || !this.springMetricsEnabled) {
+      console.warn('Spring metrics are disabled');
+      return of([]);
+    }
+
+    return this.http.get<SpringControllerDetails[]>(`${this.apiPath}/controllers`).pipe(
+      catchError(error => {
+        console.error('Error fetching controller details:', error);
+        return of([]);
+      })
+    );
+  }
+
+  /**
+   * Gets detailed information about Spring services
+   */
+  getServiceDetails(): Observable<SpringServiceDetails[]> {
+    if (!this.enabled || !this.springMetricsEnabled) {
+      console.warn('Spring metrics are disabled');
+      return of([]);
+    }
+
+    return this.http.get<SpringServiceDetails[]>(`${this.apiPath}/services`).pipe(
+      catchError(error => {
+        console.error('Error fetching service details:', error);
+        return of([]);
+      })
+    );
+  }
+
+  /**
+   * Gets detailed information about Spring repositories
+   */
+  getRepositoryDetails(): Observable<SpringRepositoryDetails[]> {
+    if (!this.enabled || !this.springMetricsEnabled) {
+      console.warn('Spring metrics are disabled');
+      return of([]);
+    }
+
+    return this.http.get<SpringRepositoryDetails[]>(`${this.apiPath}/repositories`).pipe(
+      catchError(error => {
+        console.error('Error fetching repository details:', error);
+        return of([]);
+      })
+    );
+  }
+
+  /**
+   * Gets detailed information about Spring components
+   */
+  getComponentDetails(): Observable<SpringComponentDetails[]> {
+    if (!this.enabled || !this.springMetricsEnabled) {
+      console.warn('Spring metrics are disabled');
+      return of([]);
+    }
+
+    return this.http.get<SpringComponentDetails[]>(`${this.apiPath}/components`).pipe(
+      catchError(error => {
+        console.error('Error fetching component details:', error);
+        return of([]);
+      })
+    );
+  }
+
+  /**
+   * Gets detailed information about Spring configurations
+   */
+  getConfigurationDetails(): Observable<SpringConfigurationDetails[]> {
+    if (!this.enabled || !this.springMetricsEnabled) {
+      console.warn('Spring metrics are disabled');
+      return of([]);
+    }
+
+    return this.http.get<SpringConfigurationDetails[]>(`${this.apiPath}/configurations`).pipe(
+      catchError(error => {
+        console.error('Error fetching configuration details:', error);
+        return of([]);
       })
     );
   }
