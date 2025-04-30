@@ -8,28 +8,65 @@ import { FeignClient } from '../models/feign-client.model';
   providedIn: 'root'
 })
 export class FeignClientService {
-  constructor(private http: HttpClient, private configService: ConfigService) {}
+  private apiPath: string;
+  private enabled: boolean;
+  private tryItOutEnabled: boolean;
+  private cacheMetadata: boolean;
+  private scanIntervalMs: number;
+
+  constructor(private http: HttpClient, private configService: ConfigService) {
+    const config = this.configService.getConfig();
+
+    // Get the base API path from the window object
+    const baseApiPath = (window as any).__KRAVEN_BASE_API_PATH__ || '/kraven/api';
+
+    // Initialize feign client configuration from config
+    if (config.feignClient) {
+      // Use the configured API path but replace /kraven/api with the baseApiPath
+      // const configuredPath = config.feignClient.apiPath || '/kraven/api/feign-clients';
+      // this.apiPath = configuredPath.replace('/kraven/api', baseApiPath);
+      this.apiPath = `${baseApiPath}/feign-clients`;
+
+      this.enabled = config.feignClient.enabled !== false;
+      this.tryItOutEnabled = config.feignClient.tryItOutEnabled !== false;
+      this.cacheMetadata = config.feignClient.cacheMetadata !== false;
+      this.scanIntervalMs = config.feignClient.scanIntervalMs || 60000;
+    } else {
+      // Default values if feign client config is not provided
+      this.apiPath = `${baseApiPath}/feign-clients`;
+      this.enabled = true;
+      this.tryItOutEnabled = true;
+      this.cacheMetadata = true;
+      this.scanIntervalMs = 60000;
+    }
+
+    console.log('Feign client service initialized with config:', {
+      apiPath: this.apiPath,
+      enabled: this.enabled,
+      tryItOutEnabled: this.tryItOutEnabled,
+      cacheMetadata: this.cacheMetadata,
+      scanIntervalMs: this.scanIntervalMs
+    });
+  }
 
   /**
    * Fetches all Feign clients from the server.
    */
   getFeignClients(): Observable<FeignClient[]> {
-    const config = this.configService.getConfig();
-    if (!config.feignClient?.enabled) {
+    if (!this.enabled) {
       console.log('Feign client feature is disabled');
       return of([]);
     }
 
-    const apiPath = config.feignClient?.apiPath || '/kraven/v1/feign-clients';
-    console.log('Fetching Feign clients from:', apiPath);
+    console.log('Fetching Feign clients from:', this.apiPath);
 
     // First try the debug endpoint to check if the controller is accessible
-    this.http.get(`${apiPath}/debug`, { headers: { 'Accept': 'application/json' } }).subscribe(
-      response => console.log('Debug endpoint response:', response),
-      error => console.error('Debug endpoint error:', error)
-    );
+    this.http.get(`${this.apiPath}/debug`, { headers: { 'Accept': 'application/json' } }).subscribe({
+      next: (response) => console.log('Debug endpoint response:', response),
+      error: (error) => console.error('Debug endpoint error:', error)
+    });
 
-    return this.http.get<FeignClient[]>(apiPath, { headers: { 'Accept': 'application/json' } }).pipe(
+    return this.http.get<FeignClient[]>(this.apiPath, { headers: { 'Accept': 'application/json' } }).pipe(
       map(response => {
         // Ensure we always return an array
         if (Array.isArray(response)) {
@@ -53,21 +90,19 @@ export class FeignClientService {
    * @param name the name of the Feign client
    */
   getFeignClient(name: string): Observable<FeignClient | null> {
-    const config = this.configService.getConfig();
-    if (!config.feignClient?.enabled) {
+    if (!this.enabled) {
       console.log('Feign client feature is disabled');
       return of(null);
     }
 
-    const apiPath = config.feignClient?.apiPath || '/kraven/v1/feign-clients';
-    const url = `${apiPath}/${name}`;
+    const url = `${this.apiPath}/${name}`;
     console.log('Fetching Feign client from:', url);
 
     // First try the debug endpoint to check if the controller is accessible
-    this.http.get(`${apiPath}/debug`, { headers: { 'Accept': 'application/json' } }).subscribe(
-      response => console.log('Debug endpoint response before getting client:', response),
-      error => console.error('Debug endpoint error before getting client:', error)
-    );
+    this.http.get(`${this.apiPath}/debug`, { headers: { 'Accept': 'application/json' } }).subscribe({
+      next: (response) => console.log('Debug endpoint response before getting client:', response),
+      error: (error) => console.error('Debug endpoint error before getting client:', error)
+    });
 
     return this.http.get<FeignClient>(url, { headers: { 'Accept': 'application/json' } }).pipe(
       catchError(error => {
@@ -84,16 +119,15 @@ export class FeignClientService {
    * @param clientName the name of the Feign client
    * @param methodName the name of the method
    * @param parameters the parameters for the method
+   * @param requestBody optional request body as string
    */
   executeMethod(clientName: string, methodName: string, parameters: any, requestBody?: string): Observable<any> {
-    const config = this.configService.getConfig();
-    if (!config.feignClient?.enabled) {
+    if (!this.enabled) {
       console.log('Feign client feature is disabled');
       return of(null);
     }
 
-    const apiPath = config.feignClient?.apiPath || '/kraven/v1/feign-clients';
-    console.log('Executing Feign client method:', apiPath + '/' + clientName + '/methods/' + methodName + '/execute');
+    console.log('Executing Feign client method:', `${this.apiPath}/${clientName}/methods/${methodName}/execute`);
 
     // Prepare the request payload
     const payload: any = { ...parameters };
@@ -112,7 +146,7 @@ export class FeignClientService {
     console.log('Request payload:', payload);
 
     // Return the raw response without wrapping it
-    return this.http.post(`${apiPath}/${clientName}/methods/${methodName}/execute`, payload, {
+    return this.http.post(`${this.apiPath}/${clientName}/methods/${methodName}/execute`, payload, {
       observe: 'response',
       headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }
     }).pipe(
@@ -147,5 +181,31 @@ export class FeignClientService {
     );
   }
 
+  /**
+   * Checks if the Feign client feature is enabled.
+   */
+  isEnabled(): boolean {
+    return this.enabled;
+  }
 
+  /**
+   * Checks if the Try-It-Out feature is enabled.
+   */
+  isTryItOutEnabled(): boolean {
+    return this.tryItOutEnabled;
+  }
+
+  /**
+   * Checks if metadata caching is enabled.
+   */
+  isCacheMetadataEnabled(): boolean {
+    return this.cacheMetadata;
+  }
+
+  /**
+   * Gets the scan interval in milliseconds.
+   */
+  getScanIntervalMs(): number {
+    return this.scanIntervalMs;
+  }
 }

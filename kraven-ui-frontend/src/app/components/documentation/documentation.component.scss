@@ -10,7 +10,7 @@
   width: 280px;
   height: 100%;
   border-right: 1px solid var(--border-color);
-  background-color: var(--background-secondary);
+  background-color: var(--background-color);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -22,11 +22,8 @@
 .left-pane-header {
   padding: 1.25rem 1.25rem 0.75rem;
   border-bottom: 1px solid var(--border-color);
-  background: linear-gradient(
-    to bottom,
-    rgba(var(--primary-color-rgb), 0.05),
-    rgba(var(--primary-color-rgb), 0)
-  );
+  background-color: var(--primary-color);
+  color: white;
 }
 
 .title-container {
@@ -36,15 +33,15 @@
     margin: 0;
     font-size: 1.35rem;
     font-weight: 600;
-    color: var(--text-color);
+    color: white;
     letter-spacing: -0.01em;
   }
 
   .subtitle {
     font-size: 0.85rem;
-    color: var(--text-color-secondary);
+    color: rgba(255, 255, 255, 0.8);
     margin-top: 0.25rem;
-    opacity: 0.8;
+    opacity: 0.9;
   }
 }
 
@@ -63,33 +60,33 @@
   .search-icon {
     position: absolute;
     left: 0.75rem;
-    color: var(--text-color-secondary);
+    color: rgba(255, 255, 255, 0.7);
     pointer-events: none;
   }
 
   input {
     flex: 1;
     padding: 0.65rem 2.5rem 0.65rem 2.25rem;
-    border: 1px solid var(--border-color);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 8px;
-    background-color: var(--input-background);
-    color: var(--text-color);
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
     font-size: 0.875rem;
     width: 100%;
     transition: all 0.2s ease;
 
     &:focus {
       outline: none;
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.15);
+      border-color: rgba(255, 255, 255, 0.4);
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.15);
     }
 
     &.focused {
-      border-color: var(--primary-color);
+      border-color: rgba(255, 255, 255, 0.4);
     }
 
     &::placeholder {
-      color: var(--text-color-tertiary);
+      color: rgba(255, 255, 255, 0.5);
     }
   }
 
@@ -98,7 +95,7 @@
     right: 0.75rem;
     background: none;
     border: none;
-    color: var(--text-color-secondary);
+    color: rgba(255, 255, 255, 0.7);
     cursor: pointer;
     padding: 0.25rem;
     border-radius: 50%;
@@ -107,8 +104,8 @@
     justify-content: center;
 
     &:hover {
-      color: var(--text-color);
-      background-color: var(--hover-color);
+      color: white;
+      background-color: rgba(255, 255, 255, 0.15);
     }
   }
 }
@@ -117,7 +114,7 @@
   margin-left: 0.5rem;
   background: none;
   border: none;
-  color: var(--text-color-secondary);
+  color: rgba(255, 255, 255, 0.7);
   cursor: pointer;
   padding: 0.5rem;
   border-radius: 8px;
@@ -127,8 +124,8 @@
   transition: all 0.2s ease;
 
   &:hover {
-    color: var(--text-color);
-    background-color: var(--hover-color);
+    color: white;
+    background-color: rgba(255, 255, 255, 0.15);
     transform: rotate(15deg);
   }
 

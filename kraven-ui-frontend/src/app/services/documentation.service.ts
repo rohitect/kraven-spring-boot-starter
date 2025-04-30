@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import { ConfigService } from './config.service';
 
 export interface DocumentationConfig {
   title: string;
@@ -70,13 +69,12 @@ export class DocumentationService {
   private apiPath: string;
 
   constructor(
-    private http: HttpClient,
-    private configService: ConfigService
+    private http: HttpClient
   ) {
-    // Get the base path from the config service
-    const config = this.configService.getConfig();
-    const basePath = config.path || config.basePath || '/kraven';
-    this.apiPath = basePath + '/v1/documentation';
+    // Use the global variable if available, otherwise fall back to default
+    const baseApiPath = (window as any).__KRAVEN_BASE_API_PATH__ || '/kraven/api';
+    this.apiPath = `${baseApiPath}/documentation`;
+    console.log('DocumentationService using API path:', this.apiPath);
   }
 
   /**

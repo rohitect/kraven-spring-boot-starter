@@ -27,11 +27,10 @@ import java.util.Date;
  * REST controller for application metrics.
  */
 @RestController
-@RequestMapping("/api/kraven-metrics")
+@RequestMapping("/kraven/api/metrics")
 @Tag(name = "Kraven Application Metrics", description = "APIs for retrieving application metrics")
 @RequiredArgsConstructor
 @Slf4j
-@EnableCaching
 @ConditionalOnBean(ApplicationMetricsService.class)
 public class ApplicationMetricsController {
 

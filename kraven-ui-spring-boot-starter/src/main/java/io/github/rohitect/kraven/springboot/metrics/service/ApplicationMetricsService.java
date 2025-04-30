@@ -1,5 +1,6 @@
 package io.github.rohitect.kraven.springboot.metrics.service;
 
+import io.github.rohitect.kraven.springboot.cache.KravenUiCacheService;
 import io.github.rohitect.kraven.springboot.feign.FeignClientMetadata;
 import io.github.rohitect.kraven.springboot.feign.FeignClientScanner;
 import io.github.rohitect.kraven.springboot.kafka.service.KafkaAdminService;
@@ -9,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -55,15 +55,24 @@ public class ApplicationMetricsService {
     private FeignClientScanner feignClientScanner;
     private KafkaAdminService kafkaAdminService;
     private KafkaListenerScanner kafkaListenerScanner;
+    private KravenUiCacheService cacheService;
     // Cache for static metrics
     private ApplicationMetrics.SpringMetrics cachedSpringMetrics;
 
     @Autowired
     public ApplicationMetricsService(
             ApplicationContext applicationContext,
-            Environment environment) {
+            Environment environment,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) KravenUiCacheService cacheService) {
         this.applicationContext = applicationContext;
         this.environment = environment;
+        this.cacheService = cacheService;
+
+        if (this.cacheService == null) {
+            log.warn("KravenUiCacheService not found, creating a default instance");
+            this.cacheService = new KravenUiCacheService(true);
+        }
+
         log.info("ApplicationMetricsService initialized");
     }
 
@@ -104,51 +113,53 @@ public class ApplicationMetricsService {
      *
      * @return the JVM metrics
      */
-    @Cacheable(value = "jvmMetrics", key = "'jvm'")
     public ApplicationMetrics.JvmMetrics getJvmMetrics() {
-        Runtime runtime = Runtime.getRuntime();
-        ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
-        ClassLoadingMXBean classLoadingMXBean = ManagementFactory.getClassLoadingMXBean();
-        MemoryMXBean memoryMXBean = ManagementFactory.getMemoryMXBean();
+        return cacheService.getOrCompute("jvmMetrics", () -> {
+            log.debug("Computing JVM metrics");
+            Runtime runtime = Runtime.getRuntime();
+            ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+            ClassLoadingMXBean classLoadingMXBean = ManagementFactory.getClassLoadingMXBean();
+            MemoryMXBean memoryMXBean = ManagementFactory.getMemoryMXBean();
 
-        long totalMemory = runtime.totalMemory();
-        long freeMemory = runtime.freeMemory();
-        long maxMemory = runtime.maxMemory();
-        long usedMemory = totalMemory - freeMemory;
+            long totalMemory = runtime.totalMemory();
+            long freeMemory = runtime.freeMemory();
+            long maxMemory = runtime.maxMemory();
+            long usedMemory = totalMemory - freeMemory;
 
-        // Get detailed memory metrics
-        ApplicationMetrics.MemoryDetails memoryDetails = getMemoryDetails(memoryMXBean);
+            // Get detailed memory metrics
+            ApplicationMetrics.MemoryDetails memoryDetails = getMemoryDetails(memoryMXBean);
 
-        // Get garbage collector metrics
-        ApplicationMetrics.GarbageCollectorMetrics gcMetrics = getGarbageCollectorMetrics();
+            // Get garbage collector metrics
+            ApplicationMetrics.GarbageCollectorMetrics gcMetrics = getGarbageCollectorMetrics();
 
-        Map<String, String> systemProperties = new HashMap<>();
-        systemProperties.put("java.version", System.getProperty("java.version"));
-        systemProperties.put("java.vendor", System.getProperty("java.vendor"));
-        systemProperties.put("os.name", System.getProperty("os.name"));
-        systemProperties.put("os.arch", System.getProperty("os.arch"));
-        systemProperties.put("os.version", System.getProperty("os.version"));
-        systemProperties.put("user.name", System.getProperty("user.name"));
-        systemProperties.put("user.timezone", System.getProperty("user.timezone"));
+            Map<String, String> systemProperties = new HashMap<>();
+            systemProperties.put("java.version", System.getProperty("java.version"));
+            systemProperties.put("java.vendor", System.getProperty("java.vendor"));
+            systemProperties.put("os.name", System.getProperty("os.name"));
+            systemProperties.put("os.arch", System.getProperty("os.arch"));
+            systemProperties.put("os.version", System.getProperty("os.version"));
+            systemProperties.put("user.name", System.getProperty("user.name"));
+            systemProperties.put("user.timezone", System.getProperty("user.timezone"));
 
-        return ApplicationMetrics.JvmMetrics.builder()
-                .totalMemory(totalMemory)
-                .freeMemory(freeMemory)
-                .maxMemory(maxMemory)
-                .usedMemory(usedMemory)
-                .memoryDetails(memoryDetails)
-                .availableProcessors(runtime.availableProcessors())
-                .threadCount(threadMXBean.getThreadCount())
-                .peakThreadCount(threadMXBean.getPeakThreadCount())
-                .daemonThreadCount(threadMXBean.getDaemonThreadCount())
-                .totalStartedThreadCount(threadMXBean.getTotalStartedThreadCount())
-                .uptime(ManagementFactory.getRuntimeMXBean().getUptime())
-                .loadedClassCount(classLoadingMXBean.getLoadedClassCount())
-                .totalLoadedClassCount(classLoadingMXBean.getTotalLoadedClassCount())
-                .unloadedClassCount(classLoadingMXBean.getUnloadedClassCount())
-                .systemProperties(systemProperties)
-                .garbageCollector(gcMetrics)
-                .build();
+            return ApplicationMetrics.JvmMetrics.builder()
+                    .totalMemory(totalMemory)
+                    .freeMemory(freeMemory)
+                    .maxMemory(maxMemory)
+                    .usedMemory(usedMemory)
+                    .memoryDetails(memoryDetails)
+                    .availableProcessors(runtime.availableProcessors())
+                    .threadCount(threadMXBean.getThreadCount())
+                    .peakThreadCount(threadMXBean.getPeakThreadCount())
+                    .daemonThreadCount(threadMXBean.getDaemonThreadCount())
+                    .totalStartedThreadCount(threadMXBean.getTotalStartedThreadCount())
+                    .uptime(ManagementFactory.getRuntimeMXBean().getUptime())
+                    .loadedClassCount(classLoadingMXBean.getLoadedClassCount())
+                    .totalLoadedClassCount(classLoadingMXBean.getTotalLoadedClassCount())
+                    .unloadedClassCount(classLoadingMXBean.getUnloadedClassCount())
+                    .systemProperties(systemProperties)
+                    .garbageCollector(gcMetrics)
+                    .build();
+        });
     }
 
     /**
@@ -235,25 +246,27 @@ public class ApplicationMetricsService {
      *
      * @return the application metrics
      */
-    @Cacheable(value = "appMetrics", key = "'app'")
     public ApplicationMetrics.AppMetrics getAppMetrics() {
-        String[] activeProfiles = environment.getActiveProfiles();
-        if (activeProfiles.length == 0) {
-            activeProfiles = environment.getDefaultProfiles();
-        }
+        return cacheService.getOrCompute("appMetrics", () -> {
+            log.debug("Computing application metrics");
+            String[] activeProfiles = environment.getActiveProfiles();
+            if (activeProfiles.length == 0) {
+                activeProfiles = environment.getDefaultProfiles();
+            }
 
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String formattedStartTime = dateFormat.format(Date.from(startTime));
-        long uptime = Duration.between(startTime, Instant.now()).toMillis();
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            String formattedStartTime = dateFormat.format(Date.from(startTime));
+            long uptime = Duration.between(startTime, Instant.now()).toMillis();
 
-        return ApplicationMetrics.AppMetrics.builder()
-                .name(applicationName)
-                .version(buildVersion)
-                .buildTime(buildTime)
-                .startTime(formattedStartTime)
-                .uptime(uptime)
-                .profiles(activeProfiles)
-                .build();
+            return ApplicationMetrics.AppMetrics.builder()
+                    .name(applicationName)
+                    .version(buildVersion)
+                    .buildTime(buildTime)
+                    .startTime(formattedStartTime)
+                    .uptime(uptime)
+                    .profiles(activeProfiles)
+                    .build();
+        });
     }
 
     /**
@@ -261,34 +274,37 @@ public class ApplicationMetricsService {
      *
      * @return the Spring metrics
      */
-    @Cacheable(value = "springMetrics", key = "'spring'")
     public ApplicationMetrics.SpringMetrics getSpringMetrics() {
-        // Return cached metrics if available
-        if (cachedSpringMetrics != null) {
+        return cacheService.getOrCompute("springMetrics", () -> {
+            log.debug("Computing Spring metrics");
+            // Return cached metrics if available
+            if (cachedSpringMetrics != null) {
+                return cachedSpringMetrics;
+            }
+
+            String[] beanNames = applicationContext.getBeanDefinitionNames();
+            int beanCount = beanNames.length;
+
+            int controllerCount = countBeansWithAnnotation(RestController.class) + countBeansWithAnnotation(Controller.class);
+            int serviceCount = countBeansWithAnnotation(Service.class);
+            int repositoryCount = countBeansWithAnnotation(Repository.class);
+            int componentCount = countBeansWithAnnotation(Component.class);
+            int configurationCount = countBeansWithAnnotation(org.springframework.context.annotation.Configuration.class);
+            int endpointCount = countEndpoints();
+
+            // Build and cache the metrics
+            cachedSpringMetrics = ApplicationMetrics.SpringMetrics.builder()
+                    .beanCount(beanCount)
+                    .controllerCount(controllerCount)
+                    .serviceCount(serviceCount)
+                    .repositoryCount(repositoryCount)
+                    .componentCount(componentCount)
+                    .configurationCount(configurationCount)
+                    .endpointCount(endpointCount)
+                    .build();
+
             return cachedSpringMetrics;
-        }
-        String[] beanNames = applicationContext.getBeanDefinitionNames();
-        int beanCount = beanNames.length;
-
-        int controllerCount = countBeansWithAnnotation(RestController.class) + countBeansWithAnnotation(Controller.class);
-        int serviceCount = countBeansWithAnnotation(Service.class);
-        int repositoryCount = countBeansWithAnnotation(Repository.class);
-        int componentCount = countBeansWithAnnotation(Component.class);
-        int configurationCount = countBeansWithAnnotation(org.springframework.context.annotation.Configuration.class);
-        int endpointCount = countEndpoints();
-
-        // Build and cache the metrics
-        cachedSpringMetrics = ApplicationMetrics.SpringMetrics.builder()
-                .beanCount(beanCount)
-                .controllerCount(controllerCount)
-                .serviceCount(serviceCount)
-                .repositoryCount(repositoryCount)
-                .componentCount(componentCount)
-                .configurationCount(configurationCount)
-                .endpointCount(endpointCount)
-                .build();
-
-        return cachedSpringMetrics;
+        });
     }
 
     /**

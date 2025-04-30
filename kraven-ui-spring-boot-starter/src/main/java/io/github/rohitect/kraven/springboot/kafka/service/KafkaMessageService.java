@@ -1,29 +1,38 @@
 package io.github.rohitect.kraven.springboot.kafka.service;
 
-import io.github.rohitect.kraven.springboot.kafka.model.KafkaMessage;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.support.serializer.JsonDeserializer;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.DefaultKafkaProducerFactory;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import io.github.rohitect.kraven.springboot.kafka.model.KafkaMessage;
 import jakarta.annotation.PreDestroy;
-
-import java.io.IOException;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service for retrieving messages from Kafka topics.
@@ -41,18 +50,62 @@ public class KafkaMessageService {
 
     private final String bootstrapServers;
     private final io.github.rohitect.kraven.springboot.config.KravenUiEnhancedProperties properties;
+    private final KafkaTemplate<String, String> kafkaTemplate;
 
     @Autowired
     public KafkaMessageService(KafkaAdminService kafkaAdminService,
-                              io.github.rohitect.kraven.springboot.config.KravenUiEnhancedProperties properties) {
+                              io.github.rohitect.kraven.springboot.config.KravenUiEnhancedProperties properties,
+                              KafkaTemplate<String, String> kafkaTemplate) {
         this.bootstrapServers = kafkaAdminService.getClusterInfo().getBootstrapServers();
         this.properties = properties;
+        this.kafkaTemplate = kafkaTemplate;
 
-        log.info("KafkaMessageService initialized with configuration: enabled={}, messageLimit={}, streamingEnabled={}, sseTimeoutMs={}",
+        log.debug("KafkaMessageService initialized with configuration: enabled={}, messageLimit={}, streamingEnabled={}, sseTimeoutMs={}",
                 properties.getKafka().isEnabled(),
                 properties.getKafka().getMessageLimit(),
                 properties.getKafka().isStreamingEnabled(),
                 properties.getKafka().getSseTimeoutMs());
+    }
+
+    /**
+     * Sends a message to a Kafka topic.
+     *
+     * @param topicName The name of the topic to send the message to
+     * @param message The message to send
+     * @return The sent message with updated metadata
+     */
+    public KafkaMessage sendMessageToTopic(String topicName, KafkaMessage message) {
+        log.debug("Sending message to topic: {}", topicName);
+
+        // Generate an ID if not provided
+        if (message.getId() == null || message.getId().isEmpty()) {
+            message.setId(UUID.randomUUID().toString());
+        }
+
+        // Set timestamp if not provided
+        if (message.getTimestamp() == null) {
+            message.setTimestamp(LocalDateTime.now());
+        }
+
+        try {
+            // Send the message to Kafka
+            kafkaTemplate.send(topicName, message.getId(), message.getContent()).get();
+
+            // Add metadata about the send operation
+            String metadata = message.getMetadata();
+            if (metadata == null || metadata.isEmpty()) {
+                metadata = "sent=" + LocalDateTime.now();
+            } else {
+                metadata += ",sent=" + LocalDateTime.now();
+            }
+            message.setMetadata(metadata);
+
+            log.debug("Successfully sent message to topic: {}", topicName);
+            return message;
+        } catch (Exception e) {
+            log.error("Error sending message to topic: {}", topicName, e);
+            throw new RuntimeException("Failed to send message to Kafka: " + e.getMessage(), e);
+        }
     }
 
     /**
@@ -62,7 +115,7 @@ public class KafkaMessageService {
      * @param emitter The SSE emitter to register
      */
     public void registerEmitter(String topicName, SseEmitter emitter) {
-        log.info("Registering emitter for topic: {}", topicName);
+        log.debug("Registering emitter for topic: {}", topicName);
         topicEmitters.computeIfAbsent(topicName, k -> new ArrayList<>()).add(emitter);
 
         // Set up a callback to remove the emitter when it's completed or times out
@@ -78,7 +131,7 @@ public class KafkaMessageService {
      * @param emitter The SSE emitter to remove
      */
     private void removeEmitter(String topicName, SseEmitter emitter) {
-        log.info("Removing emitter for topic: {}", topicName);
+        log.debug("Removing emitter for topic: {}", topicName);
         List<SseEmitter> emitters = topicEmitters.get(topicName);
         if (emitters != null) {
             emitters.remove(emitter);
@@ -97,7 +150,7 @@ public class KafkaMessageService {
     public void sendMessageToEmitters(String topicName, KafkaMessage message) {
         List<SseEmitter> emitters = topicEmitters.get(topicName);
         if (emitters != null && !emitters.isEmpty()) {
-            log.info("Sending message to {} emitters for topic: {}", emitters.size(), topicName);
+            log.debug("Sending message to {} emitters for topic: {}", emitters.size(), topicName);
             List<SseEmitter> deadEmitters = new ArrayList<>();
 
             emitters.forEach(emitter -> {
@@ -174,7 +227,7 @@ public class KafkaMessageService {
      */
     @PreDestroy
     public void cleanup() {
-        log.info("Shutting down KafkaMessageService executor");
+        log.debug("Shutting down KafkaMessageService executor");
         executor.shutdown();
     }
 
@@ -188,7 +241,7 @@ public class KafkaMessageService {
      * @return List of Kafka messages
      */
     public List<KafkaMessage> getMessagesFromTopic(String topicName, int limit, int offset, boolean sortNewestFirst) {
-        log.info("Retrieving {} messages from topic: {}, offset: {}, sortNewestFirst: {}", limit, topicName, offset, sortNewestFirst);
+        log.debug("Retrieving {} messages from topic: {}, offset: {}, sortNewestFirst: {}", limit, topicName, offset, sortNewestFirst);
 
         Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
@@ -266,7 +319,7 @@ public class KafkaMessageService {
                 messages = messages.subList(0, limit);
             }
 
-            log.info("Retrieved {} messages from topic: {}", messages.size(), topicName);
+            log.debug("Retrieved {} messages from topic: {}", messages.size(), topicName);
         } catch (Exception e) {
             log.error("Error retrieving messages from topic: {}", topicName, e);
         }
@@ -281,7 +334,7 @@ public class KafkaMessageService {
      * @return The approximate total number of messages
      */
     public long getTopicMessageCount(String topicName) {
-        log.info("Getting message count for topic: {}", topicName);
+        log.debug("Getting message count for topic: {}", topicName);
 
         Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
@@ -316,7 +369,7 @@ public class KafkaMessageService {
                 totalMessages += (endOffset - beginningOffset);
             }
 
-            log.info("Topic {} has approximately {} messages", topicName, totalMessages);
+            log.debug("Topic {} has approximately {} messages", topicName, totalMessages);
         } catch (Exception e) {
             log.error("Error getting message count for topic: {}", topicName, e);
         }

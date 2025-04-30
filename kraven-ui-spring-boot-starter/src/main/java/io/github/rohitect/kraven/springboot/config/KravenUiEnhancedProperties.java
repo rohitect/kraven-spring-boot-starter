@@ -37,13 +37,11 @@ public class KravenUiEnhancedProperties {
 
     /**
      * The path where the Kraven UI will be served.
+     * This is hardcoded to "/kraven/ui" and cannot be changed.
      */
-    private String path = "/kraven";
+    private final String path = "/kraven/ui";
 
-    /**
-     * Enable development mode for easier resource loading during development.
-     */
-    private boolean developmentMode = false;
+
 
     /**
      * The version of Kraven UI.
@@ -310,7 +308,7 @@ public class KravenUiEnhancedProperties {
         /**
          * The API path for Kafka management endpoints.
          */
-        private String apiPath = "/api/kraven-kafka-management";
+        private String apiPath = "/kraven/api/kraven-kafka-management";
 
         /**
          * The maximum number of messages to retrieve per request.
@@ -356,7 +354,7 @@ public class KravenUiEnhancedProperties {
         /**
          * The API path for metrics endpoints.
          */
-        private String apiPath = "/api/kraven-metrics";
+        private String apiPath = "/kraven/api/metrics";
 
         /**
          * Whether to enable JVM metrics.

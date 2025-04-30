@@ -27,11 +27,11 @@
 .api-docs-container {
   display: flex;
   flex-direction: column;
-  height: 100vh; // Full viewport height
+  height: calc(100vh - 60px); // Full viewport height minus header height
   width: 100%;
   overflow: hidden;
   position: fixed; // Fix the container to prevent page scrolling
-  top: 0;
+  top: 60px; // Start below the header
   left: 0;
   right: 0;
   bottom: 0;

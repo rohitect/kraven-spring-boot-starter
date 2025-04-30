@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.stereotype.Service;
+import org.springframework.lang.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class KafkaAdminService {
 
+    @Nullable
     private final KafkaListenerScanner kafkaListenerScanner;
     private final KafkaAdmin kafkaAdmin;
     private final io.github.rohitect.kraven.springboot.config.KravenUiEnhancedProperties properties;
@@ -31,17 +33,18 @@ public class KafkaAdminService {
     private String bootstrapServers;
 
     @Autowired
-    public KafkaAdminService(KafkaListenerScanner kafkaListenerScanner, KafkaAdmin kafkaAdmin,
+    public KafkaAdminService(@Nullable KafkaListenerScanner kafkaListenerScanner, KafkaAdmin kafkaAdmin,
                             io.github.rohitect.kraven.springboot.config.KravenUiEnhancedProperties properties) {
         this.kafkaListenerScanner = kafkaListenerScanner;
         this.kafkaAdmin = kafkaAdmin;
         this.properties = properties;
 
-        log.info("KafkaAdminService initialized with configuration: enabled={}, streamingEnabled={}, messageProductionEnabled={}, messageConsumptionEnabled={}",
+        log.debug("KafkaAdminService initialized with configuration: enabled={}, streamingEnabled={}, messageProductionEnabled={}, messageConsumptionEnabled={}, kafkaListenerScanner={}",
                 properties.getKafka().isEnabled(),
                 properties.getKafka().isStreamingEnabled(),
                 properties.getKafka().isMessageProductionEnabled(),
-                properties.getKafka().isMessageConsumptionEnabled());
+                properties.getKafka().isMessageConsumptionEnabled(),
+                kafkaListenerScanner != null ? "available" : "not available");
     }
 
     /**
@@ -293,8 +296,9 @@ public class KafkaAdminService {
                     log.warn("Error getting consumer groups", e);
                 }
 
-                // Get listeners
-                List<KafkaListener> listeners = kafkaListenerScanner.getKafkaListeners();
+                // Get listeners if scanner is available
+                List<KafkaListener> listeners = kafkaListenerScanner != null ?
+                    kafkaListenerScanner.getKafkaListeners() : Collections.emptyList();
 
                 // Build cluster info
                 return KafkaClusterInfo.builder()
@@ -319,8 +323,9 @@ public class KafkaAdminService {
      * @return Empty Kafka cluster info
      */
     private KafkaClusterInfo createEmptyClusterInfo() {
-        // Get listeners (these are available even if Kafka is not)
-        List<KafkaListener> listeners = kafkaListenerScanner.getKafkaListeners();
+        // Get listeners if scanner is available
+        List<KafkaListener> listeners = kafkaListenerScanner != null ?
+            kafkaListenerScanner.getKafkaListeners() : Collections.emptyList();
 
         // Build empty cluster info
         return KafkaClusterInfo.builder()

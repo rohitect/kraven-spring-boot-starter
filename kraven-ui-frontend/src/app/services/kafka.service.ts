@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { ConfigService } from './config.service';
 
 export interface KafkaMessage {
@@ -8,6 +9,7 @@ export interface KafkaMessage {
   content: string;
   timestamp: string;
   metadata?: string;
+  topic?: string;
 }
 
 export interface TopicSetting {
@@ -104,9 +106,14 @@ export class KafkaService {
     const config = this.configService.getConfig();
     this.baseUrl = config.basePath || '';
 
+    // Get the base API path from the window object
+    const baseApiPath = (window as any).__KRAVEN_BASE_API_PATH__ || '/kraven/api';
+
     // Initialize Kafka configuration from config
     if (config.kafka) {
-      this.apiPath = config.kafka.apiPath || '/api/kraven-kafka-management';
+      // Get the base API path from the window object
+      this.apiPath = `${baseApiPath}/kafka-management`;
+
       this.messageLimit = config.kafka.messageLimit || 100;
       this.streamingEnabled = config.kafka.streamingEnabled !== false;
       this.sseTimeoutMs = config.kafka.sseTimeoutMs || 300000;
@@ -116,7 +123,7 @@ export class KafkaService {
       this.enabled = config.kafka.enabled !== false;
     } else {
       // Default values if kafka config is not provided
-      this.apiPath = '/api/kraven-kafka-management';
+      this.apiPath = `${baseApiPath}/kafka-management`;
       this.messageLimit = 100;
       this.streamingEnabled = true;
       this.sseTimeoutMs = 300000;
@@ -216,6 +223,7 @@ export class KafkaService {
 
   /**
    * Sends a message to Kafka.
+   * @param message The message to send, including topic, content, and optional metadata
    */
   sendMessage(message: KafkaMessage): Observable<KafkaMessage> {
     if (!this.enabled) {
@@ -228,29 +236,31 @@ export class KafkaService {
       return new Observable(observer => observer.error('Kafka message production is disabled'));
     }
 
-    return this.http.post<KafkaMessage>('/api/kafka/messages', message);
+    // Use the correct endpoint from the API path
+    return this.http.post<KafkaMessage>(`${this.apiPath}/topics/${message.topic || 'default'}/messages`, message);
   }
 
   /**
    * Gets received messages from Kafka.
    * @param sort Optional sort parameter ('new' for newest first, 'old' for oldest first)
+   * @deprecated Use getMessagesFromTopic() instead. This method will be removed in a future version.
    */
   getReceivedMessages(sort: string = 'new'): Observable<KafkaMessage[]> {
-    if (!this.enabled) {
-      console.warn('Kafka service is disabled');
-      return new Observable(observer => observer.error('Kafka service is disabled'));
-    }
+    console.warn('getReceivedMessages() is deprecated. Use getMessagesFromTopic() instead.');
 
-    if (!this.messageConsumptionEnabled) {
-      console.warn('Kafka message consumption is disabled');
-      return new Observable(observer => observer.error('Kafka message consumption is disabled'));
-    }
-
-    return this.http.get<KafkaMessage[]>(`/api/kafka/messages?sort=${sort}`);
+    // Use "all" as a generic topic name to get messages from all topics
+    return this.getMessagesFromTopic("all", 0, this.messageLimit, sort)
+      .pipe(
+        map(response => {
+          // If the response has a messages property, use it; otherwise, return the response as is
+          return response.messages ? response.messages as KafkaMessage[] : response as KafkaMessage[];
+        })
+      );
   }
 
   /**
    * Clears received messages.
+   * @deprecated Use a topic-specific method instead. This method will be removed in a future version.
    */
   clearMessages(): Observable<void> {
     if (!this.enabled) {
@@ -258,7 +268,10 @@ export class KafkaService {
       return new Observable(observer => observer.error('Kafka service is disabled'));
     }
 
-    return this.http.delete<void>('/api/kafka/messages');
+    console.warn('clearMessages() is deprecated. Use a topic-specific method instead.');
+
+    // Use the correct endpoint from the API path
+    return this.http.delete<void>(`${this.apiPath}/topics/all/messages`);
   }
 
   /**

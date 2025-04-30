@@ -79,7 +79,7 @@ declare global {
 })
 export class ConfigService {
   private defaultConfig: KravenConfig = {
-    basePath: '/kraven',
+    basePath: '/kraven/ui',
     apiDocsPath: '/v3/api-docs',
     title: 'API Documentation',
     theme: {
@@ -104,14 +104,14 @@ export class ConfigService {
     },
     feignClient: {
       enabled: true,
-      apiPath: '/kraven/v1/feign-clients',
+      apiPath: '/kraven/api/feign-clients',
       tryItOutEnabled: true,
       cacheMetadata: true,
       scanIntervalMs: 0
     },
     kafka: {
       enabled: true,
-      apiPath: '/api/kraven-kafka-management',
+      apiPath: '/kraven/api/kafka-management',
       messageLimit: 100,
       streamingEnabled: true,
       sseTimeoutMs: 300000,
@@ -121,7 +121,7 @@ export class ConfigService {
     },
     metrics: {
       enabled: true,
-      apiPath: '/api/kraven-metrics',
+      apiPath: '/kraven/api/metrics',
       jvmMetricsEnabled: true,
       springMetricsEnabled: true,
       kafkaMetricsEnabled: true,
@@ -133,7 +133,7 @@ export class ConfigService {
     },
     businessFlow: {
       enabled: true,
-      apiPath: '/kraven/v1/business-flows',
+      apiPath: '/kraven/api/business-flows',
       basePackages: ['io.github'],
       autoRefreshEnabled: false,
       refreshIntervalMs: 0,

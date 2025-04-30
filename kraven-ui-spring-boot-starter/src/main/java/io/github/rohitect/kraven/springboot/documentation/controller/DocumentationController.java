@@ -19,7 +19,7 @@ import java.util.Map;
  * Controller for documentation operations.
  */
 @RestController
-@RequestMapping("${kraven.ui.path:/kraven}/v1/documentation")
+@RequestMapping("/kraven/api/documentation")
 @RequiredArgsConstructor
 @Slf4j
 public class DocumentationController {

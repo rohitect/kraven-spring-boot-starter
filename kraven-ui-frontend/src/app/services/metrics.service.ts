@@ -109,9 +109,16 @@ export class MetricsService {
     const config = this.configService.getConfig();
     this.baseUrl = config.basePath || '';
 
+    // Get the base API path from the window object
+    const baseApiPath = (window as any).__KRAVEN_BASE_API_PATH__ || '/kraven/api';
+
     // Initialize metrics configuration from config
     if (config.metrics) {
-      this.apiPath = config.metrics.apiPath || '/api/kraven-metrics';
+      // Use the configured API path but replace /kraven/api with the baseApiPath
+      // const configuredPath = config.metrics.apiPath || '/metrics';
+      // this.apiPath = configuredPath.replace('/kraven/api', baseApiPath);
+      this.apiPath = `${baseApiPath}/metrics`;
+
       this.jvmMetricsEnabled = config.metrics.jvmMetricsEnabled !== false;
       this.springMetricsEnabled = config.metrics.springMetricsEnabled !== false;
       this.kafkaMetricsEnabled = config.metrics.kafkaMetricsEnabled !== false;
@@ -123,7 +130,7 @@ export class MetricsService {
       this.enabled = config.metrics.enabled !== false;
     } else {
       // Default values if metrics config is not provided
-      this.apiPath = '/api/kraven-metrics';
+      this.apiPath = `${baseApiPath}/metrics`;
       this.jvmMetricsEnabled = true;
       this.springMetricsEnabled = true;
       this.kafkaMetricsEnabled = true;

@@ -49,11 +49,8 @@ public class KravenUiConfigurationInitializer implements ApplicationListener<App
      * This method checks for any invalid or incompatible configuration values.
      */
     private void validateConfiguration() {
-        // Validate path
-        if (properties.getPath() == null || properties.getPath().trim().isEmpty()) {
-            log.warn("Kraven UI path is empty, using default: /kraven");
-            properties.setPath("/kraven");
-        }
+        // Path is now hardcoded to /kraven/ui
+        log.debug("Using hardcoded UI path: {}", properties.getPath());
 
         // Validate dark theme colors
         if (properties.getTheme().getDarkPrimaryColor() == null || properties.getTheme().getDarkPrimaryColor().trim().isEmpty()) {
@@ -154,7 +151,6 @@ public class KravenUiConfigurationInitializer implements ApplicationListener<App
         log.info("  Enabled: {}", properties.isEnabled());
         log.info("  Path: {}", properties.getNormalizedPath());
         log.info("  Version: {}", properties.getVersion());
-        log.info("  Development Mode: {}", properties.isDevelopmentMode());
         log.info("  Enhanced Mode: {}", properties.getEnhanced().isEnabled());
         log.info("  Layout Type: {}", properties.getLayout().getType());
         log.info("  Theme: Default={}, SystemPreference={}",

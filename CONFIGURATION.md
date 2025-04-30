@@ -15,7 +15,7 @@ Kraven UI supports multiple configuration methods, with the following precedence
 You can configure Kraven UI using the `KRAVEN_UI_CONFIG` environment variable with a JSON string:
 
 ```bash
-export KRAVEN_UI_CONFIG='{"path":"/api-docs","theme":{"darkPrimaryColor":"#6c5ce7","darkSecondaryColor":"#00b894","darkBackgroundColor":"#1a1b2e","lightPrimaryColor":"#2196f3","lightSecondaryColor":"#ff9800","lightBackgroundColor":"#ffffff","defaultTheme":"dark"},"kafka":{"messageLimit":100,"messageProductionEnabled":true,"messageConsumptionEnabled":true}}'
+export KRAVEN_UI_CONFIG='{"theme":{"darkPrimaryColor":"#6c5ce7","darkSecondaryColor":"#00b894","darkBackgroundColor":"#1a1b2e","lightPrimaryColor":"#2196f3","lightSecondaryColor":"#ff9800","lightBackgroundColor":"#ffffff","defaultTheme":"dark"},"kafka":{"messageLimit":100,"messageProductionEnabled":true,"messageConsumptionEnabled":true}}'
 ```
 
 This is particularly useful for containerized environments or when you want to override configuration without changing application files.
@@ -29,8 +29,8 @@ You can configure Kraven UI using `application.properties` or `application.yml` 
 ```properties
 # Basic configuration
 kraven.ui.enabled=true
-kraven.ui.path=/kraven
-kraven.ui.development-mode=false
+# Note: The UI path is now hardcoded to /kraven/ui and API path to /kraven/api
+
 kraven.ui.version=1.0.1
 
 
@@ -96,8 +96,8 @@ kraven.ui.documentation.refresh-interval-ms=0
 kraven:
   ui:
     enabled: true
-    path: /kraven
-    development-mode: false
+    # Note: The UI path is now hardcoded to /kraven/ui and API path to /kraven/api
+
     version: 1.0.1
 
     theme:
@@ -177,8 +177,10 @@ kraven:
 | Property | Description | Default Value |
 |----------|-------------|---------------|
 | `kraven.ui.enabled` | Enable or disable Kraven UI | `true` |
-| `kraven.ui.path` | The path where the Kraven UI will be served | `/kraven` |
-| `kraven.ui.development-mode` | Enable development mode for easier resource loading | `false` |
+| ~~`kraven.ui.path`~~ | ~~The path where the Kraven UI will be served~~ | ~~`/kraven`~~ |
+
+**Note:** The UI path is now hardcoded to `/kraven/ui` and the API path is hardcoded to `/kraven/api`. These paths cannot be changed through configuration.
+
 | `kraven.ui.version` | The version of Kraven UI | `1.0.1` |
 
 
@@ -285,7 +287,7 @@ services:
   app:
     image: your-spring-boot-app:latest
     environment:
-      - KRAVEN_UI_CONFIG={"path":"/api-docs","theme":{"darkPrimaryColor":"#6c5ce7","darkSecondaryColor":"#00b894","darkBackgroundColor":"#1a1b2e","lightPrimaryColor":"#2196f3","lightSecondaryColor":"#ff9800","lightBackgroundColor":"#ffffff","defaultTheme":"dark"},"kafka":{"messageLimit":100,"messageProductionEnabled":true,"messageConsumptionEnabled":true},"metrics":{"refreshIntervalMs":5000,"autoRefreshEnabled":false,"threadDumpEnabled":true,"heapDumpEnabled":false}}
+      - KRAVEN_UI_CONFIG={"theme":{"darkPrimaryColor":"#6c5ce7","darkSecondaryColor":"#00b894","darkBackgroundColor":"#1a1b2e","lightPrimaryColor":"#2196f3","lightSecondaryColor":"#ff9800","lightBackgroundColor":"#ffffff","defaultTheme":"dark"},"kafka":{"messageLimit":100,"messageProductionEnabled":true,"messageConsumptionEnabled":true},"metrics":{"refreshIntervalMs":5000,"autoRefreshEnabled":false,"threadDumpEnabled":true,"heapDumpEnabled":false}}
     ports:
       - "8080:8080"
 ```
@@ -314,7 +316,7 @@ spec:
         image: your-spring-boot-app:latest
         env:
         - name: KRAVEN_UI_CONFIG
-          value: '{"path":"/api-docs","theme":{"darkPrimaryColor":"#6c5ce7","darkSecondaryColor":"#00b894","darkBackgroundColor":"#1a1b2e","lightPrimaryColor":"#2196f3","lightSecondaryColor":"#ff9800","lightBackgroundColor":"#ffffff","defaultTheme":"dark"},"kafka":{"messageLimit":100,"messageProductionEnabled":true,"messageConsumptionEnabled":true},"metrics":{"refreshIntervalMs":5000,"autoRefreshEnabled":false,"threadDumpEnabled":true,"heapDumpEnabled":false}}'
+          value: '{"theme":{"darkPrimaryColor":"#6c5ce7","darkSecondaryColor":"#00b894","darkBackgroundColor":"#1a1b2e","lightPrimaryColor":"#2196f3","lightSecondaryColor":"#ff9800","lightBackgroundColor":"#ffffff","defaultTheme":"dark"},"kafka":{"messageLimit":100,"messageProductionEnabled":true,"messageConsumptionEnabled":true},"metrics":{"refreshIntervalMs":5000,"autoRefreshEnabled":false,"threadDumpEnabled":true,"heapDumpEnabled":false}}'
         ports:
         - containerPort: 8080
 ```

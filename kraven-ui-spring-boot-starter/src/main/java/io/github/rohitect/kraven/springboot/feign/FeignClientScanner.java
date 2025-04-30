@@ -1,6 +1,8 @@
 package io.github.rohitect.kraven.springboot.feign;
 
 import io.github.rohitect.kraven.springboot.config.KravenUiEnhancedProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
@@ -28,6 +30,8 @@ import java.util.stream.Collectors;
 @Component
 public class FeignClientScanner implements ApplicationListener<ApplicationReadyEvent> {
 
+    private static final Logger log = LoggerFactory.getLogger(FeignClientScanner.class);
+
     private final ApplicationContext applicationContext;
     private final KravenUiEnhancedProperties properties;
     private List<FeignClientMetadata> feignClients;
@@ -49,17 +53,17 @@ public class FeignClientScanner implements ApplicationListener<ApplicationReadyE
     public void onApplicationEvent(ApplicationReadyEvent event) {
         if (properties.getFeignClient().isEnabled()) {
             String[] basePackages = properties.getFeignClient().getBasePackages();
-            System.out.println("Application is ready. Initializing Feign client scanner with base packages: " + String.join(", ", basePackages));
+            log.debug("Application is ready. Initializing Feign client scanner with base packages: {}", String.join(", ", basePackages));
             try {
                 // Check if Spring Cloud OpenFeign is available
                 Class.forName("org.springframework.cloud.openfeign.FeignClient");
                 scanFeignClients(basePackages);
             } catch (ClassNotFoundException e) {
-                System.err.println("WARNING: Spring Cloud OpenFeign is not available on the classpath. Feign client scanning is disabled.");
-                System.err.println("To use the Feign client scanner, add the spring-cloud-starter-openfeign dependency to your project.");
+                log.warn("WARNING: Spring Cloud OpenFeign is not available on the classpath. Feign client scanning is disabled.");
+                log.warn("To use the Feign client scanner, add the spring-cloud-starter-openfeign dependency to your project.");
             }
         } else {
-            System.out.println("Feign client scanning is disabled");
+            log.debug("Feign client scanning is disabled");
         }
     }
 
@@ -73,7 +77,7 @@ public class FeignClientScanner implements ApplicationListener<ApplicationReadyE
         if (properties.getFeignClient().getScanIntervalMs() > 0 &&
             System.currentTimeMillis() - lastScanTime >= properties.getFeignClient().getScanIntervalMs()) {
 
-            System.out.println("Refreshing Feign client metadata...");
+            log.debug("Refreshing Feign client metadata...");
             String[] basePackages = properties.getFeignClient().getBasePackages();
             try {
                 // Check if Spring Cloud OpenFeign is available
@@ -83,9 +87,9 @@ public class FeignClientScanner implements ApplicationListener<ApplicationReadyE
                 feignClients = null;
                 scanFeignClients(basePackages);
 
-                System.out.println("Feign client metadata refreshed");
+                log.debug("Feign client metadata refreshed");
             } catch (ClassNotFoundException e) {
-                System.err.println("WARNING: Spring Cloud OpenFeign is not available on the classpath. Feign client scanning is disabled.");
+                log.warn("WARNING: Spring Cloud OpenFeign is not available on the classpath. Feign client scanning is disabled.");
             }
         }
     }
@@ -99,7 +103,7 @@ public class FeignClientScanner implements ApplicationListener<ApplicationReadyE
     public List<FeignClientMetadata> scanFeignClients(String... basePackages) {
         // If caching is enabled and feignClients is already initialized, return it
         if (properties.getFeignClient().isCacheMetadata() && feignClients != null && !feignClients.isEmpty()) {
-            System.out.println("Returning cached Feign clients: " + feignClients.size());
+            log.debug("Returning cached Feign clients: {}", feignClients.size());
             return feignClients;
         }
 
@@ -114,7 +118,7 @@ public class FeignClientScanner implements ApplicationListener<ApplicationReadyE
         try {
             // Try to load the FeignClient annotation class
             Class<?> feignClientClass = Class.forName("org.springframework.cloud.openfeign.FeignClient");
-            System.out.println("Successfully loaded FeignClient annotation class");
+            log.debug("Successfully loaded FeignClient annotation class");
 
             // Try both approaches to find Feign clients
             scanUsingClassPathScanner(basePackages, feignClientClass);
@@ -124,16 +128,15 @@ public class FeignClientScanner implements ApplicationListener<ApplicationReadyE
                 scanUsingApplicationContext(feignClientClass);
             }
 
-            System.out.println("Total Feign clients found: " + feignClients.size());
+            log.debug("Total Feign clients found: {}", feignClients.size());
             if (!feignClients.isEmpty()) {
-                System.out.println("Feign client names: " + feignClients.stream()
+                log.debug("Feign client names: {}", feignClients.stream()
                     .map(FeignClientMetadata::getName)
                     .collect(Collectors.joining(", ")));
             }
         } catch (ClassNotFoundException e) {
-            System.err.println("FeignClient annotation not found. Spring Cloud OpenFeign might not be on the classpath.");
-            System.err.println("Exception details: " + e.getMessage());
-            e.printStackTrace();
+            log.error("FeignClient annotation not found. Spring Cloud OpenFeign might not be on the classpath.", e);
+            log.error("Exception details: {}", e.getMessage());
         }
 
         return feignClients;
@@ -160,28 +163,28 @@ public class FeignClientScanner implements ApplicationListener<ApplicationReadyE
         scanner.setResourceLoader(applicationContext);
 
         for (String basePackage : basePackages) {
-            System.out.println("Scanning package: " + basePackage);
+            log.debug("Scanning package: {}", basePackage);
             Set<BeanDefinition> candidateComponents = scanner.findCandidateComponents(basePackage);
-            System.out.println("Found " + candidateComponents.size() + " candidate components in package: " + basePackage);
+            log.debug("Found {} candidate components in package: {}", candidateComponents.size(), basePackage);
 
             for (BeanDefinition beanDefinition : candidateComponents) {
                 String className = beanDefinition.getBeanClassName();
-                System.out.println("Processing candidate: " + className);
+                log.debug("Processing candidate: {}", className);
                 try {
                     // Use the application context's ClassLoader
                     ClassLoader classLoader = applicationContext.getClassLoader();
                     Class<?> clazz = classLoader.loadClass(className);
                     Annotation feignClientAnnotation = clazz.getAnnotation((Class<? extends Annotation>) feignClientClass);
                     if (feignClientAnnotation != null) {
-                        System.out.println("Found FeignClient annotation on class: " + className);
+                        log.debug("Found FeignClient annotation on class: {}", className);
                         FeignClientMetadata metadata = extractFeignClientMetadata(clazz, feignClientAnnotation);
                         feignClients.add(metadata);
-                        System.out.println("Added FeignClient metadata for: " + metadata.getName());
+                        log.debug("Added FeignClient metadata for: {}", metadata.getName());
                     } else {
-                        System.out.println("No FeignClient annotation found on class: " + className);
+                        log.debug("No FeignClient annotation found on class: {}", className);
                     }
                 } catch (ClassNotFoundException e) {
-                    System.err.println("Failed to load class: " + className);
+                    log.error("Failed to load class: {}", className);
                 }
             }
         }
@@ -193,11 +196,11 @@ public class FeignClientScanner implements ApplicationListener<ApplicationReadyE
      * @param feignClientClass the FeignClient annotation class
      */
     private void scanUsingApplicationContext(Class<?> feignClientClass) {
-        System.out.println("Scanning for Feign clients using application context");
+        log.debug("Scanning for Feign clients using application context");
         try {
             // Get all beans of type Object (all beans)
             String[] beanNames = applicationContext.getBeanNamesForType(Object.class);
-            System.out.println("Found " + beanNames.length + " beans in application context");
+            log.debug("Found {} beans in application context", beanNames.length);
 
             for (String beanName : beanNames) {
                 try {
@@ -205,19 +208,18 @@ public class FeignClientScanner implements ApplicationListener<ApplicationReadyE
                     if (beanType != null && beanType.isInterface()) {
                         Annotation feignClientAnnotation = beanType.getAnnotation((Class<? extends Annotation>) feignClientClass);
                         if (feignClientAnnotation != null) {
-                            System.out.println("Found FeignClient annotation on bean: " + beanName + " of type " + beanType.getName());
+                            log.debug("Found FeignClient annotation on bean: {} of type {}", beanName, beanType.getName());
                             FeignClientMetadata metadata = extractFeignClientMetadata(beanType, feignClientAnnotation);
                             feignClients.add(metadata);
-                            System.out.println("Added FeignClient metadata for: " + metadata.getName());
+                            log.debug("Added FeignClient metadata for: {}", metadata.getName());
                         }
                     }
                 } catch (Exception e) {
-                    System.err.println("Error processing bean: " + beanName + ", error: " + e.getMessage());
+                    log.error("Error processing bean: {}, error: {}", beanName, e.getMessage());
                 }
             }
         } catch (Exception e) {
-            System.err.println("Error scanning application context: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error scanning application context: {}", e.getMessage(), e);
         }
     }
 
@@ -234,7 +236,22 @@ public class FeignClientScanner implements ApplicationListener<ApplicationReadyE
 
         // Extract FeignClient annotation values using reflection
         try {
-            metadata.setName((String) AnnotationUtils.getValue(feignClientAnnotation, "name"));
+            // Get the name from the annotation
+            String name = (String) AnnotationUtils.getValue(feignClientAnnotation, "name");
+
+            // If name is empty or null, try to get the value attribute (which is often used as an alternative to name)
+            if (name == null || name.isEmpty()) {
+                name = (String) AnnotationUtils.getValue(feignClientAnnotation, "value");
+                log.debug("Name was empty, using value attribute instead: {}", name);
+            }
+
+            // If both name and value are empty, use the simple class name as a fallback
+            if (name == null || name.isEmpty()) {
+                name = clazz.getSimpleName();
+                log.debug("Both name and value were empty, using simple class name as fallback: {}", name);
+            }
+
+            metadata.setName(name);
             metadata.setUrl((String) AnnotationUtils.getValue(feignClientAnnotation, "url"));
             metadata.setPath((String) AnnotationUtils.getValue(feignClientAnnotation, "path"));
 
@@ -286,27 +303,26 @@ public class FeignClientScanner implements ApplicationListener<ApplicationReadyE
                 }
             }
         } catch (Exception e) {
-            System.err.println("Failed to extract FeignClient annotation values for class " + clazz.getName() + ": " + e.getMessage());
-            e.printStackTrace();
+            log.error("Failed to extract FeignClient annotation values for class {}: {}", clazz.getName(), e.getMessage(), e);
         }
 
         // Extract method metadata
-        System.out.println("Extracting methods for class: " + clazz.getName());
+        log.debug("Extracting methods for class: {}", clazz.getName());
         Method[] methods = clazz.getDeclaredMethods();
-        System.out.println("Found " + methods.length + " methods in class: " + clazz.getName());
+        log.debug("Found {} methods in class: {}", methods.length, clazz.getName());
 
         for (Method method : methods) {
-            System.out.println("Processing method: " + method.getName());
+            log.debug("Processing method: {}", method.getName());
             try {
                 FeignMethodMetadata methodMetadata = extractMethodMetadata(method);
                 if (methodMetadata != null) {
                     metadata.getMethods().add(methodMetadata);
-                    System.out.println("Added method metadata for: " + method.getName());
+                    log.debug("Added method metadata for: {}", method.getName());
                 } else {
-                    System.out.println("No metadata extracted for method: " + method.getName());
+                    log.debug("No metadata extracted for method: {}", method.getName());
                 }
             } catch (Exception e) {
-                System.err.println("Failed to extract method metadata for " + method.getName() + ": " + e.getMessage());
+                log.error("Failed to extract method metadata for {}: {}", method.getName(), e.getMessage());
             }
         }
 
@@ -324,7 +340,7 @@ public class FeignClientScanner implements ApplicationListener<ApplicationReadyE
             FeignMethodMetadata metadata = new FeignMethodMetadata();
             metadata.setName(method.getName());
             metadata.setReturnType(method.getReturnType().getName());
-            System.out.println("Extracting metadata for method: " + method.getName() + " with return type: " + method.getReturnType().getName());
+            log.debug("Extracting metadata for method: {} with return type: {}", method.getName(), method.getReturnType().getName());
 
             // Extract HTTP method and path
             String httpMethod = null;
@@ -412,8 +428,7 @@ public class FeignClientScanner implements ApplicationListener<ApplicationReadyE
 
             return metadata;
         } catch (Exception e) {
-            System.err.println("Error extracting method metadata for " + method.getName() + ": " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error extracting method metadata for {}: {}", method.getName(), e.getMessage(), e);
             return null;
         }
     }

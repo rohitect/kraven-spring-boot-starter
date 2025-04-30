@@ -1,4 +1,9 @@
 <div class="json-viewer" [class.root-level]="isRoot">
+  <!-- Root level opening brace/bracket -->
+  <div *ngIf="isRoot && jsonNodes.length > 0" class="json-root-opening">
+    <span class="json-value opening-brace">{{ isRootArray() ? '[' : '{' }}</span>
+  </div>
+
   <div *ngFor="let node of jsonNodes" class="json-node">
     <div class="json-node-content">
       <span *ngIf="node.type === 'object' || node.type === 'array'"
@@ -51,5 +56,10 @@
     <div *ngIf="node.expanded && (node.type === 'object' || node.type === 'array')" class="json-node-content json-node-closing">
       <span class="json-value closing-brace">{{ node.type === 'object' ? '\}' : '\]' }}</span>
     </div>
+  </div>
+
+  <!-- Root level closing brace/bracket -->
+  <div *ngIf="isRoot && jsonNodes.length > 0" class="json-root-closing">
+    <span class="json-value closing-brace">{{ isRootArray() ? ']' : '}' }}</span>
   </div>
 </div>

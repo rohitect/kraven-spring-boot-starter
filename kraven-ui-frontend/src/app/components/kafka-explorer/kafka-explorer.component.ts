@@ -63,7 +63,8 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
     id: '',
     content: '',
     timestamp: new Date().toISOString(),
-    metadata: ''
+    metadata: '',
+    topic: ''
   };
 
   // Received messages
@@ -380,18 +381,26 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Ensure the topic is set to the selected topic
+    if (this.selectedTopic && (!this.newMessage.topic || this.newMessage.topic.trim() === '')) {
+      this.newMessage.topic = this.selectedTopic.name;
+    }
+
     this.newMessage.timestamp = new Date().toISOString();
 
+    console.log('Sending message to topic:', this.newMessage.topic);
     this.kafkaService.sendMessage(this.newMessage).subscribe({
       next: (response) => {
         console.log('Message sent successfully:', response);
 
-        // Clear the form
+        // Clear the form but keep the topic
+        const currentTopic = this.newMessage.topic;
         this.newMessage = {
           id: '',
           content: '',
           timestamp: new Date().toISOString(),
-          metadata: ''
+          metadata: '',
+          topic: currentTopic // Preserve the topic for the next message
         };
 
         // Reload received messages after a short delay
@@ -766,6 +775,10 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
    * Shows the right pane for producing messages
    */
   showProduceMessagePane(): void {
+    // Set the topic in the newMessage object to the selected topic's name
+    if (this.selectedTopic) {
+      this.newMessage.topic = this.selectedTopic.name;
+    }
     this.showRightPane = true;
   }
 

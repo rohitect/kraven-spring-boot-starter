@@ -161,4 +161,11 @@ export class JsonViewerComponent implements OnChanges {
     // Always show keys for non-array items or nested array items
     return !node.isArrayItem || this.depth > 0 || this.showKeys;
   }
+
+  /**
+   * Determines if the root JSON is an array
+   */
+  isRootArray(): boolean {
+    return Array.isArray(this.json);
+  }
 }

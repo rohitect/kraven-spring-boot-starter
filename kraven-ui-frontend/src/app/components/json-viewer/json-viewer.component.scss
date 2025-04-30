@@ -21,6 +21,25 @@
         padding-left: 0;
       }
     }
+
+    > .json-root-opening,
+    > .json-root-closing {
+      padding: 0.125rem 0;
+    }
+
+    > .json-root-opening {
+      .opening-brace {
+        color: var(--json-brace-color, #9c27b0);
+        font-weight: bold;
+      }
+    }
+
+    > .json-root-closing {
+      .closing-brace {
+        color: var(--json-brace-color, #9c27b0);
+        font-weight: bold;
+      }
+    }
   }
 
   .json-node {

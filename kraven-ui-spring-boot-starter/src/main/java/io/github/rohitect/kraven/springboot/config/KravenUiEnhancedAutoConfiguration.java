@@ -14,6 +14,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 
 import io.github.rohitect.kraven.springboot.KravenUiAutoConfiguration;
+import io.github.rohitect.kraven.springboot.KravenUiIndexController;
 import io.github.rohitect.kraven.springboot.KravenUiProperties;
 
 /**
@@ -65,22 +66,20 @@ public class KravenUiEnhancedAutoConfiguration {
     }
 
     /**
-     * Creates the enhanced index controller.
+     * Creates the Kraven UI index controller.
      *
      * @param properties the enhanced properties
      * @param configInitializer the configuration initializer
-     * @return the enhanced index controller
+     * @return the Kraven UI index controller
      */
-    @Bean(name = "enhancedKravenUiIndexController")
-    @ConditionalOnProperty(name = "kraven.ui.enhanced.enabled", matchIfMissing = true)
-    public EnhancedKravenUiIndexController enhancedKravenUiIndexController(
+    @Bean
+    @ConditionalOnMissingBean
+    public KravenUiIndexController kravenUiIndexController(
             KravenUiEnhancedProperties properties,
             KravenUiConfigurationInitializer configInitializer) {
-        log.info("Initializing EnhancedKravenUiIndexController (enhanced mode enabled)");
-        return new EnhancedKravenUiIndexController(properties, configInitializer);
+        log.info("Initializing KravenUiIndexController");
+        return new KravenUiIndexController(properties, configInitializer);
     }
-
-    // The kravenUiIndexController bean has been moved to KravenUiControllerConfiguration
 
     /**
      * Creates a compatibility adapter that maps the enhanced properties to the standard properties.
@@ -99,8 +98,7 @@ public class KravenUiEnhancedAutoConfiguration {
 
         // Copy basic properties
         properties.setEnabled(enhancedProperties.isEnabled());
-        properties.setPath(enhancedProperties.getPath());
-        properties.setDevelopmentMode(enhancedProperties.isDevelopmentMode());
+        // Path is now hardcoded
         properties.setVersion(enhancedProperties.getVersion());
 
         // Copy enhanced properties

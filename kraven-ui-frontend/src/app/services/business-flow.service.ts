@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import { ConfigService } from './config.service';
 
 export interface BusinessFlowTag {
   name: string;
@@ -35,11 +34,12 @@ export class BusinessFlowService {
   private apiPath: string;
 
   constructor(
-    private http: HttpClient,
-    private configService: ConfigService
+    private http: HttpClient
   ) {
-    const config = this.configService.getConfig();
-    this.apiPath = config.businessFlow?.apiPath || '/kraven/v1/business-flows';
+    // Use the global variable if available, otherwise fall back to default
+    const baseApiPath = (window as any).__KRAVEN_BASE_API_PATH__ || '/kraven/api';
+    this.apiPath = `${baseApiPath}/business-flows`;
+    console.log('BusinessFlowService using API path:', this.apiPath);
   }
 
   /**
@@ -56,7 +56,7 @@ export class BusinessFlowService {
 
   /**
    * Gets a business flow by tag name.
-   * 
+   *
    * @param tagName the tag name
    */
   getBusinessFlow(tagName: string): Observable<BusinessFlow> {

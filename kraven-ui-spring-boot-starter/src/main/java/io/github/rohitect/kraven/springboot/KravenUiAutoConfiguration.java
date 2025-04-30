@@ -5,12 +5,13 @@ import io.github.rohitect.kraven.springboot.feign.FeignClientExecutor;
 import io.github.rohitect.kraven.springboot.feign.FeignClientScanner;
 import io.github.rohitect.kraven.springboot.config.KravenUiEnhancedProperties;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -47,10 +48,12 @@ import java.util.Map;
     "io.github.rohitect.kraven.springboot.kafka",
     "io.github.rohitect.kraven.springboot.metrics",
     "io.github.rohitect.kraven.springboot.businessflow",
-    "io.github.rohitect.kraven.springboot.documentation"
+    "io.github.rohitect.kraven.springboot.documentation",
+    "io.github.rohitect.kraven.springboot.cache"
 })
-@EnableCaching
 public class KravenUiAutoConfiguration {
+
+    private static final Logger log = LoggerFactory.getLogger(KravenUiAutoConfiguration.class);
 
     private final KravenUiProperties properties;
     private final KravenUiEnhancedProperties enhancedProperties;
@@ -67,29 +70,14 @@ public class KravenUiAutoConfiguration {
             this.properties.setVersion(version);
         } else {
             // Keep the default version from KravenUiProperties
-            System.out.println("Using default Kraven UI version: " + this.properties.getVersion());
+            log.debug("Using default Kraven UI version: {}", this.properties.getVersion());
         }
 
         // Log the configuration for debugging
-        System.out.println("Kraven UI Configuration:");
-        System.out.println("  Path: " + this.properties.getNormalizedPath());
-        System.out.println("  Version: " + this.properties.getVersion());
-        System.out.println("  Enabled: " + this.properties.isEnabled());
-    }
-
-
-    /**
-     * Configures the kraven UI index controller.
-     * This bean is conditionally created only if the enhanced version is disabled.
-     *
-     * @return the kraven UI index controller
-     */
-    @Bean
-    @ConditionalOnMissingBean(name = "kravenUiIndexController")
-    @ConditionalOnProperty(name = "kraven.ui.enhanced.enabled", havingValue = "false")
-    public KravenUiIndexController kravenUiIndexController() {
-        System.out.println("Creating original KravenUiIndexController (enhanced mode disabled)");
-        return new KravenUiIndexController(properties, enhancedProperties);
+        log.debug("Kraven UI Configuration:");
+        log.debug("  Path: {}", this.properties.getNormalizedPath());
+        log.debug("  Version: {}", this.properties.getVersion());
+        log.debug("  Enabled: {}", this.properties.isEnabled());
     }
 
     /**
@@ -221,7 +209,7 @@ public class KravenUiAutoConfiguration {
             @Override
             public void addResourceHandlers(ResourceHandlerRegistry registry) {
                 String uiPath = properties.getNormalizedPath();
-                System.out.println("Configuring resource handlers for UI path: " + uiPath);
+                log.debug("Configuring resource handlers for UI path: {}", uiPath);
 
                 // Serve webjar resources directly
                 registry.addResourceHandler("/webjars/**")
@@ -233,14 +221,14 @@ public class KravenUiAutoConfiguration {
 
                 // Add a resource handler for the specific version of kraven-ui
                 String kravenUiPath = uiPath + "/**";
-                System.out.println("Adding resource handler for: " + kravenUiPath);
+                log.debug("Adding resource handler for: {}", kravenUiPath);
                 registry.addResourceHandler(kravenUiPath)
                         .addResourceLocations("classpath:/META-INF/resources/webjars/kraven-ui/" + properties.getVersion() + "/")
                         .addResourceLocations("classpath:/static/");
 
                 // If the UI path is /api-docs, also handle /api-docs/** pattern
                 if (uiPath.equals("/api-docs")) {
-                    System.out.println("Adding special handler for /api-docs path");
+                    log.debug("Adding special handler for /api-docs path");
                     registry.addResourceHandler("/api-docs/**")
                             .addResourceLocations("classpath:/META-INF/resources/webjars/kraven-ui/" + properties.getVersion() + "/")
                             .addResourceLocations("classpath:/static/");
@@ -252,18 +240,30 @@ public class KravenUiAutoConfiguration {
                 // Add a redirect from the base path to the UI path
                 String uiPath = properties.getNormalizedPath();
                 if (!uiPath.equals("/")) {
-                    System.out.println("Adding redirect from " + uiPath + " to " + uiPath + "/");
+                    log.debug("Adding redirect from {} to {}/", uiPath, uiPath);
                     registry.addRedirectViewController(uiPath, uiPath + "/");
                 }
 
                 // If the UI path is /api-docs, also add a view controller for it
                 if (uiPath.equals("/api-docs")) {
-                    System.out.println("Adding view controller for /api-docs");
+                    log.debug("Adding view controller for /api-docs");
                     registry.addViewController("/api-docs").setViewName("forward:/api-docs/index.html");
                 }
             }
         };
     }
 
-
+    /**
+     * Provides the KravenUiCacheService bean if it's not already defined.
+     * This ensures backward compatibility and prevents autowiring issues.
+     *
+     * @return the KravenUiCacheService
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public io.github.rohitect.kraven.springboot.cache.KravenUiCacheService kravenUiCacheService() {
+        log.debug("Creating KravenUiCacheService bean from auto-configuration");
+        return new io.github.rohitect.kraven.springboot.cache.KravenUiCacheService(
+                environment.getProperty("kraven.ui.cache.enabled", Boolean.class, true));
+    }
 }

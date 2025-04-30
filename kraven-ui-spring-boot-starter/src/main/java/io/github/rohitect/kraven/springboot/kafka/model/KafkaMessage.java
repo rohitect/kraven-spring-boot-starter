@@ -31,4 +31,7 @@ public class KafkaMessage {
 
     @Schema(description = "Additional metadata for the message", example = "priority=high")
     private String metadata;
+
+    @Schema(description = "Topic the message belongs to (only used when sending messages)", example = "my-topic")
+    private String topic;
 }

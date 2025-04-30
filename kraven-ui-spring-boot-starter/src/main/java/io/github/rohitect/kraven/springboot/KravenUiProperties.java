@@ -17,13 +17,11 @@ public class KravenUiProperties {
 
     /**
      * The path where the Kraven UI will be served.
+     * This is hardcoded to "/kraven/ui" and cannot be changed.
      */
-    private String path = "/kraven";
+    private final String path = "/kraven/ui";
 
-    /**
-     * Enable development mode for easier resource loading during development.
-     */
-    private boolean developmentMode = false;
+
 
     /**
      * Enhanced configuration options.
@@ -82,7 +80,7 @@ public class KravenUiProperties {
      * The version of Kraven UI.
      * This is automatically set from the kraven.ui.version property.
      */
-    private String version = "1.0.2";
+    private String version = "1.0.3";
 
     /**
      * Layout configuration options.

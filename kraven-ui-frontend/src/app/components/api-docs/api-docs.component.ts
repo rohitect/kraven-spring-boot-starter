@@ -6,7 +6,7 @@ import { ApiDocsService } from '../../services/api-docs.service';
 import { ConfigService } from '../../services/config.service';
 import { ThemeService } from '../../services/theme.service';
 import { trigger, transition, style, animate, state } from '@angular/animations';
-import { JsonViewerComponent } from '../json-viewer/json-viewer.component';
+import { AndypfJsonViewerComponent } from '../andypf-json-viewer/andypf-json-viewer.component';
 import { TryItOutComponent } from '../try-it-out-new/try-it-out.component';
 import { GlobalAuthenticationComponent } from '../global-authentication/global-authentication.component';
 import { MarkdownPipe } from '../../pipes/markdown.pipe';
@@ -20,7 +20,7 @@ import { MarkdownPipe } from '../../pipes/markdown.pipe';
     TryItOutComponent,
     GlobalAuthenticationComponent,
     MarkdownPipe,
-    JsonViewerComponent
+    AndypfJsonViewerComponent
   ],
   templateUrl: './api-docs.component.html',
   styleUrls: ['./api-docs.component.scss'],
@@ -109,14 +109,14 @@ export class ApiDocsComponent implements OnInit {
   isDarkTheme = true;
 
   // Right pane state
-  rightPaneActiveTab: 'try-it-out' | 'response-samples' = 'try-it-out';
+  rightPaneActiveTab: 'try-it-out' | 'response-samples' = 'try-it-out'; // Default to try-it-out tab
 
   // API documentation configuration
   apiDocsConfig = {
     enabled: true,
     tryItOutEnabled: true,
     // Default values for removed properties
-    showExamples: true,
+    showExamples: true, // Always show examples, not configurable
     expandOperations: false,
     showApiInfo: true,
     syntaxHighlighting: true,
@@ -126,7 +126,7 @@ export class ApiDocsComponent implements OnInit {
   // JSON viewer state
   jsonViewerExpanded = true;
 
-  @ViewChild('jsonViewer') jsonViewer?: JsonViewerComponent;
+  @ViewChild('jsonViewer') jsonViewer?: AndypfJsonViewerComponent;
 
   constructor(
     public apiDocsService: ApiDocsService,
@@ -142,10 +142,12 @@ export class ApiDocsComponent implements OnInit {
 
     // Load API documentation configuration from config service
     if (config.apiDocs) {
-      this.apiDocsConfig = {
-        ...this.apiDocsConfig,
-        ...config.apiDocs
-      };
+      // Only copy the properties that exist in the config interface
+      this.apiDocsConfig.enabled = config.apiDocs.enabled;
+      this.apiDocsConfig.tryItOutEnabled = config.apiDocs.tryItOutEnabled;
+
+      // Keep showExamples always true (not configurable)
+      // No need to modify it as it's already set to true in the component
     }
 
     // Get the current theme from the theme service
@@ -1090,6 +1092,9 @@ export class ApiDocsComponent implements OnInit {
       this.responseSamples = {};
       this.selectedResponseCode = null;
       console.log('Cleared response samples for new endpoint');
+
+      // Always set the active tab to try-it-out when selecting a new endpoint
+      this.rightPaneActiveTab = 'try-it-out';
     }
 
     // Get the responses for this endpoint
@@ -1719,28 +1724,32 @@ export class ApiDocsComponent implements OnInit {
    * Expand all nodes in the response sample
    */
   expandAll(): void {
-    // Force a change detection cycle by setting to false first
-    this.jsonViewerExpanded = false;
-    setTimeout(() => {
-      this.jsonViewerExpanded = true;
-      if (this.jsonViewer) {
-        this.jsonViewer.expandAll();
-      }
-    }, 0);
+    // Set expanded to true for the AndypfJsonViewer
+    this.jsonViewerExpanded = true;
+    if (this.jsonViewer) {
+      // Update the expanded property
+      setTimeout(() => {
+        if (this.jsonViewer) {
+          this.jsonViewer.expanded = true;
+        }
+      }, 0);
+    }
   }
 
   /**
    * Collapse all nodes in the response sample
    */
   collapseAll(): void {
-    // Force a change detection cycle
-    this.jsonViewerExpanded = true;
-    setTimeout(() => {
-      this.jsonViewerExpanded = false;
-      if (this.jsonViewer) {
-        this.jsonViewer.collapseAll();
-      }
-    }, 0);
+    // Set expanded to false for the AndypfJsonViewer
+    this.jsonViewerExpanded = false;
+    if (this.jsonViewer) {
+      // Update the expanded property
+      setTimeout(() => {
+        if (this.jsonViewer) {
+          this.jsonViewer.expanded = false;
+        }
+      }, 0);
+    }
   }
 
   /**

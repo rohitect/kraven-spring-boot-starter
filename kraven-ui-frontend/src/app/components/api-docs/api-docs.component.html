@@ -390,7 +390,6 @@
             Try It Out
           </button>
           <button
-            *ngIf="apiDocsConfig.showExamples"
             class="right-pane-tab"
             [class.active]="rightPaneActiveTab === 'response-samples'"
             [class.disabled]="!selectedResponseCode"
@@ -424,7 +423,7 @@
         </div>
 
         <!-- Response Samples Section -->
-        <div class="right-pane-content response-samples" [hidden]="rightPaneActiveTab !== 'response-samples' || !selectedResponseCode || !apiDocsConfig.showExamples">
+        <div class="right-pane-content response-samples" [hidden]="rightPaneActiveTab !== 'response-samples' || !selectedResponseCode">
           <div class="response-samples-header">
             <h3 class="samples-title">Response samples</h3>
             <div class="samples-tabs">
@@ -468,14 +467,18 @@
             </div>
 
             <div class="sample-code-container">
-              <app-json-viewer
+              <app-andypf-json-viewer
                 #jsonViewer
                 *ngIf="selectedResponseCode && responseSamples[selectedResponseCode] && apiDocsConfig.syntaxHighlighting"
                 [json]="responseSamples[selectedResponseCode]"
                 [expanded]="jsonViewerExpanded"
-                [showKeys]="false"
-                [isRoot]="true">
-              </app-json-viewer>
+                [theme]="isDarkTheme ? 'default-dark' : 'default-light'"
+                [showDataTypes]="true"
+                [showToolbar]="false"
+                [expandIconType]="'arrow'"
+                [showCopy]="true"
+                [showSize]="false">
+              </app-andypf-json-viewer>
               <pre class="sample-code" *ngIf="(!selectedResponseCode || !responseSamples[selectedResponseCode]) && apiDocsConfig.syntaxHighlighting">{{ getFormattedResponseSample() }}</pre>
               <pre class="sample-code" *ngIf="selectedResponseCode && responseSamples[selectedResponseCode] && !apiDocsConfig.syntaxHighlighting">{{ getFormattedResponseSample() }}</pre>
             </div>

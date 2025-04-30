@@ -120,6 +120,13 @@ This is a multi-module Maven project with the following modules:
 - **kraven-ui-spring-boot-starter**: Spring Boot starter (for the lazy developers among us)
 - **kraven-ui-example**: Example application (for when the docs inevitably fail you)
 
+## 🚨 Compatibility Notes
+
+When integrating Kraven UI into your projects, be aware of these potential compatibility issues:
+
+- **Caching**: Kraven UI uses its own internal caching mechanism that doesn't depend on Spring's caching infrastructure, avoiding conflicts with your application's cache configuration. You can control caching with the `kraven.ui.cache.enabled` property. The library is designed to work even if the cache service bean cannot be autowired.
+- **OpenTelemetry**: Some versions of OpenTelemetry may cause stack overflow errors when used with Kraven UI. Consider excluding OpenTelemetry dependencies if you encounter issues.
+
 ## 🏗️ Development Status
 
 This project is actively maintained by developers who care way too much about UI/UX:
@@ -150,7 +157,7 @@ Add the following dependency to your Spring Boot application's `pom.xml` (copy-p
 <dependency>
     <groupId>io.github.rohitect</groupId>
     <artifactId>kraven-ui-spring-boot-starter</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
 </dependency>
 ```
 
@@ -174,6 +181,7 @@ Add configuration to your `application.properties` or `application.yml` file (cu
 # Kraven UI Configuration
 kraven.ui.path=/kraven
 kraven.ui.layout.type=three-pane
+kraven.ui.cache.enabled=true  # Set to false if you have Redis or other cache manager conflicts
 
 # SpringDoc OpenAPI Configuration
 springdoc.api-docs.path=/v3/api-docs
@@ -345,7 +353,7 @@ Here's a complete example of how to set up a Spring Boot REST API with Kraven UI
         <dependency>
             <groupId>io.github.rohitect</groupId>
             <artifactId>kraven-ui-spring-boot-starter</artifactId>
-            <version>1.0.2</version>
+            <version>1.0.3</version>
         </dependency>
     </dependencies>
 </project>
@@ -433,6 +441,9 @@ kraven.ui.metrics.refresh-interval-ms=5000
 kraven.ui.metrics.auto-refresh-enabled=false
 kraven.ui.metrics.thread-dump-enabled=true
 kraven.ui.metrics.heap-dump-enabled=false
+
+# Cache configuration
+kraven.ui.cache.enabled=true
 
 # Documentation configuration
 kraven.ui.documentation.enabled=true

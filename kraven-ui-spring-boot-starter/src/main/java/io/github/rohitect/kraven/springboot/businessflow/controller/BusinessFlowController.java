@@ -15,7 +15,7 @@ import java.util.List;
  * REST controller for business flow operations.
  */
 @RestController
-@RequestMapping("${kraven.ui.path:/kraven}/v1/business-flows")
+@RequestMapping("/kraven/api/business-flows")
 @RequiredArgsConstructor
 @Slf4j
 public class BusinessFlowController {
