@@ -156,8 +156,8 @@ Add the following dependency to your Spring Boot application's `pom.xml` (copy-p
 ```xml
 <dependency>
     <groupId>io.github.rohitect</groupId>
-    <artifactId>kraven-ui-spring-boot-starter</artifactId>
-    <version>1.0.3</version>
+    <artifactId>kraven-ui</artifactId>
+    <version>1.0.4</version>
 </dependency>
 ```
 
@@ -352,8 +352,8 @@ Here's a complete example of how to set up a Spring Boot REST API with Kraven UI
         <!-- Kraven UI -->
         <dependency>
             <groupId>io.github.rohitect</groupId>
-            <artifactId>kraven-ui-spring-boot-starter</artifactId>
-            <version>1.0.3</version>
+            <artifactId>kraven-ui</artifactId>
+            <version>1.0.4</version>
         </dependency>
     </dependencies>
 </project>
