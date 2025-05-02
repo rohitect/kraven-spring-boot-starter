@@ -10,6 +10,7 @@
   },
   "private": true,
   "dependencies": {
+    "@andypf/json-viewer": "^2.1.10",
     "@angular/animations": "^19.2.7",
     "@angular/cdk": "^19.2.11",
     "@angular/common": "^19.2.7",
@@ -30,8 +31,7 @@
     "ngx-markdown": "^19.1.1",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
-    "zone.js": "~0.15.0",
-    "@andypf/json-viewer": "^2.1.10"
+    "zone.js": "~0.15.0"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^19.2.7",

@@ -1,0 +1,162 @@
+<div class="history-detail-modal" *ngIf="historyEntry">
+  <div class="history-detail-header">
+    <div class="history-detail-title">
+      <span class="method-badge"
+        [ngStyle]="{
+          'background-color': historyEntry.method === 'GET' ? '#61affe' :
+                             historyEntry.method === 'POST' ? '#49cc90' :
+                             historyEntry.method === 'PUT' ? '#fca130' :
+                             historyEntry.method === 'DELETE' ? '#f93e3e' :
+                             historyEntry.method === 'PATCH' ? '#50e3c2' :
+                             historyEntry.method === 'HEAD' ? '#9012fe' :
+                             historyEntry.method === 'OPTIONS' ? '#0d5aa7' : '#555'
+        }">
+        {{ historyEntry.method }}
+      </span>
+      <span class="history-path">{{ historyEntry.path }}</span>
+    </div>
+    <div class="history-detail-actions">
+      <button class="history-action-button" title="Rerun API Call" (click)="rerunApiCall()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+          <path d="M3 3v5h5"></path>
+          <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path>
+          <path d="M16 21h5v-5"></path>
+        </svg>
+        Rerun
+      </button>
+      <button class="history-action-button delete" title="Delete from History" (click)="deleteApiCall()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 6h18"></path>
+          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+        </svg>
+        Delete
+      </button>
+      <button class="history-action-button close" title="Close" (click)="closeModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 6 6 18"></path>
+          <path d="m6 6 12 12"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="history-detail-info">
+    <div class="history-info-item">
+      <span class="info-label">Application:</span>
+      <span class="info-value">{{ historyEntry.applicationName }}</span>
+    </div>
+    <div class="history-info-item">
+      <span class="info-label">Time:</span>
+      <span class="info-value">{{ formatTimestamp(historyEntry.timestamp) }}</span>
+    </div>
+    <div class="history-info-item">
+      <span class="info-label">Status:</span>
+      <span class="info-value status-badge" [ngClass]="getStatusClass(historyEntry.response.status)">
+        {{ historyEntry.response.status }} {{ getStatusText(historyEntry.response.status) }}
+      </span>
+    </div>
+  </div>
+
+  <div class="history-detail-tabs">
+    <button 
+      class="history-tab" 
+      [class.active]="activeTab === 'request'" 
+      (click)="setActiveTab('request')">
+      Request
+    </button>
+    <button 
+      class="history-tab" 
+      [class.active]="activeTab === 'response'" 
+      (click)="setActiveTab('response')">
+      Response
+    </button>
+  </div>
+
+  <div class="history-detail-content">
+    <!-- Request Tab -->
+    <div class="history-tab-content" *ngIf="activeTab === 'request'">
+      <div class="history-section">
+        <h4 class="section-title">Headers</h4>
+        <div class="headers-list" *ngIf="historyEntry.request.headers && Object.keys(historyEntry.request.headers).length > 0">
+          <div class="header-item" *ngFor="let header of historyEntry.request.headers | keyvalue">
+            <span class="header-name">{{ header.key }}:</span>
+            <span class="header-value">{{ header.value }}</span>
+          </div>
+        </div>
+        <div class="empty-message" *ngIf="!historyEntry.request.headers || Object.keys(historyEntry.request.headers).length === 0">
+          No headers
+        </div>
+      </div>
+
+      <div class="history-section" *ngIf="historyEntry.request.pathParams && Object.keys(historyEntry.request.pathParams).length > 0">
+        <h4 class="section-title">Path Parameters</h4>
+        <div class="params-list">
+          <div class="param-item" *ngFor="let param of historyEntry.request.pathParams | keyvalue">
+            <span class="param-name">{{ param.key }}:</span>
+            <span class="param-value">{{ param.value }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="history-section" *ngIf="historyEntry.request.queryParams && Object.keys(historyEntry.request.queryParams).length > 0">
+        <h4 class="section-title">Query Parameters</h4>
+        <div class="params-list">
+          <div class="param-item" *ngFor="let param of historyEntry.request.queryParams | keyvalue">
+            <span class="param-name">{{ param.key }}:</span>
+            <span class="param-value">{{ param.value }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="history-section" *ngIf="historyEntry.request.body">
+        <h4 class="section-title">Request Body</h4>
+        <div class="json-viewer-container">
+          <app-andypf-json-viewer
+            [json]="historyEntry.request.body"
+            [expanded]="jsonViewerExpanded"
+            [theme]="isDarkTheme ? 'default-dark' : 'default-light'"
+            [showDataTypes]="true"
+            [showToolbar]="false"
+            [expandIconType]="'arrow'"
+            [showCopy]="true"
+            [showSize]="false">
+          </app-andypf-json-viewer>
+        </div>
+      </div>
+    </div>
+
+    <!-- Response Tab -->
+    <div class="history-tab-content" *ngIf="activeTab === 'response'">
+      <div class="history-section">
+        <h4 class="section-title">Headers</h4>
+        <div class="headers-list" *ngIf="historyEntry.response.headers && Object.keys(historyEntry.response.headers).length > 0">
+          <div class="header-item" *ngFor="let header of historyEntry.response.headers | keyvalue">
+            <span class="header-name">{{ header.key }}:</span>
+            <span class="header-value">{{ header.value }}</span>
+          </div>
+        </div>
+        <div class="empty-message" *ngIf="!historyEntry.response.headers || Object.keys(historyEntry.response.headers).length === 0">
+          No headers
+        </div>
+      </div>
+
+      <div class="history-section">
+        <h4 class="section-title">Response Body</h4>
+        <div class="json-viewer-container">
+          <app-andypf-json-viewer
+            [json]="historyEntry.response.body"
+            [expanded]="jsonViewerExpanded"
+            [theme]="isDarkTheme ? 'default-dark' : 'default-light'"
+            [showDataTypes]="true"
+            [showToolbar]="false"
+            [expandIconType]="'arrow'"
+            [showCopy]="true"
+            [showSize]="false">
+          </app-andypf-json-viewer>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

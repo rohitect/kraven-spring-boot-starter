@@ -8,7 +8,10 @@ export class TooltipDirective implements OnDestroy {
   @Input('appTooltip') tooltipText: string = '';
   @Input() position: 'top' | 'right' | 'bottom' | 'left' = 'top';
   @Input() delay: number = 300;
-  
+  @Input() tooltipClass: string = '';
+  @Input() tooltipWidth: string = '';
+  @Input() tooltipMaxHeight: string = '';
+
   private tooltipElement: HTMLElement | null = null;
   private showTimeout: any;
   private hideTimeout: any;
@@ -25,7 +28,7 @@ export class TooltipDirective implements OnDestroy {
     if (this.showTimeout) {
       clearTimeout(this.showTimeout);
     }
-    
+
     this.hideTimeout = setTimeout(() => {
       this.hide();
     }, 100);
@@ -50,23 +53,39 @@ export class TooltipDirective implements OnDestroy {
     this.tooltipElement = this.renderer.createElement('div');
     this.renderer.addClass(this.tooltipElement, 'tooltip');
     this.renderer.addClass(this.tooltipElement, `tooltip-${this.position}`);
-    
+
+    // Add custom class if provided
+    if (this.tooltipClass) {
+      this.renderer.addClass(this.tooltipElement, this.tooltipClass);
+    }
+
     // Create tooltip content
     const tooltipContent = this.renderer.createElement('div');
     this.renderer.addClass(tooltipContent, 'tooltip-content');
-    
+
     // Support HTML content
     tooltipContent.innerHTML = this.tooltipText;
-    
+
+    // Apply custom width if provided
+    if (this.tooltipWidth) {
+      this.renderer.setStyle(tooltipContent, 'width', this.tooltipWidth);
+    }
+
+    // Apply custom max height if provided
+    if (this.tooltipMaxHeight) {
+      this.renderer.setStyle(tooltipContent, 'max-height', this.tooltipMaxHeight);
+      this.renderer.setStyle(tooltipContent, 'overflow-y', 'auto');
+    }
+
     // Append content to tooltip
     this.renderer.appendChild(this.tooltipElement, tooltipContent);
-    
+
     // Append tooltip to body
     this.renderer.appendChild(document.body, this.tooltipElement);
-    
+
     // Position the tooltip
     this.setPosition();
-    
+
     // Add visible class after a small delay to trigger animation
     setTimeout(() => {
       if (this.tooltipElement) {
@@ -79,9 +98,9 @@ export class TooltipDirective implements OnDestroy {
     if (!this.tooltipElement) {
       return;
     }
-    
+
     this.renderer.removeClass(this.tooltipElement, 'tooltip-visible');
-    
+
     // Remove element after animation completes
     setTimeout(() => {
       if (this.tooltipElement) {
@@ -95,18 +114,18 @@ export class TooltipDirective implements OnDestroy {
     if (!this.tooltipElement) {
       return;
     }
-    
+
     const hostPos = this.el.nativeElement.getBoundingClientRect();
     const tooltipPos = this.tooltipElement.getBoundingClientRect();
-    
+
     // Calculate scroll position
     const scrollPos = {
       top: window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0,
       left: window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft || 0
     };
-    
+
     let top, left;
-    
+
     switch (this.position) {
       case 'top':
         top = hostPos.top - tooltipPos.height - 10;
@@ -125,11 +144,11 @@ export class TooltipDirective implements OnDestroy {
         left = hostPos.left - tooltipPos.width - 10;
         break;
     }
-    
+
     // Add scroll position
     top += scrollPos.top;
     left += scrollPos.left;
-    
+
     // Set position
     this.renderer.setStyle(this.tooltipElement, 'top', `${top}px`);
     this.renderer.setStyle(this.tooltipElement, 'left', `${left}px`);

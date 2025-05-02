@@ -1,0 +1,68 @@
+<div class="tab-bar-container">
+  <button class="scroll-button scroll-left" *ngIf="showScrollLeft" (click)="scrollLeft()">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="15 18 9 12 15 6"></polyline>
+    </svg>
+  </button>
+
+  <div class="tabs-container" #tabsContainer (scroll)="onScroll()">
+    <div class="api-info-tab" [class.active]="!activeTabId" (click)="onShowApiInfo()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="info-icon">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="16" x2="12" y2="12"></line>
+        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+      </svg>
+      <span>API Info</span>
+    </div>
+
+    <div
+      cdkDropList
+      cdkDropListOrientation="horizontal"
+      (cdkDropListDropped)="onTabDrop($event)"
+      class="tabs-list"
+    >
+      <div
+        *ngFor="let tab of tabs"
+        class="tab"
+        [class.active]="tab.id === activeTabId"
+        [attr.data-tab-id]="tab.id"
+        (click)="selectTab(tab.id, $event)"
+        cdkDrag
+        [cdkDragData]="tab"
+        [appTooltip]="getTabTooltip(tab)"
+        tooltipClass="tab-tooltip"
+        position="bottom"
+        [tooltipWidth]="'300px'"
+        [tooltipMaxHeight]="'200px'"
+      >
+        <div class="tab-content">
+          <span class="method-badge" [ngClass]="getMethodClass(tab.method)">{{ tab.method }}</span>
+          <span class="tab-title">{{ tab.title }}</span>
+        </div>
+        <button class="tab-close-button" (click)="closeTab(tab.id, $event)" title="Close tab">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <button class="scroll-button scroll-right" *ngIf="showScrollRight" (click)="scrollRight()">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </button>
+</div>
+
+<!-- Confirmation Dialog for Tab Closing -->
+<app-confirmation-dialog
+  [isVisible]="showConfirmDialog"
+  title="Close Tab"
+  message="Are you sure you want to close this tab?"
+  confirmButtonText="Close"
+  cancelButtonText="Cancel"
+  (confirm)="confirmCloseTab()"
+  (cancel)="cancelCloseTab()"
+></app-confirmation-dialog>

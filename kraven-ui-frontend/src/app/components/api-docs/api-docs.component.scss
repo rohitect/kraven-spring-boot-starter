@@ -66,6 +66,15 @@
   overflow: hidden;
   position: relative; /* Ensure proper stacking context */
   flex: 1; /* Take up all available space */
+
+  /* Ensure the left sidebar is always visible */
+  & > .left-sidebar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 20; /* Higher z-index to ensure it's above other elements */
+  }
 }
 
 // Left sidebar styles
@@ -83,6 +92,60 @@
   z-index: 10; // Ensure sidebar appears above other content when scrolling
   flex-shrink: 0; // Prevent sidebar from shrinking
   isolation: isolate; // Create a new stacking context
+}
+
+// Sidebar tabs
+.sidebar-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--background-color);
+}
+
+.sidebar-tab {
+  flex: 1;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: transparent;
+  border: none;
+  color: var(--muted-foreground-color);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+  position: relative;
+
+  &:hover {
+    color: var(--foreground-color);
+  }
+
+  &.active {
+    color: var(--primary-color);
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background-color: var(--primary-color);
+    }
+  }
+
+  .tab-icon {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.sidebar-tab-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 // API Title Button
@@ -196,7 +259,7 @@
 
 .search-input {
   width: 100%;
-  padding: 0.5rem 0.75rem 0.5rem 2rem;
+  padding: 0.5rem 2rem;
   border: 1px solid var(--border-color);
   border-radius: 0.25rem;
   font-size: 0.875rem;
@@ -210,6 +273,28 @@
   top: 50%;
   transform: translateY(-50%);
   color: var(--muted-foreground-color);
+}
+
+.export-icon {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--muted-foreground-color);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+
+  &:hover {
+    color: var(--primary-color);
+    background-color: var(--muted-color);
+  }
 }
 
 .sidebar-actions {
@@ -449,31 +534,56 @@
   }
 }
 
+// Center pane container styles
+.center-pane-container {
+  display: flex;
+  flex: 1;
+  height: 100%;
+  width: 100%; /* Use full width of parent container */
+  position: relative;
+  align-self: flex-start; /* Align to the start of the flex container */
+}
+
 // Center pane styles
 .center-pane {
   flex: 1;
-  overflow-y: auto;
-  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
   background-color: var(--background-color);
-  border-right: 1px solid var(--border-color);
   height: 100%; // Ensure it takes full height
-  overscroll-behavior: contain; // Prevent scroll chaining
-  scrollbar-width: thin;
-  scrollbar-color: var(--border-color) transparent;
   position: relative; // Ensure proper stacking
   z-index: 4; // Lower than sidebar and endpoints list
+  width: 100%; // Use full width of container
+  min-width: 400px; // Minimum width for center pane
+  max-width: 100%; // Ensure it doesn't expand beyond its container
+  overflow-x: auto; // Enable horizontal scrolling
+  padding: 20px; // Add padding for better spacing
+  box-sizing: border-box; // Include padding in width calculation
+  align-items: flex-start; // Align items to the start
 
-  &::-webkit-scrollbar {
-    width: 8px;
-  }
+  .api-info-header,
+  .api-info-details,
+  .endpoint-details {
+    padding: 1.5rem;
+    overflow-y: scroll;
+    flex: 1;
+    // overscroll-behavior: scro; // Prevent scroll chaining
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-color) transparent;
+    width: calc(100% - 500px); // Account for padding
 
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
 
-  &::-webkit-scrollbar-thumb {
-    background-color: var(--border-color);
-    border-radius: 4px;
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: var(--border-color);
+      border-radius: 4px;
+    }
   }
 }
 
@@ -566,6 +676,13 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: visible; // Allow content to be visible when scrolling
+  padding: 0; // Remove padding as it's now in the parent
+  box-sizing: border-box; // Include padding in width calculation
+  align-self: stretch; // Stretch to fill the container width
+  min-width: 800px; // Minimum width to ensure content doesn't get too cramped
 }
 
 .endpoint-header {
@@ -574,6 +691,8 @@
   align-items: center;
   padding-bottom: 1rem;
   border-bottom: 1px solid var(--border-color);
+  width: 100%; // Ensure header takes full width
+  min-width: 800px; // Minimum width to ensure content doesn't get too cramped
 }
 
 .endpoint-title-container {
@@ -626,6 +745,8 @@
 }
 
 .endpoint-description {
+  width: 100%; // Ensure description takes full width
+  min-width: 800px; // Minimum width to ensure content doesn't get too cramped
   color: var(--muted-foreground-color);
 }
 
@@ -636,6 +757,8 @@
 }
 
 .responses-section {
+  width: 100%; // Ensure section takes full width
+  min-width: 800px; // Minimum width to ensure content doesn't get too cramped
   margin-top: 1.5rem;
 }
 
@@ -718,16 +841,28 @@
   background-color: var(--background-color); // Use theme background color
   color: var(--foreground-color); // Use theme text color
   overflow: hidden;
-  transition: width 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+  transition: width 0.3s ease, min-width 0.3s ease, background-color 0.3s ease, color 0.3s ease;
   height: 100%; // Ensure it takes full height
   z-index: 3; // Lower than sidebar and center pane
   flex-shrink: 0; // Prevent right pane from shrinking
+  position: absolute;
+  right: 0;
+  top: 0;
 
   // Add a subtle border on the left
   border-left: 1px solid var(--border-color);
 
   // Add a subtle shadow for depth
   box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+
+  // Collapsed state
+  &.collapsed {
+    width: 0;
+    min-width: 0;
+    border-left: none;
+    box-shadow: none;
+    overflow: hidden;
+  }
 }
 
 // Right pane tabs
@@ -736,6 +871,7 @@
   background-color: var(--muted-color);
   border-bottom: 1px solid var(--border-color);
   padding: 0.5rem 0.5rem 0 0.5rem;
+  position: relative;
 }
 
 .right-pane-tab {
@@ -800,6 +936,31 @@
 
   .tab-icon {
     transition: transform 0.3s ease;
+  }
+}
+
+.right-pane-toggle {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: var(--muted-color);
+  border: 1px solid var(--border-color);
+  color: var(--muted-foreground-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+
+  &:hover {
+    background-color: var(--muted-hover-color);
+    color: var(--foreground-color);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 }
 
@@ -1145,8 +1306,8 @@
 
 // Try it out button
 .try-it-out-button {
-  padding: 0.375rem 0.75rem;
-  font-size: 0.75rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
   font-weight: 600;
   background-color: #49cc90;
   color: white;
@@ -1155,6 +1316,9 @@
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 1px 2px rgba(73, 204, 144, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 
   &:hover {
     background-color: #3eb37f;
@@ -1166,6 +1330,24 @@
     transform: translateY(0);
     box-shadow: 0 1px 2px rgba(73, 204, 144, 0.3);
   }
+
+  .button-icon {
+    transition: transform 0.2s ease;
+  }
+
+  &:hover .button-icon {
+    transform: translateY(2px);
+  }
+}
+
+.try-it-out-button-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+  padding: 1rem;
+  border-top: 1px solid var(--border-color);
+  position: relative;
+  z-index: 5; // Higher than right pane to ensure it's clickable
 }
 
 // Toggle button styles
@@ -1511,6 +1693,16 @@
       }
     }
   }
+}
+
+// History detail modal
+.history-detail-modal {
+  width: 800px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 // Dark mode adjustments
@@ -1959,19 +2151,43 @@
 // Parameters section
 .parameters-section {
   margin-bottom: 2rem;
+  width: 100%; // Ensure section takes full width
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; // Align items to the start
+  box-sizing: border-box; // Include padding in width calculation
+  overflow-x: auto; // Enable horizontal scrolling
+}
+
+.section-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--foreground-color);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%; // Ensure title takes full width
+  text-align: left; // Ensure text is left-aligned
 }
 
 .parameters-table {
   border: 1px solid var(--border-color);
   border-radius: var(--radius, 0.5rem);
-  overflow: hidden;
+  overflow-x: auto; // Enable horizontal scrolling
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   background-color: var(--background-color);
+  width: 100%; // Ensure table takes full width
+  box-sizing: border-box; // Include border in width calculation
+  align-self: stretch; // Stretch to fill the container width
+  margin: 0; // Remove any margin
+  min-width: 800px; // Minimum width to ensure content doesn't get too cramped
+  display: block; // Change to block to enable scrolling
 }
 
 .parameters-table-header {
   display: grid;
-  grid-template-columns: 1.5fr 0.8fr 0.8fr 1fr 3fr;
+  grid-template-columns: minmax(150px, 1.5fr) minmax(80px, 0.8fr) minmax(80px, 0.8fr) minmax(100px, 1fr) minmax(300px, 3fr);
   gap: 0.5rem;
   padding: 0.75rem 1rem;
   background-color: var(--muted-color);
@@ -1979,20 +2195,27 @@
   font-weight: 600;
   font-size: 0.875rem;
   color: var(--foreground-color);
+  width: 100%; // Ensure header takes full width
+  min-width: 800px; // Ensure minimum width
 }
 
 .parameters-table-body {
   max-height: 400px;
   overflow-y: auto;
+  width: 100%; // Ensure body takes full width
+  min-width: 800px; // Ensure minimum width
 }
 
 .parameter-row {
   display: grid;
-  grid-template-columns: 1.5fr 0.8fr 0.8fr 1fr 3fr;
+  grid-template-columns: minmax(150px, 1.5fr) minmax(80px, 0.8fr) minmax(80px, 0.8fr) minmax(100px, 1fr) minmax(300px, 3fr);
   gap: 0.5rem;
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border-color);
   font-size: 0.875rem;
+  width: 100%; // Ensure row takes full width
+  min-width: 800px; // Ensure minimum width
+  align-items: center; // Align items vertically
 
   &:last-child {
     border-bottom: none;
@@ -2109,6 +2332,8 @@
 // Request Body Section
 .request-body-section {
   margin-bottom: 2rem;
+  width: 100%; // Ensure section takes full width
+  min-width: 800px; // Minimum width to ensure content doesn't get too cramped
 }
 
 .request-body-required {
@@ -2321,4 +2546,36 @@
   color: var(--foreground-color);
   overflow-x: auto;
   white-space: pre-wrap;
+}
+
+// Column styles for parameters table
+.param-name-col,
+.param-in-col,
+.param-required-col,
+.param-type-col,
+.param-desc-col {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal; // Allow text to wrap
+  min-width: 0; // Allow column to shrink below content size
+}
+
+.param-name-col {
+  min-width: 150px;
+}
+
+.param-in-col {
+  min-width: 80px;
+}
+
+.param-required-col {
+  min-width: 80px;
+}
+
+.param-type-col {
+  min-width: 100px;
+}
+
+.param-desc-col {
+  min-width: 300px;
 }

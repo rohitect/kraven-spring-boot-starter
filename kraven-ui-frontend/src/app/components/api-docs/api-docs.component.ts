@@ -10,6 +10,15 @@ import { AndypfJsonViewerComponent } from '../andypf-json-viewer/andypf-json-vie
 import { TryItOutComponent } from '../try-it-out-new/try-it-out.component';
 import { GlobalAuthenticationComponent } from '../global-authentication/global-authentication.component';
 import { MarkdownPipe } from '../../pipes/markdown.pipe';
+import { ApiHistoryListComponent } from '../api-history-list/api-history-list.component';
+import { ApiHistoryDetailComponent } from '../api-history-detail/api-history-detail.component';
+import { ApiHistoryService } from '../../services/api-history.service';
+import { ApiHistoryEntry } from '../../models/api-history.model';
+import { MetricsService } from '../../services/metrics.service';
+import { ApiTabService } from '../../services/api-tab.service';
+import { ApiTab } from '../../models/api-tab.model';
+import { ApiTabBarComponent } from '../api-tab-bar/api-tab-bar.component';
+import { TabLimitPopupComponent } from '../tab-limit-popup/tab-limit-popup.component';
 
 @Component({
   selector: 'app-api-docs',
@@ -20,7 +29,11 @@ import { MarkdownPipe } from '../../pipes/markdown.pipe';
     TryItOutComponent,
     GlobalAuthenticationComponent,
     MarkdownPipe,
-    AndypfJsonViewerComponent
+    AndypfJsonViewerComponent,
+    ApiHistoryListComponent,
+    ApiHistoryDetailComponent,
+    ApiTabBarComponent,
+    TabLimitPopupComponent
   ],
   templateUrl: './api-docs.component.html',
   styleUrls: ['./api-docs.component.scss'],
@@ -110,6 +123,15 @@ export class ApiDocsComponent implements OnInit {
 
   // Right pane state
   rightPaneActiveTab: 'try-it-out' | 'response-samples' = 'try-it-out'; // Default to try-it-out tab
+  rightPaneCollapsed = false; // Default to expanded
+
+  // Left sidebar state
+  leftSidebarActiveTab: 'endpoints' | 'history' = 'endpoints'; // Default to endpoints tab
+
+  // API history state
+  selectedHistoryEntry: ApiHistoryEntry | null = null;
+  showHistoryDetailModal = false;
+  applicationName: string = '';
 
   // API documentation configuration
   apiDocsConfig = {
@@ -123,6 +145,11 @@ export class ApiDocsComponent implements OnInit {
     markdownEnabled: true
   };
 
+  // Tab state
+  tabs: ApiTab[] = [];
+  activeTabId: string | null = null;
+  showTabLimitPopup = false;
+
   // JSON viewer state
   jsonViewerExpanded = true;
 
@@ -132,9 +159,14 @@ export class ApiDocsComponent implements OnInit {
     public apiDocsService: ApiDocsService,
     private configService: ConfigService,
     private themeService: ThemeService,
+    private apiHistoryService: ApiHistoryService,
+    private metricsService: MetricsService,
+    private apiTabService: ApiTabService,
     private router: Router,
     private route: ActivatedRoute
-  ) {}
+  ) {
+    // Application name will be set in ngOnInit after loading metrics
+  }
 
   ngOnInit(): void {
     const config = this.configService.getConfig();
@@ -158,6 +190,38 @@ export class ApiDocsComponent implements OnInit {
       this.isDarkTheme = theme === 'dark';
     });
 
+    // Get the application name from the metrics service
+    this.metricsService.getAppMetrics().subscribe({
+      next: (appMetrics) => {
+        // Use the application name from the metrics service
+        this.applicationName = appMetrics.name || 'Application';
+        console.log('Application name from metrics:', this.applicationName);
+
+        // Set the application name in the API History Service
+        this.apiHistoryService.setApplicationName(this.applicationName);
+
+        // Set the application name in the API Tab Service
+        this.apiTabService.setApplicationName(this.applicationName);
+
+        // Load tabs
+        this.loadTabs();
+      },
+      error: (err) => {
+        console.error('Error getting application name from metrics:', err);
+        // Fallback to a default name
+        this.applicationName = 'Application';
+
+        // Set the default application name in the API History Service
+        this.apiHistoryService.setApplicationName(this.applicationName);
+
+        // Set the default application name in the API Tab Service
+        this.apiTabService.setApplicationName(this.applicationName);
+
+        // Load tabs
+        this.loadTabs();
+      }
+    });
+
     // Load API docs and then handle URL parameters
     this.loadApiDocs().then(() => {
       this.handleUrlParameters();
@@ -173,20 +237,96 @@ export class ApiDocsComponent implements OnInit {
       const tag = params.get('tag');
       const path = params.get('path');
       const method = params.get('method');
+      const tabId = params.get('tab');
 
-      // If we have all parameters, find and select the endpoint
-      if (tag && path && method) {
+      // If we have a tab ID, try to select that tab
+      if (tabId) {
+        this.selectTabById(tabId);
+      }
+      // If we have all endpoint parameters, find and select the endpoint
+      else if (tag && path && method) {
         this.selectEndpointFromUrl(tag, path, method);
       } else {
         // Check if we're on the info route
         this.route.url.subscribe(segments => {
           if (segments.length > 1 && segments[1].path === 'info') {
             // Show API info
-            this.showingApiInfo = true;
-            this.selectedEndpoint = null;
+            this.showApiInfo();
           }
         });
       }
+    });
+  }
+
+  /**
+   * Load tabs from the database
+   */
+  private loadTabs(): void {
+    this.apiTabService.getAllTabs().subscribe({
+      next: (tabs) => {
+        this.tabs = tabs;
+
+        // Get the active tab ID
+        this.apiTabService.getActiveTabId().subscribe({
+          next: (activeTabId) => {
+            this.activeTabId = activeTabId;
+
+            // If we have an active tab, select it
+            if (activeTabId) {
+              this.selectTabById(activeTabId);
+            }
+          }
+        });
+      },
+      error: (err) => {
+        console.error('Error loading tabs:', err);
+      }
+    });
+  }
+
+  /**
+   * Select a tab by ID
+   */
+  selectTabById(id: string): void {
+    // Find the tab
+    const tab = this.tabs.find(t => t.id === id);
+    if (!tab) return;
+
+    // Set the active tab
+    this.activeTabId = id;
+    this.apiTabService.setActiveTab(id).subscribe();
+
+    // Update the URL
+    this.updateUrlWithTabId(id);
+
+    // Set the selected endpoint from the tab
+    if (tab.endpoint) {
+      this.selectedEndpoint = tab.endpoint;
+      this.showingApiInfo = false;
+
+      // Set the response samples and selected response code
+      if (tab.responseSamples) {
+        this.responseSamples = tab.responseSamples;
+      }
+
+      if (tab.selectedResponseCode) {
+        this.selectedResponseCode = tab.selectedResponseCode;
+      }
+
+      // Set the right pane active tab
+      if (tab.rightPaneActiveTab) {
+        this.rightPaneActiveTab = tab.rightPaneActiveTab;
+      }
+    }
+  }
+
+  /**
+   * Update the URL to include the tab ID
+   */
+  private updateUrlWithTabId(tabId: string): void {
+    // Navigate to the new URL without reloading the page
+    this.router.navigate([`/api-docs/tab/${tabId}`], {
+      replaceUrl: true // Replace the current URL to avoid adding to browser history
     });
   }
 
@@ -459,10 +599,84 @@ export class ApiDocsComponent implements OnInit {
   showApiInfo(): void {
     this.showingApiInfo = true;
     this.selectedEndpoint = null;
+    this.activeTabId = null;
 
     // Update the URL to reflect that we're showing API info
     this.router.navigate(['/api-docs/info'], {
       replaceUrl: true // Replace the current URL to avoid adding to browser history
+    });
+  }
+
+  /**
+   * Handle tab selection from the tab bar
+   */
+  onTabSelected(tabId: string): void {
+    this.selectTabById(tabId);
+  }
+
+  /**
+   * Handle tab closing from the tab bar
+   */
+  onTabClosed(tabId: string): void {
+    // Delete the tab
+    this.apiTabService.deleteTab(tabId).subscribe({
+      next: () => {
+        // Remove the tab from the tabs array
+        this.tabs = this.tabs.filter(t => t.id !== tabId);
+
+        // If the closed tab was the active tab, select another tab or show API info
+        if (this.activeTabId === tabId) {
+          if (this.tabs.length > 0) {
+            // Select the first tab
+            this.selectTabById(this.tabs[0].id);
+          } else {
+            // Show API info
+            this.showApiInfo();
+          }
+        }
+      },
+      error: (err) => {
+        console.error('Error deleting tab:', err);
+      }
+    });
+  }
+
+  /**
+   * Close the tab limit popup
+   */
+  closeTabLimitPopup(): void {
+    this.showTabLimitPopup = false;
+  }
+
+  /**
+   * Close all tabs
+   */
+  closeAllTabs(): void {
+    this.apiTabService.clearAllTabs().subscribe({
+      next: () => {
+        this.tabs = [];
+        this.activeTabId = null;
+        this.showTabLimitPopup = false;
+        this.showApiInfo();
+      },
+      error: (err) => {
+        console.error('Error clearing tabs:', err);
+      }
+    });
+  }
+
+  /**
+   * Handle tab reordering
+   */
+  onTabReordered(event: {tabId: string, newIndex: number}): void {
+    this.apiTabService.reorderTabs(event.tabId, event.newIndex).subscribe({
+      next: (updatedTabs) => {
+        // Update the tabs array with the new order
+        this.tabs = updatedTabs;
+      },
+      error: (err) => {
+        console.error('Error reordering tabs:', err);
+      }
     });
   }
 
@@ -493,6 +707,14 @@ export class ApiDocsComponent implements OnInit {
     }
 
     this.rightPaneActiveTab = tab;
+
+    // Update the tab state if we have an active tab
+    if (this.activeTabId) {
+      this.apiTabService.updateTabRightPaneActiveTab(
+        this.activeTabId,
+        this.rightPaneActiveTab
+      ).subscribe();
+    }
   }
 
   /**
@@ -1079,44 +1301,66 @@ export class ApiDocsComponent implements OnInit {
    * Select an endpoint to display in the center pane
    */
   selectEndpoint(endpoint: any): void {
-    // Check if we're selecting a different endpoint
-    const isNewEndpoint = !this.selectedEndpoint ||
-                         this.selectedEndpoint.path !== endpoint.path ||
-                         this.selectedEndpoint.method.type !== endpoint.method.type;
-
-    this.selectedEndpoint = endpoint;
-    this.showingApiInfo = false;
-
-    if (isNewEndpoint) {
-      // Clear previous response samples when selecting a new endpoint
-      this.responseSamples = {};
-      this.selectedResponseCode = null;
-      console.log('Cleared response samples for new endpoint');
-
-      // Always set the active tab to try-it-out when selecting a new endpoint
-      this.rightPaneActiveTab = 'try-it-out';
-    }
-
-    // Get the responses for this endpoint
-    const responses = this.getResponsesForSelectedEndpoint();
-
-    // Select the first response by default
-    if (responses.length > 0) {
-      this.selectResponse(responses[0].code);
-    }
-
-    // Select the first request body content type by default
-    const contentTypes = this.getRequestBodyContentTypes();
-    if (contentTypes.length > 0) {
-      this.selectRequestBodyContentType(contentTypes[0]);
-    }
-
     // Find the tag that contains this endpoint
     const tag = this.findTagForEndpoint(endpoint);
-    if (tag) {
-      // Update the URL to reflect the selected endpoint
-      this.updateUrl(tag.name, endpoint.path, endpoint.method.type);
-    }
+    if (!tag) return;
+
+    // Try to find or create a tab for this endpoint
+    this.apiTabService.findOrCreateTab(endpoint, tag.name).subscribe({
+      next: (tab) => {
+        // Set the active tab
+        this.activeTabId = tab.id;
+
+        // Add the tab to the tabs array if it's not already there
+        if (!this.tabs.some(t => t.id === tab.id)) {
+          this.tabs = [...this.tabs, tab];
+        }
+
+        // Update the URL
+        this.updateUrlWithTabId(tab.id);
+
+        // Set the selected endpoint
+        this.selectedEndpoint = endpoint;
+        this.showingApiInfo = false;
+
+        // Check if we're selecting a different endpoint
+        const isNewEndpoint = !this.selectedEndpoint ||
+                           this.selectedEndpoint.path !== endpoint.path ||
+                           this.selectedEndpoint.method.type !== endpoint.method.type;
+
+        if (isNewEndpoint) {
+          // Clear previous response samples when selecting a new endpoint
+          this.responseSamples = {};
+          this.selectedResponseCode = null;
+          console.log('Cleared response samples for new endpoint');
+
+          // Always set the active tab to try-it-out when selecting a new endpoint
+          this.rightPaneActiveTab = 'try-it-out';
+        }
+
+        // Get the responses for this endpoint
+        const responses = this.getResponsesForSelectedEndpoint();
+
+        // Select the first response by default
+        if (responses.length > 0) {
+          this.selectResponse(responses[0].code);
+        }
+
+        // Select the first request body content type by default
+        const contentTypes = this.getRequestBodyContentTypes();
+        if (contentTypes.length > 0) {
+          this.selectRequestBodyContentType(contentTypes[0]);
+        }
+      },
+      error: (err) => {
+        if (err.message === 'Maximum number of tabs reached') {
+          // Show the tab limit popup
+          this.showTabLimitPopup = true;
+        } else {
+          console.error('Error creating tab:', err);
+        }
+      }
+    });
   }
 
   /**
@@ -1560,6 +1804,15 @@ export class ApiDocsComponent implements OnInit {
 
     // Switch to the response-samples tab when a response is selected
     this.setRightPaneTab('response-samples');
+
+    // Update the tab state if we have an active tab
+    if (this.activeTabId) {
+      this.apiTabService.updateTabResponseSamples(
+        this.activeTabId,
+        this.responseSamples,
+        this.selectedResponseCode
+      ).subscribe();
+    }
   }
 
   /**
@@ -1791,7 +2044,151 @@ export class ApiDocsComponent implements OnInit {
       }, 50);
 
       this.setRightPaneTab('response-samples');
+
+      // Update the tab state if we have an active tab
+      if (this.activeTabId) {
+        this.apiTabService.updateTabResponseSamples(
+          this.activeTabId,
+          this.responseSamples,
+          this.selectedResponseCode
+        ).subscribe();
+      }
+
+      // Save the API call to history
+      if (this.selectedEndpoint) {
+        const historyEntry: ApiHistoryEntry = {
+          applicationName: this.applicationName,
+          path: this.selectedEndpoint.path,
+          method: this.selectedEndpoint.method.type,
+          timestamp: Date.now(),
+          request: {
+            headers: response.requestHeaders || {},
+            queryParams: response.requestQueryParams || {},
+            pathParams: response.requestPathParams || {},
+            body: response.requestBody
+          },
+          response: {
+            status: response.status,
+            statusText: response.statusText || '',
+            headers: this.convertHeadersToObject(response.headers),
+            body: response.body
+          }
+        };
+
+        this.apiHistoryService.saveApiCall(historyEntry).subscribe({
+          next: () => {
+            console.log('API call saved to history');
+          },
+          error: (err) => {
+            console.error('Error saving API call to history:', err);
+          }
+        });
+      }
     }
+  }
+
+  /**
+   * Convert Headers object to a simple key-value object
+   */
+  private convertHeadersToObject(headers: Headers): Record<string, string> {
+    const result: Record<string, string> = {};
+
+    if (headers) {
+      headers.forEach((value, key) => {
+        result[key] = value;
+      });
+    }
+
+    return result;
+  }
+
+  /**
+   * Set the active tab in the left sidebar
+   */
+  setLeftSidebarTab(tab: 'endpoints' | 'history'): void {
+    this.leftSidebarActiveTab = tab;
+  }
+
+  /**
+   * Toggle the right pane collapsed state
+   */
+  toggleRightPane(): void {
+    this.rightPaneCollapsed = !this.rightPaneCollapsed;
+
+    // If expanding the pane, make sure we have a valid tab selected
+    if (!this.rightPaneCollapsed && !this.selectedResponseCode && this.rightPaneActiveTab === 'response-samples') {
+      this.rightPaneActiveTab = 'try-it-out';
+
+      // Update the tab in the database
+      if (this.activeTabId) {
+        this.apiTabService.updateTabRightPaneActiveTab(this.activeTabId, 'try-it-out').subscribe();
+      }
+    }
+  }
+
+  /**
+   * View details of an API call history entry
+   */
+  viewHistoryDetails(entry: ApiHistoryEntry): void {
+    this.selectedHistoryEntry = entry;
+    this.showHistoryDetailModal = true;
+  }
+
+  /**
+   * Close the history detail modal
+   */
+  closeHistoryDetailModal(): void {
+    this.showHistoryDetailModal = false;
+    this.selectedHistoryEntry = null;
+  }
+
+  /**
+   * Rerun an API call from history
+   */
+  rerunApiCall(historyEntry: ApiHistoryEntry): void {
+    // Find the endpoint that matches the history entry
+    const matchingTag = this.tags.find(tag =>
+      tag.endpoints.some(endpoint =>
+        endpoint.path === historyEntry.path &&
+        endpoint.method.type.toLowerCase() === historyEntry.method.toLowerCase()
+      )
+    );
+
+    if (matchingTag) {
+      const matchingEndpoint = matchingTag.endpoints.find(endpoint =>
+        endpoint.path === historyEntry.path &&
+        endpoint.method.type.toLowerCase() === historyEntry.method.toLowerCase()
+      );
+
+      if (matchingEndpoint) {
+        // Select the endpoint
+        this.selectEndpoint(matchingEndpoint);
+
+        // Switch to the endpoints tab
+        this.leftSidebarActiveTab = 'endpoints';
+
+        // Close the history detail modal
+        this.closeHistoryDetailModal();
+
+        // TODO: Pre-fill the Try It Out form with the history entry data
+        // This would require modifications to the TryItOutComponent
+      }
+    }
+  }
+
+  /**
+   * Delete an API call from history
+   */
+  deleteHistoryEntry(id: number): void {
+    this.apiHistoryService.deleteApiCall(id).subscribe({
+      next: () => {
+        console.log('API call deleted from history');
+        this.closeHistoryDetailModal();
+      },
+      error: (err) => {
+        console.error('Error deleting API call from history:', err);
+      }
+    });
   }
 
   /**

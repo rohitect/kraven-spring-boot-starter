@@ -1,0 +1,63 @@
+<div class="popup-overlay" *ngIf="isVisible" (click)="closePopup()">
+  <div class="popup-container" (click)="$event.stopPropagation()">
+    <div class="popup-header">
+      <h2 class="popup-title">Tab Limit Reached</h2>
+      <button class="close-button" (click)="closePopup()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="popup-content">
+      <div class="popup-message">
+        <p>You've reached the maximum limit of 15 tabs. Please close some tabs before opening new ones.</p>
+      </div>
+      
+      <div class="search-container">
+        <input 
+          type="text" 
+          placeholder="Search tabs..." 
+          [(ngModel)]="searchTerm" 
+          (input)="onSearch()" 
+          class="search-input"
+        >
+        <button *ngIf="searchTerm" class="clear-search-button" (click)="clearSearch()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </div>
+      
+      <div class="tabs-list">
+        <div *ngFor="let tab of filteredTabs" class="tab-item">
+          <div class="tab-info">
+            <div class="tab-title">
+              <span class="method-badge" [ngClass]="tab.method.toLowerCase()">{{ tab.method }}</span>
+              <span class="tab-name">{{ tab.title }}</span>
+            </div>
+            <div class="tab-path">{{ tab.path }}</div>
+            <div class="tab-time">Opened: {{ formatTimestamp(tab.createdAt) }}</div>
+          </div>
+          <button class="tab-close-button" (click)="onCloseTab(tab.id, $event)" title="Close tab">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="popup-footer">
+      <button class="close-all-button" (click)="onCloseAllTabs()">Close All Tabs</button>
+      <button class="cancel-button" (click)="closePopup()">Cancel</button>
+    </div>
+  </div>
+</div>

@@ -472,8 +472,36 @@ export class TryItOutComponent implements OnChanges {
         body: responseBody
       };
 
-      // Emit the response
-      this.onResponse.emit(this.response);
+      // Prepare request data for history
+      const requestData: {
+        requestHeaders: Record<string, string>;
+        requestQueryParams: Record<string, string>;
+        requestPathParams: Record<string, string>;
+        requestBody?: any;
+      } = {
+        requestHeaders: headers,
+        requestQueryParams: {},
+        requestPathParams: {},
+        requestBody: this.hasRequestBody ? this.requestBody.content : undefined
+      };
+
+      // Add path and query parameters
+      Object.keys(this.paramValues).forEach(paramName => {
+        const param = this.paramValues[paramName];
+        if (param.value) {
+          if (param.in === 'path') {
+            requestData.requestPathParams[paramName] = param.value;
+          } else if (param.in === 'query') {
+            requestData.requestQueryParams[paramName] = param.value;
+          }
+        }
+      });
+
+      // Emit the response with request data for history
+      this.onResponse.emit({
+        ...this.response,
+        ...requestData
+      });
 
       this.isLoading = false;
       this.cdr.markForCheck();

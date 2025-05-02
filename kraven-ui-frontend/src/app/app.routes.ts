@@ -16,6 +16,7 @@ export const routes: Routes = [
       { path: '', component: LandingPageComponent },
       { path: 'overview', component: OverviewComponent },
       { path: 'api-docs', component: ApiDocsComponent },
+      { path: 'api-docs/tab/:tab', component: ApiDocsComponent },
       { path: 'api-docs/:tag/:path/:method', component: ApiDocsComponent },
       { path: 'api-docs/info', component: ApiDocsComponent },
       { path: 'feign-clients', component: FeignClientExplorerComponent },
