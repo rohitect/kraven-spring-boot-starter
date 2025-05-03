@@ -37,7 +37,7 @@ else
 
     # Read GPG passphrase
     GPG_PASSPHRASE=$(get_property "gpg.passphrase")
-    
+
     if [ -n "$GPG_PASSPHRASE" ] && [ "$GPG_PASSPHRASE" != "YOUR_GPG_PASSPHRASE" ]; then
         echo "Using GPG passphrase from properties file."
     else
@@ -45,22 +45,22 @@ else
         echo "You may be prompted for your GPG passphrase during signing."
         GPG_PASSPHRASE=""
     fi
-    
+
     # Export GPG TTY for passphrase prompting if needed
     export GPG_TTY=$(tty)
 fi
 
 # First, make sure we have the fat JAR
 echo "Checking for fat JAR..."
-FAT_JAR=$(find kraven-ui-spring-boot-starter/target -name "*-with-dependencies.jar" | head -1)
+FAT_JAR=$(find target -name "kraven-ui-*-with-dependencies.jar" | head -1)
 
 if [ -z "$FAT_JAR" ]; then
-    echo "Fat JAR not found. Building it first..."
+    echo "Fat JAR not found in target directory. Building it first..."
     ./build-fat-jar.sh
-    
+
     # Check again for the fat JAR
-    FAT_JAR=$(find kraven-ui-spring-boot-starter/target -name "*-with-dependencies.jar" | head -1)
-    
+    FAT_JAR=$(find target -name "kraven-ui-*-with-dependencies.jar" | head -1)
+
     if [ -z "$FAT_JAR" ]; then
         echo "Failed to build fat JAR. Exiting."
         exit 1
@@ -70,7 +70,7 @@ fi
 echo "Using fat JAR: $FAT_JAR"
 
 # Extract version from the fat JAR filename
-SNAPSHOT_VERSION=$(echo "$FAT_JAR" | sed -E 's/.*kraven-ui-spring-boot-starter-([0-9]+\.[0-9]+\.[0-9]+(-SNAPSHOT)?).*/\1/')
+SNAPSHOT_VERSION=$(echo "$FAT_JAR" | sed -E 's/.*kraven-ui-([0-9]+\.[0-9]+\.[0-9]+(-SNAPSHOT)?).*/\1/')
 echo "Detected version: $SNAPSHOT_VERSION"
 
 # Remove -SNAPSHOT suffix for Maven Central (which doesn't accept snapshots)
@@ -109,7 +109,7 @@ cat > "$BUNDLE_DIR/$GROUP_PATH/$ARTIFACT_ID/$VERSION/$ARTIFACT_ID-$VERSION.pom" 
 
     <name>Kraven UI</name>
     <description>A complete JAR containing all dependencies for Kraven UI - ready to use without additional dependencies</description>
-    <url>https://github.com/rohitect/springdoc-nova-ui</url>
+    <url>https://github.com/rohitect/kraven-spring-boot-starter</url>
 
     <licenses>
         <license>
@@ -128,9 +128,9 @@ cat > "$BUNDLE_DIR/$GROUP_PATH/$ARTIFACT_ID/$VERSION/$ARTIFACT_ID-$VERSION.pom" 
     </developers>
 
     <scm>
-        <connection>scm:git:git://github.com/rohitect/springdoc-nova-ui.git</connection>
-        <developerConnection>scm:git:ssh://github.com:rohitect/springdoc-nova-ui.git</developerConnection>
-        <url>https://github.com/rohitect/springdoc-nova-ui</url>
+        <connection>scm:git:git://github.com/rohitect/kraven-spring-boot-starter.git</connection>
+        <developerConnection>scm:git:ssh://github.com:rohitect/kraven-spring-boot-starter.git</developerConnection>
+        <url>https://github.com/rohitect/kraven-spring-boot-starter</url>
     </scm>
 </project>
 EOF
@@ -140,7 +140,7 @@ echo "Creating empty javadoc JAR..."
 TEMP_DIR="target/temp-javadoc"
 mkdir -p "$TEMP_DIR"
 touch "$TEMP_DIR/README.txt"
-echo "This is a complete JAR containing all dependencies for Kraven UI.\n\nFor documentation, please visit: https://github.com/rohitect/springdoc-nova-ui\n\nVersion: $VERSION" > "$TEMP_DIR/README.txt"
+echo "This is a complete JAR containing all dependencies for Kraven UI.\n\nFor documentation, please visit: https://github.com/rohitect/kraven-spring-boot-starter\n\nVersion: $VERSION" > "$TEMP_DIR/README.txt"
 jar -cf "$BUNDLE_DIR/$GROUP_PATH/$ARTIFACT_ID/$VERSION/$ARTIFACT_ID-$VERSION-javadoc.jar" -C "$TEMP_DIR" .
 rm -rf "$TEMP_DIR"
 
@@ -149,7 +149,7 @@ echo "Creating empty sources JAR..."
 TEMP_DIR="target/temp-sources"
 mkdir -p "$TEMP_DIR"
 touch "$TEMP_DIR/README.txt"
-echo "This is a complete JAR containing all dependencies for Kraven UI.\n\nFor source code, please visit: https://github.com/rohitect/springdoc-nova-ui\n\nVersion: $VERSION" > "$TEMP_DIR/README.txt"
+echo "This is a complete JAR containing all dependencies for Kraven UI.\n\nFor source code, please visit: https://github.com/rohitect/kraven-spring-boot-starter\n\nVersion: $VERSION" > "$TEMP_DIR/README.txt"
 jar -cf "$BUNDLE_DIR/$GROUP_PATH/$ARTIFACT_ID/$VERSION/$ARTIFACT_ID-$VERSION-sources.jar" -C "$TEMP_DIR" .
 rm -rf "$TEMP_DIR"
 
@@ -161,7 +161,7 @@ for file in *.jar *.pom; do
         echo "Generating checksums for $file..."
         # Generate MD5 checksum
         md5sum "$file" | cut -d' ' -f1 > "$file.md5"
-        
+
         # Generate SHA1 checksum
         shasum -a 1 "$file" | cut -d' ' -f1 > "$file.sha1"
     fi
@@ -179,7 +179,7 @@ for file in *.jar *.pom; do
         else
             gpg --batch --yes --detach-sign --armor "$file"
         fi
-        
+
         # Verify the signature
         echo "Verifying signature for $file..."
         gpg --verify "$file.asc" "$file"
@@ -202,7 +202,7 @@ if [ -f "$ZIP_FILE" ]; then
     echo "2. Log in to the Sonatype Portal"
     echo "3. Click on 'Upload Artifacts' and select the zip file"
     echo "4. Follow the instructions to complete the upload process"
-    
+
     # Open the Central Portal upload page
     echo ""
     echo "Would you like to open the Central Portal upload page now? (y/n)"
