@@ -1,7 +1,6 @@
 package io.github.rohitect.kraven.springboot.feign;
 
 import io.github.rohitect.kraven.springboot.config.KravenUiEnhancedProperties;
-import io.github.rohitect.kraven.springboot.kafka.service.KafkaListenerScanner;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,0 +1,60 @@
+<div class="plugins-container">
+  <div class="plugins-header">
+    <h1>Plugins</h1>
+    <p>Manage installed plugins</p>
+  </div>
+
+  <div class="loading-container" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Loading plugins...</p>
+  </div>
+
+  <div class="error-container" *ngIf="error">
+    <div class="error-message">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      <span>{{ error }}</span>
+    </div>
+    <button class="retry-button" (click)="loadPlugins()">Retry</button>
+  </div>
+
+  <div class="plugins-list" *ngIf="!loading && !error">
+    <div class="empty-state" *ngIf="plugins.length === 0">
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+        <path d="M10 4v4"></path>
+        <path d="M2 8h20"></path>
+        <path d="M12 12v4"></path>
+      </svg>
+      <h3>No plugins found</h3>
+      <p>There are no plugins installed or available.</p>
+    </div>
+
+    <div class="plugin-card" *ngFor="let plugin of plugins">
+      <div class="plugin-info">
+        <h3 class="plugin-name">{{ plugin.name }}</h3>
+        <div class="plugin-meta">
+          <span class="plugin-id">ID: {{ plugin.id }}</span>
+          <span class="plugin-version">v{{ plugin.version }}</span>
+        </div>
+      </div>
+      <div class="plugin-actions">
+        <div class="plugin-status" [class.running]="plugin.running">
+          {{ plugin.running ? 'Running' : 'Stopped' }}
+        </div>
+        <button class="toggle-button"
+                [class.stop]="plugin.running"
+                [class.start]="!plugin.running"
+                [class.loading]="plugin.loading"
+                [disabled]="plugin.loading"
+                (click)="togglePlugin(plugin)">
+          <span *ngIf="!plugin.loading">{{ plugin.running ? 'Stop' : 'Start' }}</span>
+          <span *ngIf="plugin.loading" class="button-spinner"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

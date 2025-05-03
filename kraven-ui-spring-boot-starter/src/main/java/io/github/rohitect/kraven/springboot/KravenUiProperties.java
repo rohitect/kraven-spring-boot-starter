@@ -77,10 +77,36 @@ public class KravenUiProperties {
     private BusinessFlowConfig businessFlow = new BusinessFlowConfig();
 
     /**
+     * The Plugin system configuration.
+     */
+    private PluginsConfig plugins = new PluginsConfig();
+
+    /**
+     * Plugin system configuration options.
+     */
+    @Data
+    public static class PluginsConfig {
+        /**
+         * Enable or disable the plugin system.
+         */
+        private boolean enabled = true;
+
+        /**
+         * Enable or disable auto-discovery of plugins.
+         */
+        private boolean autoDiscovery = true;
+
+        /**
+         * The base packages to scan for plugins.
+         */
+        private String[] basePackages = {"io.github", "com", "org", "net"};
+    }
+
+    /**
      * The version of Kraven UI.
      * This is automatically set from the kraven.ui.version property.
      */
-    private String version = "1.0.5";
+    private String version = "1.0.6";
 
     /**
      * Layout configuration options.

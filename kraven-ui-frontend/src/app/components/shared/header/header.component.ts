@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { ThemeService } from '../../../services/theme.service';
+import { PluginService } from '../../../services/plugin.service';
 
 @Component({
   selector: 'app-header',
@@ -11,19 +12,28 @@ import { ThemeService } from '../../../services/theme.service';
     RouterLink
   ],
   templateUrl: './header.component.html',
-  styleUrls: ['./header.component.scss']
+  styleUrls: ['./header.component.scss'],
+  exportAs: 'appHeader'
 })
 export class HeaderComponent implements OnInit {
   isDarkTheme = false;
+  showKafka = false;
 
   constructor(
     private themeService: ThemeService,
-    private router: Router
+    private router: Router,
+    private pluginService: PluginService
   ) {}
 
   ngOnInit(): void {
     this.themeService.theme$.subscribe((theme: 'dark' | 'light') => {
       this.isDarkTheme = theme === 'dark';
+    });
+
+    // Check if Kafka plugin is available and running
+    this.pluginService.getPlugins().subscribe(plugins => {
+      const kafkaPlugin = plugins.find(p => p.id === 'kafka');
+      this.showKafka = !!(kafkaPlugin && kafkaPlugin.running);
     });
   }
 

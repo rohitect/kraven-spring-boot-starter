@@ -1,3 +1,4 @@
 io.github.rohitect.kraven.springboot.config.KravenUiEnhancedAutoConfiguration
 io.github.rohitect.kraven.springboot.KravenUiAutoConfiguration
 io.github.rohitect.kraven.springboot.config.KravenUiCacheConfiguration
+io.github.rohitect.kraven.springboot.plugin.KravenPluginAutoConfiguration

@@ -1,0 +1,12 @@
+<div class="settings-sidebar">
+  <div class="sidebar-header">
+    <h2>Settings</h2>
+  </div>
+  <nav class="sidebar-nav">
+    <ul>
+      <li *ngFor="let item of menuItems">
+        <a [routerLink]="item.route" routerLinkActive="active">{{ item.label }}</a>
+      </li>
+    </ul>
+  </nav>
+</div>

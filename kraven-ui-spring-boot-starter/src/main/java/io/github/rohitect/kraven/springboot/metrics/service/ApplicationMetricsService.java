@@ -3,8 +3,6 @@ package io.github.rohitect.kraven.springboot.metrics.service;
 import io.github.rohitect.kraven.springboot.cache.KravenUiCacheService;
 import io.github.rohitect.kraven.springboot.feign.FeignClientMetadata;
 import io.github.rohitect.kraven.springboot.feign.FeignClientScanner;
-import io.github.rohitect.kraven.springboot.kafka.service.KafkaAdminService;
-import io.github.rohitect.kraven.springboot.kafka.service.KafkaListenerScanner;
 import io.github.rohitect.kraven.springboot.metrics.model.ApplicationMetrics;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,8 +51,6 @@ public class ApplicationMetricsService {
     private String buildTime;
 
     private FeignClientScanner feignClientScanner;
-    private KafkaAdminService kafkaAdminService;
-    private KafkaListenerScanner kafkaListenerScanner;
     private KravenUiCacheService cacheService;
     // Cache for static metrics
     private ApplicationMetrics.SpringMetrics cachedSpringMetrics;
@@ -81,15 +77,7 @@ public class ApplicationMetricsService {
         this.feignClientScanner = feignClientScanner;
     }
 
-    @Autowired(required = false)
-    public void setKafkaAdminService(KafkaAdminService kafkaAdminService) {
-        this.kafkaAdminService = kafkaAdminService;
-    }
-
-    @Autowired(required = false)
-    public void setKafkaListenerScanner(KafkaListenerScanner kafkaListenerScanner) {
-        this.kafkaListenerScanner = kafkaListenerScanner;
-    }
+    // Kafka-related setters removed as Kafka implementation is now provided by the plugin
 
 
 
@@ -310,6 +298,9 @@ public class ApplicationMetricsService {
     /**
      * Gets Kafka metrics.
      *
+     * Note: Kafka metrics are now provided by the Kafka plugin.
+     * This method returns empty metrics as the built-in Kafka implementation has been removed.
+     *
      * @return the Kafka metrics
      */
     public ApplicationMetrics.KafkaMetrics getKafkaMetrics() {
@@ -319,21 +310,14 @@ public class ApplicationMetricsService {
         int listenerCount = 0;
 
         try {
-            if (kafkaAdminService != null) {
-                var clusterInfo = kafkaAdminService.getClusterInfo();
-                if (clusterInfo != null) {
-                    topicCount = clusterInfo.getTopics() != null ? clusterInfo.getTopics().size() : 0;
-                    consumerCount = clusterInfo.getConsumerGroups() != null ? clusterInfo.getConsumerGroups().size() : 0;
-                }
+            // Count Kafka producer beans if Kafka is on the classpath
+            try {
+                Class.forName("org.springframework.kafka.core.KafkaTemplate");
+                producerCount = applicationContext.getBeansOfType(org.springframework.kafka.core.KafkaTemplate.class).size();
+            } catch (ClassNotFoundException e) {
+                // Kafka is not on the classpath
+                log.debug("Kafka is not on the classpath");
             }
-
-            if (kafkaListenerScanner != null) {
-                var listeners = kafkaListenerScanner.getKafkaListeners();
-                listenerCount = listeners != null ? listeners.size() : 0;
-            }
-
-            // Count Kafka producer beans
-            producerCount = applicationContext.getBeansOfType(org.springframework.kafka.core.KafkaTemplate.class).size();
         } catch (Exception e) {
             log.warn("Error getting Kafka metrics", e);
         }

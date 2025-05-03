@@ -6,7 +6,7 @@
 
     <groupId>io.github.rohitect</groupId>
     <artifactId>kraven-ui</artifactId>
-    <version>1.0.5</version>
+    <version>1.0.6</version>
     <packaging>pom</packaging>
 
     <name>Kraven UI</name>
@@ -39,6 +39,7 @@
         <module>kraven-ui-core</module>
         <module>kraven-ui-frontend</module>
         <module>kraven-ui-spring-boot-starter</module>
+        <module>kraven-ui-plugin-sdk</module>
     </modules>
 
     <properties>
@@ -86,6 +87,11 @@
                 <groupId>io.github.rohitect</groupId>
                 <artifactId>kraven-ui-frontend</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.rohitect</groupId>
+                <artifactId>kraven-ui-plugin-sdk</artifactId>
+                <version>1.0.6</version>
             </dependency>
 
             <!-- SpringDoc OpenAPI -->
@@ -246,6 +252,7 @@
                 <module>kraven-ui-core</module>
                 <module>kraven-ui-frontend</module>
                 <module>kraven-ui-spring-boot-starter</module>
+                <module>kraven-ui-plugin-sdk</module>
                 <!-- Exclude example module from release -->
             </modules>
             <build>

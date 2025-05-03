@@ -67,6 +67,10 @@
   --hover-brightness: 1.1;
   --background-secondary: #222442; /* Slightly lighter than background with purple tint */
   --hover-color: rgba(108, 92, 231, 0.15); /* Purple with opacity */
+  --error-color: #e74c3c; /* Red */
+  --error-color-rgb: 231, 76, 60; /* Red in RGB format */
+  --success-color: #2ecc71; /* Green */
+  --success-color-rgb: 46, 204, 113; /* Green in RGB format */
 }
 
 :root.light-theme, html.light-theme {
@@ -90,6 +94,10 @@
   --hover-brightness: 0.9;
   --background-secondary: #e9eef5;
   --hover-color: rgba(0, 0, 0, 0.05);
+  --error-color: #e53e3e; /* Red */
+  --error-color-rgb: 229, 62, 62; /* Red in RGB format */
+  --success-color: #38a169; /* Green */
+  --success-color-rgb: 56, 161, 105; /* Green in RGB format */
 }
 
 * {

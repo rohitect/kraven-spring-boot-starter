@@ -106,13 +106,17 @@ export class KafkaService {
     const config = this.configService.getConfig();
     this.baseUrl = config.basePath || '';
 
-    // Get the base API path from the window object
-    const baseApiPath = (window as any).__KRAVEN_BASE_API_PATH__ || '/kraven/api';
+    // Get the base API path from the ConfigService
+    const baseApiPath = this.configService.getApiBasePath();
 
     // Initialize Kafka configuration from config
     if (config.kafka) {
-      // Get the base API path from the window object
-      this.apiPath = `${baseApiPath}/kafka-management`;
+      // Construct the API path using the base API path to honor servlet context path
+      // The baseApiPath already includes the servlet context path, so we need to ensure
+      // we're constructing the path correctly
+      const servletContextPath = baseApiPath.replace('/kraven/api', '');
+      this.apiPath = `${servletContextPath}/kraven/plugin/kafka`;
+      console.log('Constructed Kafka API path:', this.apiPath);
 
       this.messageLimit = config.kafka.messageLimit || 100;
       this.streamingEnabled = config.kafka.streamingEnabled !== false;
@@ -123,7 +127,10 @@ export class KafkaService {
       this.enabled = config.kafka.enabled !== false;
     } else {
       // Default values if kafka config is not provided
-      this.apiPath = `${baseApiPath}/kafka-management`;
+      const servletContextPath = baseApiPath.replace('/kraven/api', '');
+      this.apiPath = `${servletContextPath}/kraven/plugin/kafka`;
+      console.log('Constructed Kafka API path (default config):', this.apiPath);
+
       this.messageLimit = 100;
       this.streamingEnabled = true;
       this.sseTimeoutMs = 300000;
@@ -185,7 +192,11 @@ export class KafkaService {
       console.warn('Kafka service is disabled');
       return new Observable(observer => observer.error('Kafka service is disabled'));
     }
-    return this.http.get<KafkaConsumerGroup[]>(`${this.apiPath}/consumer-groups`);
+
+    const url = `${this.apiPath}/consumer-groups`;
+    console.log(`Fetching consumer groups from URL: ${url}`);
+
+    return this.http.get<KafkaConsumerGroup[]>(url);
   }
 
   /**
@@ -196,7 +207,11 @@ export class KafkaService {
       console.warn('Kafka service is disabled');
       return new Observable(observer => observer.error('Kafka service is disabled'));
     }
-    return this.http.get<KafkaListener[]>(`${this.apiPath}/listeners`);
+
+    const url = `${this.apiPath}/listeners`;
+    console.log(`Fetching listeners from URL: ${url}`);
+
+    return this.http.get<KafkaListener[]>(url);
   }
 
   /**
@@ -218,7 +233,11 @@ export class KafkaService {
       console.warn('Kafka service is disabled');
       return new Observable(observer => observer.error('Kafka service is disabled'));
     }
-    return this.http.get<KafkaConsumerGroup[]>(`${this.apiPath}/topics/${topicName}/consumers`);
+
+    const url = `${this.apiPath}/topics/${topicName}/consumers`;
+    console.log(`Fetching consumers for topic ${topicName} from URL: ${url}`);
+
+    return this.http.get<KafkaConsumerGroup[]>(url);
   }
 
   /**

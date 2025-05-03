@@ -6,7 +6,7 @@
     <parent>
         <groupId>io.github.rohitect</groupId>
         <artifactId>kraven-ui</artifactId>
-        <version>1.0.5</version>
+        <version>1.0.6</version>
     </parent>
 
     <artifactId>kraven-ui-spring-boot-starter</artifactId>
@@ -24,6 +24,13 @@
         <dependency>
             <groupId>io.github.rohitect</groupId>
             <artifactId>kraven-ui-frontend</artifactId>
+        </dependency>
+
+        <!-- KravenDocs UI Plugin SDK -->
+        <dependency>
+            <groupId>io.github.rohitect</groupId>
+            <artifactId>kraven-ui-plugin-sdk</artifactId>
+            <version>1.0.6</version>
         </dependency>
 
         <!-- Spring Web MVC -->

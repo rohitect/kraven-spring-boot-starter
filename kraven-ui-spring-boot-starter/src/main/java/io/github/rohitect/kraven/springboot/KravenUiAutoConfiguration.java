@@ -45,11 +45,14 @@ import java.util.Map;
 @PropertySource("classpath:kraven-ui.properties")
 @ComponentScan(basePackages = {
     "io.github.rohitect.kraven.springboot.feign",
-    "io.github.rohitect.kraven.springboot.kafka",
+    // Removed Kafka package to use only the Kafka plugin
     "io.github.rohitect.kraven.springboot.metrics",
     "io.github.rohitect.kraven.springboot.businessflow",
     "io.github.rohitect.kraven.springboot.documentation",
-    "io.github.rohitect.kraven.springboot.cache"
+    "io.github.rohitect.kraven.springboot.cache",
+    "io.github.rohitect.kraven.springboot.plugin",
+    // Include plugin packages for component scanning
+    "io.github.rohitect.kraven.plugins"
 })
 public class KravenUiAutoConfiguration {
 
