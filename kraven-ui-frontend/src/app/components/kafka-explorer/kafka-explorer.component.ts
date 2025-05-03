@@ -2,18 +2,19 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
 import { KafkaService, KafkaClusterInfo, KafkaTopic, KafkaBroker, KafkaConsumerGroup, KafkaListener, KafkaMessage } from '../../services/kafka.service';
 import { ConfigService } from '../../services/config.service';
 import { ThemeService } from '../../services/theme.service';
 import { trigger, transition, style, animate, state } from '@angular/animations';
+import { PluginLoaderComponent } from '../shared/plugin-loader/plugin-loader.component';
 
 @Component({
   selector: 'app-kafka-explorer',
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule
+    FormsModule,
+    PluginLoaderComponent
   ],
   templateUrl: './kafka-explorer.component.html',
   styleUrls: ['./kafka-explorer.component.scss'],
@@ -102,8 +103,7 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
     private configService: ConfigService,
     private themeService: ThemeService,
     private router: Router,
-    private route: ActivatedRoute,
-    private http: HttpClient
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {

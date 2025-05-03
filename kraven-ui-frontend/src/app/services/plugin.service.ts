@@ -38,11 +38,27 @@ export class PluginService {
     this.apiPath = this.configService.getApiBasePath();
   }
 
+  // Cache for the getPlugins request
+  private pluginsCache$: Observable<Plugin[]> | null = null;
+  private lastFetchTime = 0;
+  private cacheDuration = 10000; // 10 seconds cache duration
+
   getPlugins(): Observable<Plugin[]> {
+    const currentTime = Date.now();
+
+    // If we have a cached observable and it's still valid, return it
+    if (this.pluginsCache$ && (currentTime - this.lastFetchTime < this.cacheDuration)) {
+      console.log('Using cached plugins data');
+      return this.pluginsCache$;
+    }
+
+    // Otherwise, make a new request
     const url = `${this.baseUrl}${this.apiPath}/plugins`;
     console.log('Fetching plugins from:', url);
 
-    return this.http.get<Plugin[]>(url).pipe(
+    // Create a new observable and cache it
+    this.lastFetchTime = currentTime;
+    this.pluginsCache$ = this.http.get<Plugin[]>(url).pipe(
       tap(plugins => {
         console.log('Received plugins:', plugins);
         this.plugins$.next(plugins);
@@ -52,8 +68,11 @@ export class PluginService {
         // Return an empty array on error
         return of([]);
       }),
+      // Use shareReplay to share the response with all subscribers
       shareReplay(1)
     );
+
+    return this.pluginsCache$;
   }
 
   getNavigationItems(): Observable<NavigationItem[]> {
@@ -149,7 +168,24 @@ export class PluginService {
     return !!plugin;
   }
 
+  /**
+   * Refreshes the plugins by invalidating the cache and fetching fresh data
+   * @private Used internally when plugin state changes
+   */
   private refreshPlugins(): void {
-    this.getPlugins().subscribe();
+    this.forceRefreshPlugins();
+  }
+
+  /**
+   * Forces a refresh of the plugins by invalidating the cache and fetching fresh data
+   * @returns An observable of the refreshed plugins
+   */
+  public forceRefreshPlugins(): Observable<Plugin[]> {
+    // Invalidate the cache
+    this.pluginsCache$ = null;
+    this.lastFetchTime = 0;
+
+    // Fetch fresh data and return the observable
+    return this.getPlugins();
   }
 }

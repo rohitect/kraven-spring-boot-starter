@@ -118,6 +118,8 @@ This is a multi-module Maven project with the following modules:
 - **kraven-ui-core**: Core functionality (where the magic happens)
 - **kraven-ui-frontend**: Frontend Angular application (the pretty face)
 - **kraven-ui-spring-boot-starter**: Spring Boot starter (for the lazy developers among us)
+- **kraven-ui-plugin-sdk**: Plugin SDK for developing custom plugins (extensibility FTW)
+- **plugins/kraven-ui-kafka-plugin**: Kafka management plugin (because Kafka deserves special treatment)
 - **kraven-ui-example**: Example application (for when the docs inevitably fail you)
 
 ## 🚨 Compatibility Notes
@@ -127,6 +129,27 @@ When integrating Kraven UI into your projects, be aware of these potential compa
 - **Caching**: Kraven UI uses its own internal caching mechanism that doesn't depend on Spring's caching infrastructure, avoiding conflicts with your application's cache configuration. You can control caching with the `kraven.ui.cache.enabled` property. The library is designed to work even if the cache service bean cannot be autowired.
 - **OpenTelemetry**: Some versions of OpenTelemetry may cause stack overflow errors when used with Kraven UI. Consider excluding OpenTelemetry dependencies if you encounter issues.
 
+## 🔌 Plugin System
+
+Kraven UI features a powerful plugin-based architecture that allows for easy extension and customization:
+
+- **Plugin SDK**: Develop your own plugins using the `kraven-ui-plugin-sdk` module
+- **Dynamic Registration**: Plugins register with the core at runtime
+- **UI Integration**: Plugins automatically appear in the UI when registered and running
+- **Independent Lifecycle**: Start, stop, and manage plugins independently
+- **Configurable**: Each plugin has its own configuration options
+
+### Available Plugins
+
+Kraven UI comes with the following plugins:
+
+| Plugin | Description | Features | Documentation |
+|--------|-------------|----------|--------------|
+| **Kafka** | Comprehensive Kafka management | Topic management, message production/consumption, streaming, consumer groups, listener discovery | [Kafka Plugin README](plugins/kraven-ui-kafka-plugin/README.md) |
+| **Mock Server** | Integration testing tool | Mock API responses, request validation, scenario management | Coming soon |
+| **Database Explorer** | Database management | Table browsing, query execution, schema visualization | Coming soon |
+| **GraphQL** | GraphQL support | Schema exploration, query builder, mutation testing | Coming soon |
+
 ## 🏗️ Development Status
 
 This project is actively maintained by developers who care way too much about UI/UX:
@@ -135,6 +158,7 @@ This project is actively maintained by developers who care way too much about UI
 - ✅ **Feign Client Explorer** - Complete and ready to make your life easier
 - ✅ **Kafka Management** - Fully operational and waiting for your Kafka clusters
 - ✅ **Application Monitoring** - Ready to show you all the metrics you never knew you needed
+- ✅ **Plugin System** - Fully functional with support for custom plugins
 - 🔄 **Documentation Hub** - Alpha feature for creating beautiful documentation with Mermaid diagrams and business flow tags
 
 ## 🚦 Getting Started in 3... 2... 1... (Your Development Environment Will Thank You)
@@ -222,12 +246,10 @@ kraven.ui.feign-client.enabled=true
 kraven.ui.feign-client.api-path=/kraven/v1/feign-clients
 kraven.ui.feign-client.try-it-out-enabled=true
 
-# Kafka Management configuration
-kraven.ui.kafka.enabled=true
-kraven.ui.kafka.message-limit=100
-kraven.ui.kafka.streaming-enabled=true
-kraven.ui.kafka.message-production-enabled=true
-kraven.ui.kafka.message-consumption-enabled=true
+# Plugin system configuration
+kraven.ui.plugins.enabled=true
+kraven.ui.plugins.auto-discovery=true
+kraven.ui.plugins.base-packages=com.example
 
 # Metrics configuration
 kraven.ui.metrics.enabled=true
@@ -278,14 +300,7 @@ Discover and interact with your application's Feign clients:
 
 ### 🐮 Kafka Management
 
-Manage your Kafka clusters with ease:
-
-- **Topic Browser**: View all topics and their configurations
-- **Message Producer**: Send messages to topics with a simple UI
-- **Message Consumer**: View messages in topics with filtering and pagination
-- **Live Streaming**: Watch messages arrive in real-time
-- **Consumer Group Monitoring**: Track consumer groups and their lag
-- **Partition Details**: View detailed partition information
+Manage your Kafka clusters with ease through the [Kafka Plugin](plugins/kraven-ui-kafka-plugin/README.md). See the plugin documentation for detailed features and configuration options.
 
 ### 📈 Application Monitoring
 
@@ -295,7 +310,7 @@ Get insights into your application's performance:
 - **Memory Pools**: Detailed breakdown of memory usage by pool with visual progress bars
 - **Thread Information**: Active threads, daemon threads, and thread dumps
 - **Spring Metrics**: Bean count, controllers, services, repositories, and endpoint details
-- **Kafka Metrics**: Topic count, consumer groups, producers, and listeners
+- **Kafka Metrics**: Topic count, consumer groups, producers, and listeners (requires Kafka plugin)
 - **Feign Client Metrics**: Client count and method count
 - **Auto-Refresh**: Configurable auto-refresh intervals with visual progress indicator
 - **Thread & Heap Dumps**: Generate and download thread dumps and heap dumps for debugging
@@ -461,7 +476,7 @@ Start your Spring Boot application and navigate to `http://localhost:8080/kraven
 
 - Test your APIs directly from the documentation
 - Debug Feign client calls to external services
-- Monitor your Kafka topics and messages
+- Monitor your Kafka topics and messages (with the Kafka plugin)
 - Track your application's performance metrics
 - Generate thread dumps when things go wrong
 - All from a single, beautiful interface that doesn't make your eyes bleed

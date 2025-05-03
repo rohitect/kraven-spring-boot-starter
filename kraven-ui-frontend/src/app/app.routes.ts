@@ -7,9 +7,7 @@ import { OverviewComponent } from './components/overview/overview.component';
 import { LayoutComponent } from './components/layout/layout.component';
 import { DocumentationComponent } from './components/documentation/documentation.component';
 import { MermaidTestComponent } from './components/mermaid-test/mermaid-test.component';
-import { inject } from '@angular/core';
-import { PluginService } from './services/plugin.service';
-import { Router } from '@angular/router';
+import { PluginRouteGuard } from './guards/plugin-route.guard';
 
 export const routes: Routes = [
   {
@@ -27,32 +25,8 @@ export const routes: Routes = [
       {
         path: 'kafka',
         component: KafkaExplorerComponent,
-        canActivate: [
-          () => {
-            const pluginService = inject(PluginService);
-            const router = inject(Router);
-
-            // First check if Kafka plugin is registered
-            const isKafkaPluginRegistered = pluginService.isPluginRegistered('kafka');
-
-            if (!isKafkaPluginRegistered) {
-              console.warn('Kafka plugin is not registered. Redirecting to home page.');
-              router.navigate(['/']);
-              return false;
-            }
-
-            // Then check if it's running
-            const isKafkaPluginRunning = pluginService.isPluginRunning('kafka');
-
-            if (!isKafkaPluginRunning) {
-              console.warn('Kafka plugin is registered but not running. Redirecting to home page.');
-              router.navigate(['/']);
-              return false;
-            }
-
-            return true;
-          }
-        ]
+        data: { pluginId: 'kafka' },
+        canActivate: [PluginRouteGuard]
       },
       { path: 'documentation', component: DocumentationComponent },
       { path: 'documentation/:groupId', component: DocumentationComponent },
