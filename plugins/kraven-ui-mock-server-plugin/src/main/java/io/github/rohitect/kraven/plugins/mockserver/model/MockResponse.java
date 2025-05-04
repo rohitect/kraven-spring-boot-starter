@@ -6,6 +6,7 @@ import io.github.rohitect.kraven.plugins.mockserver.util.BodyTemplateDeserialize
 import lombok.Data;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
