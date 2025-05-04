@@ -45,6 +45,23 @@ export class LoadingOverlayComponent implements OnInit {
       "Kafka is thinking about your request (very slowly)...",
       "Kafka is processing your request at the speed of a sleepy sloth..."
     ],
+    'mock-server': [
+      "Pretending to be a real server (it's what we do best)...",
+      "Crafting fake responses with artisanal precision...",
+      "Practicing our impression of a production API...",
+      "Preparing to lie convincingly about being a real server...",
+      "Loading our collection of pre-recorded responses...",
+      "Dusting off our fake API endpoints...",
+      "Rehearsing our server impersonation routine...",
+      "Getting into character as your favorite API...",
+      "Warming up our mock response generator...",
+      "Preparing to simulate network latency (because authenticity matters)...",
+      "Deciding which fake errors to throw at you today...",
+      "Practicing our 'realistic server behavior' routine...",
+      "Configuring our professional-grade pretending capabilities...",
+      "Synchronizing our fake data with imaginary databases...",
+      "Calibrating our reality distortion field..."
+    ],
     'default': [
       "Convincing the plugin to wake up and do its job...",
       "Negotiating with the plugin (it's being difficult)...",

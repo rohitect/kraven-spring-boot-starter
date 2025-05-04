@@ -1,0 +1,223 @@
+.configuration-management {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.config-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+
+  h2 {
+    margin: 0;
+    font-size: 1.4rem;
+  }
+}
+
+.config-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  padding: 1.25rem;
+  border-radius: 0.5rem;
+  background-color: var(--card-bg-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-color);
+}
+
+.stat-icon {
+  font-size: 1.8rem;
+  color: var(--primary-color);
+  margin-right: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background-color: var(--primary-color-light, rgba(0, 123, 255, 0.1));
+}
+
+.stat-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-value {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  word-break: break-word;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: var(--text-secondary-color);
+}
+
+.config-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.config-section {
+  h3 {
+    margin: 0 0 1rem 0;
+    font-size: 1.2rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+  }
+}
+
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.config-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem;
+  background-color: var(--card-bg-color);
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    border-color: rgba(var(--primary-color-rgb, 0, 123, 255), 0.3);
+  }
+}
+
+.config-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: rgba(var(--primary-color-rgb, 0, 123, 255), 0.1);
+  color: var(--primary-color);
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.config-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.config-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary-color);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.config-value {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-color);
+  word-break: break-word;
+}
+
+.config-json-container {
+  background-color: var(--code-bg-color);
+  border-radius: 0.5rem;
+  overflow: auto;
+  max-height: 500px;
+  height: 500px;
+  padding: 1rem;
+
+  // Fix for andypf-json-viewer
+  ::ng-deep andypf-json-viewer {
+    height: 100%;
+    overflow: auto;
+    display: block;
+
+    // Fix for icons
+    .icon {
+      font-family: 'Font Awesome 6 Free';
+      font-weight: 900;
+    }
+
+    // Arrow icon fix
+    .icon.arrow::before {
+      content: '\f078'; // fa-chevron-down
+    }
+
+    // Expanded arrow icon fix
+    .icon.arrow.expanded::before {
+      content: '\f077'; // fa-chevron-up
+    }
+
+    // Copy icon fix
+    .icon.copy::before {
+      content: '\f0c5'; // fa-copy
+    }
+  }
+}
+
+.config-json {
+  padding: 1rem;
+  margin: 0;
+  overflow: auto;
+  font-family: monospace;
+  font-size: 0.9rem;
+  max-height: 500px;
+  white-space: pre-wrap;
+}
+
+// Icon replacement
+.icon-replacement {
+  font-family: 'Font Awesome 6 Free', 'FontAwesome', sans-serif !important;
+  font-weight: 900 !important;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  display: inline-block;
+  font-style: normal;
+  font-variant: normal;
+  text-rendering: auto;
+  line-height: 1;
+}
+
+// Buttons
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+
+  &.btn-icon {
+    padding: 0.5rem;
+    background-color: transparent;
+    color: var(--text-color);
+
+    &:hover {
+      background-color: var(--hover-bg-color);
+    }
+  }
+}

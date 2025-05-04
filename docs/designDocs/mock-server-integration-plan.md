@@ -1,27 +1,28 @@
-# Mock Server Integration Plan for Kraven UI
+# Mock Server Plugin Integration Plan for Kraven UI
 
 ## Overview
 
-This document outlines the plan for integrating a mock server feature into the Kraven UI library. The mock server will facilitate integration testing by providing a configurable way to mock API endpoints. This feature will enhance developer experience by allowing them to test their applications against mock responses without relying on actual backend services.
+This document outlines the plan for implementing a mock server feature as a plugin for the Kraven UI library. The mock server plugin will facilitate integration testing by providing a configurable way to mock API endpoints. This feature will enhance developer experience by allowing them to test their applications against mock responses without relying on actual backend services.
 
 ## Goals
 
-1. Provide a configurable mock server that can be started by the Kraven UI library
+1. Implement a mock server as a standalone Kraven UI plugin
 2. Allow developers to define mock responses for specific endpoints via JSON configuration
 3. Enable runtime switching between different mock responses for the same endpoint
-4. Integrate seamlessly with the existing Kraven UI interface
+4. Integrate seamlessly with the existing Kraven UI plugin architecture
 5. Support various HTTP methods and response types
 6. Enhance developer experience with intuitive UI and configuration options
 
 ## Architecture
 
-### Components
+### Plugin Components
 
-1. **Mock Server Module**
+1. **Mock Server Plugin Module**
    - Core server implementation based on Undertow
    - Configuration loader for mock definitions
    - Response selector and router
    - Metrics collector for mock server usage
+   - Plugin registration and lifecycle management
 
 2. **Configuration Model**
    - JSON schema for defining mock endpoints and responses
@@ -29,56 +30,62 @@ This document outlines the plan for integrating a mock server feature into the K
    - Metadata for each response (description, tags, etc.)
 
 3. **UI Components**
-   - Mock Server dashboard in Kraven UI header navigation
+   - Mock Server dashboard registered as a plugin navigation item
    - Endpoint listing and response selection interface
    - Interactive configuration viewer/editor
    - Request history viewer
 
-4. **Integration Components**
-   - Spring Boot auto-configuration for the mock server
-   - Properties for configuring the mock server
+4. **Plugin Integration Components**
+   - Plugin implementation of KravenUIPlugin interface
+   - Plugin configuration properties
    - Event listeners for server lifecycle events
 
 ### Flow Diagram
 
 ```mermaid
 graph TD
-    A[Application using Kraven UI] --> B[Kraven UI Auto Configuration]
-    B --> C{Mock Server Enabled?}
-    C -->|Yes| D[Start Mock Server]
-    C -->|No| E[Skip Mock Server]
-    D --> F[Load Mock Configurations]
-    F --> G[Register Mock Endpoints]
-    G --> H[Expose Mock Server UI]
-    H --> I[Mock Server Dashboard]
-    I --> J[View/Edit Mock Configurations]
-    J --> K[Update Mock Responses]
-    K --> L[Apply Changes to Running Server]
+    A[Application using Kraven UI] --> B[Kraven UI Plugin System]
+    B --> C{Mock Server Plugin Registered?}
+    C -->|Yes| D[Initialize Mock Server Plugin]
+    C -->|No| E[Skip Mock Server Plugin]
+    D --> F[Plugin.start() called]
+    F --> G[Start Mock Server]
+    G --> H[Load Mock Configurations]
+    H --> I[Register Mock Endpoints]
+    I --> J[Expose Mock Server UI via Plugin]
+    J --> K[Mock Server Dashboard]
+    K --> L[View/Edit Mock Configurations]
+    L --> M[Update Mock Responses]
+    M --> N[Apply Changes to Running Server]
 ```
 
 ## Implementation Details
 
-### 1. Mock Server Configuration
+### 1. Mock Server Plugin Configuration
 
-The mock server will be configurable through application properties:
+The mock server plugin will be configurable through plugin-specific properties:
 
 ```yaml
 kraven:
   ui:
-    mock-server:
-      enabled: true
-      port: 11000
-      host: localhost
-      # base-path is optional and can be omitted
-      base-path:
-      # Configuration can be loaded from classpath or file system
-      # File system path takes precedence if both are specified
-      config-path: classpath:mock-server/config.json
-      config-volume-path: /path/to/config/volume/mock-config.json
-      auto-reload: true
-      reload-interval-ms: 5000
-      max-history-entries: 100
-      default-delay-ms: 0
+    plugins:
+      enabled: true  # Enable the plugin system
+    plugin:
+      mock-server:
+        enabled: true
+        auto-start: false  # Set to true to start the server automatically
+        port: 11000
+        host: localhost
+        # base-path is optional and can be omitted
+        base-path:
+        # Configuration can be loaded from classpath or file system
+        # File system path takes precedence if both are specified
+        config-path: classpath:mock-server/config.json
+        config-volume-path: /path/to/config/volume/mock-config.json
+        auto-reload: true
+        reload-interval-ms: 5000
+        max-history-entries: 100
+        default-delay-ms: 0
 ```
 
 ### 2. Mock Configuration JSON Schema
@@ -136,7 +143,100 @@ The mock configuration will follow this structure:
 }
 ```
 
-### 3. Mock Server Implementation
+### 3. Plugin Implementation
+
+The mock server plugin will implement the `KravenUIPlugin` interface:
+
+```java
+@KravenPlugin(
+    id = "mock-server",
+    name = "Mock Server",
+    version = "1.0.0",
+    description = "Mock server for integration testing",
+    provider = "Rohitect"
+)
+@Slf4j
+public class MockServerPlugin implements KravenUIPlugin {
+
+    private MockServerConfig config;
+    private MockServer mockServer;
+
+    @Override
+    public String getId() {
+        return "mock-server";
+    }
+
+    @Override
+    public String getName() {
+        return "Mock Server";
+    }
+
+    @Override
+    public String getVersion() {
+        return "1.0.0";
+    }
+
+    @Override
+    public void initialize(PluginContext context) {
+        log.info("Initializing Mock Server Plugin");
+
+        // Get plugin configuration
+        config = context.getConfiguration(MockServerConfig.class);
+        log.debug("Mock Server Plugin configuration: {}", config);
+
+        if (!config.isEnabled()) {
+            log.info("Mock Server Plugin is disabled");
+            return;
+        }
+
+        // Register navigation item
+        context.registerNavigationItem(
+            NavigationItem.builder()
+                .id("mock-server")
+                .label("Mock Server")
+                .build()
+        );
+
+        // Register controllers
+        context.registerController(new MockServerController());
+
+        // Register services
+        context.registerService(new MockServerService());
+
+        log.info("Mock Server Plugin initialized successfully");
+    }
+
+    @Override
+    public void start() {
+        log.info("Starting Mock Server Plugin");
+
+        if (!config.isEnabled()) {
+            return;
+        }
+
+        // Create the mock server instance
+        mockServer = new MockServer(config);
+
+        // Only auto-start the server if configured to do so
+        if (config.isAutoStart()) {
+            log.info("Auto-starting Mock Server as configured");
+            mockServer.start();
+        } else {
+            log.info("Mock Server created but not started (auto-start is disabled)");
+            log.info("The server can be started from the UI or by setting auto-start=true");
+        }
+    }
+
+    @Override
+    public void stop() {
+        log.info("Stopping Mock Server Plugin");
+
+        if (mockServer != null) {
+            mockServer.stop();
+        }
+    }
+}
+```
 
 The mock server will be implemented using Undertow for high performance and low overhead. It will:
 
@@ -149,9 +249,9 @@ The mock server will be implemented using Undertow for high performance and low 
 
 ### 4. UI Integration
 
-The mock server UI will be integrated into the Kraven UI interface:
+The mock server UI will be integrated into the Kraven UI interface through the plugin system:
 
-1. Add a new "Mock Server" section to the header navigation
+1. Register a "Mock Server" navigation item during plugin initialization
 2. Create a dashboard showing:
    - Server status (running/stopped)
    - Configured endpoints
@@ -159,20 +259,80 @@ The mock server UI will be integrated into the Kraven UI interface:
    - Request history
    - Configuration source (classpath or volume path)
 3. Provide a way to:
-   - Start/stop the mock server
+   - Start/stop the mock server manually from the UI
+   - Configure auto-start behavior through settings
    - Switch between different mock responses for each endpoint
    - View and edit configuration in a structured format
    - View request history and details
    - Import/export configurations
 
-### 5. Spring Boot Integration
+### 5. Plugin Configuration
 
-The mock server will be integrated with Spring Boot:
+The mock server plugin will use a dedicated configuration class:
 
-1. Create a new auto-configuration class `KravenUiMockServerAutoConfiguration`
-2. Define properties class `KravenUiMockServerProperties`
-3. Implement conditional beans for the mock server components
-4. Register lifecycle hooks for starting/stopping the server with the application
+```java
+@Data
+public class MockServerConfig {
+
+    /**
+     * Enable or disable the mock server plugin.
+     */
+    private boolean enabled = true;
+
+    /**
+     * Auto-start the mock server when the plugin starts.
+     * If false, the server must be started manually from the UI.
+     */
+    private boolean autoStart = false;
+
+    /**
+     * The port to run the mock server on.
+     */
+    private int port = 11000;
+
+    /**
+     * The host to bind the mock server to.
+     */
+    private String host = "localhost";
+
+    /**
+     * The base path for the mock server.
+     */
+    private String basePath;
+
+    /**
+     * The path to the mock configuration file.
+     * Can be a classpath resource or a file system path.
+     */
+    private String configPath = "classpath:mock-server/config.json";
+
+    /**
+     * The path to the mock configuration file on the file system.
+     * Takes precedence over configPath if both are specified.
+     */
+    private String configVolumePath;
+
+    /**
+     * Whether to automatically reload the configuration when it changes.
+     */
+    private boolean autoReload = true;
+
+    /**
+     * The interval in milliseconds to check for configuration changes.
+     */
+    private int reloadIntervalMs = 5000;
+
+    /**
+     * The maximum number of history entries to keep.
+     */
+    private int maxHistoryEntries = 100;
+
+    /**
+     * The default delay in milliseconds to apply to all responses.
+     */
+    private int defaultDelayMs = 0;
+}
+```
 
 ## Enhanced Features
 

@@ -146,7 +146,7 @@ Kraven UI comes with the following plugins:
 | Plugin | Description | Features | Documentation |
 |--------|-------------|----------|--------------|
 | **Kafka** | Comprehensive Kafka management | Topic management, message production/consumption, streaming, consumer groups, listener discovery | [Kafka Plugin README](plugins/kraven-ui-kafka-plugin/README.md) |
-| **Mock Server** | Integration testing tool | Mock API responses, request validation, scenario management | Coming soon |
+| **Mock Server** | Integration testing & development tool | Mock API responses for testing and development, request validation, scenario management | [Mock Server Plugin README](plugins/kraven-ui-mock-server-plugin/README.md) |
 | **Database Explorer** | Database management | Table browsing, query execution, schema visualization | Coming soon |
 | **GraphQL** | GraphQL support | Schema exploration, query builder, mutation testing | Coming soon |
 
@@ -368,7 +368,7 @@ Here's a complete example of how to set up a Spring Boot REST API with Kraven UI
         <dependency>
             <groupId>io.github.rohitect</groupId>
             <artifactId>kraven-ui</artifactId>
-            <version>1.0.6</version>
+            <version>1.0.7</version>
         </dependency>
     </dependencies>
 </project>
@@ -489,7 +489,6 @@ We're not done yet! Here's what's coming in future releases:
 
 - 📝 **Live API Logs** - Watch API calls in real-time
 - 📊 **GraphQL Support** - Because REST isn't the only game in town
-- 🧪 **Mock Server Integration** - Test without real backends
 - 🔄 **API Workflows** - Chain API calls together
 - 🗄️ **Database UIs** - Redis, MySQL repository explorers
 - 🔐 **RBAC** - Role-based access control

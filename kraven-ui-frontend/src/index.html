@@ -9,6 +9,53 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Primary Font Awesome CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <!-- Fallback Font Awesome CDN -->
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.4.0/css/all.css" crossorigin="anonymous" onerror="this.onerror=null;this.href='https://kit.fontawesome.com/a076d05399.js';" />
+  <!-- Local Font Awesome Fallback -->
+  <link rel="stylesheet" href="./assets/css/font-awesome-fallback.css" />
+
+  <!-- Font Awesome Kit as final fallback -->
+  <script defer src="https://kit.fontawesome.com/1234567890.js" crossorigin="anonymous"></script>
+
+  <!-- Inline Font Awesome styles as absolute last resort -->
+  <style>
+    /* Critical Font Awesome icons for the mock server UI */
+    .fas {
+      font-family: 'Font Awesome 6 Free', 'FontAwesome', sans-serif;
+      font-weight: 900;
+      -moz-osx-font-smoothing: grayscale;
+      -webkit-font-smoothing: antialiased;
+      display: inline-block;
+      font-style: normal;
+      font-variant: normal;
+      text-rendering: auto;
+      line-height: 1;
+    }
+    .fa-exchange-alt:before { content: "\f362"; }
+    .fa-reply-all:before { content: "\f122"; }
+    .fa-file-code:before { content: "\f1c9"; }
+    .fa-sync-alt:before { content: "\f2f1"; }
+    .fa-cogs:before { content: "\f085"; }
+    .fa-play:before { content: "\f04b"; }
+    .fa-stop:before { content: "\f04d"; }
+    .fa-server:before { content: "\f233"; }
+    .fa-plug:before { content: "\f1e6"; }
+    .fa-sitemap:before { content: "\f0e8"; }
+    .fa-globe:before { content: "\f0ac"; }
+    .fa-info-circle:before { content: "\f05a"; }
+    .fa-search:before { content: "\f002"; }
+    .fa-times:before { content: "\f00d"; }
+    .fa-chevron-right:before { content: "\f054"; }
+    .fa-check-circle:before { content: "\f058"; }
+    .fa-check:before { content: "\f00c"; }
+    .fa-tag:before { content: "\f02b"; }
+    .fa-align-left:before { content: "\f036"; }
+    .fa-clock:before { content: "\f017"; }
+    .fa-code:before { content: "\f121"; }
+    .fa-exclamation-circle:before { content: "\f06a"; }
+  </style>
 
   <!-- Ensure marked library is available globally -->
   <script>
@@ -21,6 +68,25 @@
         console.error('Marked library is not available. This may cause rendering issues.');
       } else {
         console.log('Marked library is already available');
+      }
+
+      // Check if Font Awesome is loaded
+      const isFontAwesomeLoaded = (function() {
+        const span = document.createElement('span');
+        span.className = 'fas';
+        span.style.display = 'none';
+        document.body.insertBefore(span, document.body.firstChild);
+        const result = window.getComputedStyle(span).fontFamily.includes('Font Awesome');
+        document.body.removeChild(span);
+        return result;
+      })();
+
+      if (!isFontAwesomeLoaded) {
+        console.warn('Font Awesome not detected. Loading fallback...');
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+        document.head.appendChild(link);
       }
     });
   </script>

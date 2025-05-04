@@ -1,12 +1,13 @@
-# Mock Server Feature Roadmap
+# Mock Server Plugin Feature Roadmap
 
 ## Feature Overview
 
-The Mock Server feature for Kraven UI provides a configurable mock server for integration testing. It allows developers to define mock responses for endpoints via JSON configuration and switch between different response variations at runtime through the Kraven UI interface.
+The Mock Server Plugin for Kraven UI provides a configurable mock server for integration testing. It allows developers to define mock responses for endpoints via JSON configuration and switch between different response variations at runtime through the Kraven UI interface. The feature is implemented as a standalone plugin that integrates with the Kraven UI plugin architecture.
 
 ## Key Capabilities
 
-- Configurable mock server that starts on port 11000 (or custom port)
+- Configurable mock server plugin that runs on port 11000 (or custom port)
+- Manual or automatic server startup control via UI or configuration
 - JSON-based configuration for defining mock endpoints and responses
 - Support for multiple response variations per endpoint with default selection
 - Runtime switching between different mock responses via the Kraven UI
@@ -15,10 +16,11 @@ The Mock Server feature for Kraven UI provides a configurable mock server for in
 - Dynamic response generation based on request data
 - Interactive JSON configuration viewer/editor with real-time preview
 - Support for loading configurations from file path or classpath
+- Seamless integration with the Kraven UI plugin system
 
 ## UI Integration
 
-- Mock Server section accessible from the main header navigation
+- Mock Server section accessible as a plugin navigation item
 - Dashboard showing server status and configured endpoints
 - Endpoint management interface with response selection
 - Response editor with JSON validation and formatting
@@ -28,21 +30,21 @@ The Mock Server feature for Kraven UI provides a configurable mock server for in
 
 ## Implementation Phases
 
-### Phase 1: Core Infrastructure (Milestone 1)
+### Phase 1: Plugin Infrastructure (Milestone 1)
 
 **Estimated Timeline: 2-3 weeks**
 
-1. **Mock Server Engine**
+1. **Plugin Structure Setup**
+   - Create plugin module structure following Kraven UI plugin conventions
+   - Implement `KravenUIPlugin` interface for the mock server
+   - Define plugin configuration model
+   - Implement plugin lifecycle methods (initialize, start, stop)
+
+2. **Mock Server Engine**
    - Implement basic HTTP server using Undertow
    - Create configuration model and loader
    - Implement request routing and response selection
-   - Add server lifecycle management (start/stop)
-
-2. **Spring Boot Integration**
-   - Create `KravenUiMockServerAutoConfiguration` class
-   - Define `KravenUiMockServerProperties` for configuration
-   - Implement conditional beans for mock server components
-   - Add server lifecycle hooks for Spring Boot integration
+   - Add server lifecycle management integrated with plugin lifecycle
 
 3. **Basic Configuration Support**
    - Define JSON schema for mock configurations
@@ -55,19 +57,25 @@ The Mock Server feature for Kraven UI provides a configurable mock server for in
 
 **Estimated Timeline: 2-3 weeks**
 
-1. **Mock Server Dashboard**
-   - Add Mock Server navigation item to the header
+1. **Plugin UI Components**
+   - Register Mock Server navigation item during plugin initialization
+   - Create Angular components for the plugin UI
+   - Implement plugin route registration with the Kraven UI plugin registry
+   - Add plugin status checking and loading state handling
+
+2. **Mock Server Dashboard**
    - Create dashboard component showing server status
    - Implement endpoint listing with active response indicators
    - Add server control buttons (start/stop/restart)
+   - Integrate with plugin lifecycle events
 
-2. **Endpoint Management**
+3. **Endpoint Management**
    - Create endpoint detail view
    - Implement response selection interface
    - Add response details view
    - Support for switching between different responses for existing endpoints
 
-3. **Configuration Management**
+4. **Configuration Management**
    - Implement configuration loading and validation
    - Add import/export functionality
    - Create configuration validation with error highlighting
@@ -79,25 +87,31 @@ The Mock Server feature for Kraven UI provides a configurable mock server for in
 
 **Estimated Timeline: 3-4 weeks**
 
-1. **Advanced Request Matching**
+1. **Plugin API Extensions**
+   - Create plugin-specific API endpoints for advanced features
+   - Implement plugin service interfaces for feature extensions
+   - Add plugin event system for feature notifications
+   - Create plugin configuration extensions for advanced features
+
+2. **Advanced Request Matching**
    - Implement header-based matching
    - Add query parameter matching
    - Support for path variable extraction
    - Add request body content matching
 
-2. **Dynamic Response Generation**
+3. **Dynamic Response Generation**
    - Implement template-based response generation
    - Add support for request data extraction
    - Create expression evaluation for dynamic values
    - Support for conditional response logic
 
-3. **Response Delay Simulation**
+4. **Response Delay Simulation**
    - Add configurable response delays
    - Implement random delay ranges
    - Support for conditional delays based on request attributes
    - Add UI controls for delay configuration
 
-4. **Sequence Responses**
+5. **Sequence Responses**
    - Implement sequential response delivery
    - Add cycle and one-time sequence options
    - Create UI for sequence management
@@ -107,25 +121,31 @@ The Mock Server feature for Kraven UI provides a configurable mock server for in
 
 **Estimated Timeline: 3-4 weeks**
 
-1. **Proxy Mode**
+1. **Plugin Extension Points**
+   - Create extension points for custom request handlers
+   - Implement plugin hooks for request/response interception
+   - Add plugin API for custom template functions
+   - Create plugin configuration extensions for advanced features
+
+2. **Proxy Mode**
    - Implement request proxying to real backends
    - Add configuration for proxy targets
    - Support for header manipulation
    - Create UI for proxy configuration
 
-2. **Request Validation**
+3. **Request Validation**
    - Implement JSON Schema validation for requests
    - Add validation error responses
    - Create UI for schema definition
    - Support for custom validation logic
 
-3. **Response Templating**
+4. **Response Templating**
    - Implement Handlebars template engine integration
    - Add helper functions for common operations
    - Create template editor with syntax highlighting
    - Support for template testing
 
-4. **Request History**
+5. **Request History**
    - Implement request logging and storage
    - Create history viewer with filtering
    - Add request/response detail view
@@ -135,54 +155,67 @@ The Mock Server feature for Kraven UI provides a configurable mock server for in
 
 **Estimated Timeline: 2-3 weeks**
 
-1. **Performance Optimization**
+1. **Plugin Packaging and Distribution**
+   - Create Maven artifact for the plugin
+   - Implement plugin bundling script
+   - Add plugin version management
+   - Create plugin deployment documentation
+
+2. **Performance Optimization**
    - Optimize request handling for high throughput
    - Implement caching for frequently used responses
    - Add metrics collection for performance monitoring
    - Optimize configuration loading and parsing
 
-2. **UI Enhancements**
+3. **UI Enhancements**
    - Improve response editor with syntax highlighting
    - Add search and filtering for endpoints and responses
    - Implement drag-and-drop for response ordering
    - Add keyboard shortcuts for common operations
 
-3. **Documentation**
-   - Create comprehensive user documentation
+4. **Documentation**
+   - Create comprehensive plugin documentation
    - Add examples for common use cases
-   - Create API reference for programmatic usage
-   - Add tutorials for getting started
+   - Create plugin API reference for programmatic usage
+   - Add tutorials for getting started with the plugin
+   - Update main Kraven UI documentation to reference the plugin
 
-4. **Testing and Validation**
-   - Implement comprehensive test suite
+5. **Testing and Validation**
+   - Implement comprehensive test suite for the plugin
    - Add integration tests with real-world scenarios
    - Create performance benchmarks
-   - Add validation for configuration correctness
+   - Add validation for plugin configuration correctness
 
 ## Feature Completion Criteria
 
-1. **Functional Completeness**
-   - All planned features implemented and tested
-   - UI components fully integrated with the backend
-   - Configuration model fully documented and validated
+1. **Plugin Functional Completeness**
+   - All planned plugin features implemented and tested
+   - Plugin UI components fully integrated with the Kraven UI plugin system
+   - Plugin configuration model fully documented and validated
+   - Plugin registration and lifecycle management fully implemented
 
 2. **Performance Requirements**
+   - Plugin initialization time under 1 second
    - Server startup time under 2 seconds
    - Request handling latency under 50ms (excluding configured delays)
    - Support for at least 100 concurrent connections
    - Memory usage under 100MB for typical configurations
 
 3. **User Experience**
+   - Seamless plugin integration with the Kraven UI
    - Intuitive UI for managing mock endpoints and responses
    - Clear feedback for configuration errors
    - Responsive interface even with large configurations
    - Consistent styling with the rest of Kraven UI
+   - Proper loading states during plugin initialization
 
 4. **Documentation**
-   - Complete user guide with examples
-   - API reference for programmatic usage
-   - Configuration reference with all options
-   - Troubleshooting guide for common issues
+   - Complete plugin user guide with examples
+   - Plugin API reference for programmatic usage
+   - Plugin configuration reference with all options
+   - Plugin installation and setup guide
+   - Troubleshooting guide for common plugin issues
+   - Integration with the main Kraven UI documentation
 
 ## JSON Configuration Example
 
@@ -337,26 +370,31 @@ The Mock Server feature for Kraven UI provides a configurable mock server for in
 ```yaml
 kraven:
   ui:
-    mock-server:
-      enabled: true
-      port: 11000
-      host: localhost
-      # base-path is optional and can be omitted
-      base-path:
-      # Configuration can be loaded from classpath or file system
-      # File system path takes precedence if both are specified
-      config-path: classpath:mock-server/config.json
-      config-volume-path: /path/to/config/volume/mock-config.json
-      auto-reload: true
-      reload-interval-ms: 5000
-      max-history-entries: 100
-      default-delay-ms: 0
+    plugins:
+      enabled: true  # Enable the plugin system
+    plugin:
+      mock-server:
+        enabled: true
+        auto-start: false  # Set to true to start the server automatically
+        port: 11000
+        host: localhost
+        # base-path is optional and can be omitted
+        base-path:
+        # Configuration can be loaded from classpath or file system
+        # File system path takes precedence if both are specified
+        config-path: classpath:mock-server/config.json
+        config-volume-path: /path/to/config/volume/mock-config.json
+        auto-reload: true
+        reload-interval-ms: 5000
+        max-history-entries: 100
+        default-delay-ms: 0
 ```
 
 ## Dependencies
 
+- Kraven UI Plugin SDK for plugin integration
 - Undertow for the HTTP server
 - Jackson for JSON processing
 - Handlebars for template rendering
-- Spring Boot for auto-configuration
+- Spring Boot for backend services
 - Angular for UI components

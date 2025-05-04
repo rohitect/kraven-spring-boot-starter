@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { ConfigService } from './config.service';
 
 export type Theme = 'dark' | 'light';
@@ -10,6 +11,11 @@ export type Theme = 'dark' | 'light';
 export class ThemeService {
   private themeSubject = new BehaviorSubject<Theme>('dark'); // Default to dark initially
   public theme$ = this.themeSubject.asObservable();
+
+  // Observable for dark theme state (true if dark, false if light)
+  public isDarkTheme$ = this.theme$.pipe(
+    map(theme => theme === 'dark')
+  );
 
   constructor(private configService: ConfigService) {
     // Initialize theme after constructor

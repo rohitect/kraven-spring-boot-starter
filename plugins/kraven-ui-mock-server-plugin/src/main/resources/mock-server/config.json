@@ -1,0 +1,117 @@
+{
+  "endpoints": [
+    {
+      "path": "/api/users",
+      "method": "GET",
+      "responses": [
+        {
+          "id": "default",
+          "isDefault": true,
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "users": [
+              {"id": 1, "name": "John Doe"},
+              {"id": 2, "name": "Jane Smith"}
+            ]
+          },
+          "description": "Returns a list of users"
+        },
+        {
+          "id": "empty",
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "users": []
+          },
+          "description": "Returns an empty list of users"
+        },
+        {
+          "id": "error",
+          "status": 500,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "error": "Internal server error",
+            "message": "Failed to retrieve users"
+          },
+          "description": "Simulates a server error"
+        }
+      ]
+    },
+    {
+      "path": "/api/users/{id}",
+      "method": "GET",
+      "responses": [
+        {
+          "id": "default",
+          "isDefault": true,
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "id": 1,
+            "name": "John Doe",
+            "email": "john.doe@example.com"
+          },
+          "description": "Returns a user by ID"
+        },
+        {
+          "id": "not-found",
+          "status": 404,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "error": "Not found",
+            "message": "User not found"
+          },
+          "description": "User not found"
+        }
+      ]
+    },
+    {
+      "path": "/api/users",
+      "method": "POST",
+      "responses": [
+        {
+          "id": "created",
+          "isDefault": true,
+          "status": 201,
+          "headers": {
+            "Content-Type": "application/json",
+            "Location": "/api/users/3"
+          },
+          "body": {
+            "id": 3,
+            "name": "New User",
+            "email": "new.user@example.com"
+          },
+          "description": "User created successfully"
+        },
+        {
+          "id": "validation-error",
+          "status": 400,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "error": "Validation error",
+            "message": "Invalid user data",
+            "details": [
+              "Name is required",
+              "Email must be valid"
+            ]
+          },
+          "description": "Validation error"
+        }
+      ]
+    }
+  ]
+}

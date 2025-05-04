@@ -1,0 +1,492 @@
+{
+  "endpoints": [
+    {
+      "path": "/api/users",
+      "method": "GET",
+      "responseType": "manual",
+      "responses": [
+        {
+          "id": "default-users",
+          "isDefault": true,
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache"
+          },
+          "body": {
+            "users": [
+              {"id": 1, "name": "John Doe", "email": "john@example.com", "role": "admin"},
+              {"id": 2, "name": "Jane Smith", "email": "jane@example.com", "role": "user"},
+              {"id": 3, "name": "Bob Johnson", "email": "bob@example.com", "role": "user"}
+            ],
+            "pagination": {
+              "page": 1,
+              "pageSize": 10,
+              "totalItems": 3,
+              "totalPages": 1
+            }
+          },
+          "description": "Returns a list of users with pagination",
+          "tags": ["users", "success", "pagination"],
+          "category": "Success Responses"
+        },
+        {
+          "id": "empty-users",
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "users": [],
+            "pagination": {
+              "page": 1,
+              "pageSize": 10,
+              "totalItems": 0,
+              "totalPages": 0
+            }
+          },
+          "description": "Returns an empty list of users",
+          "tags": ["users", "empty"],
+          "category": "Success Responses"
+        },
+        {
+          "id": "unauthorized",
+          "status": 401,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "error": "Unauthorized",
+            "message": "Authentication required to access this resource",
+            "timestamp": "2023-05-15T10:30:45Z"
+          },
+          "description": "Unauthorized access response",
+          "tags": ["users", "error", "auth"],
+          "category": "Error Responses"
+        },
+        {
+          "id": "server-error",
+          "status": 500,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "error": "Internal Server Error",
+            "message": "An unexpected error occurred while processing your request",
+            "timestamp": "2023-05-15T10:30:45Z",
+            "traceId": "abc-123-xyz-789"
+          },
+          "delay": 1500,
+          "description": "Simulates a server error with delay",
+          "tags": ["users", "error", "server"],
+          "category": "Error Responses"
+        }
+      ],
+      "matchers": [
+        {
+          "type": "query-param",
+          "name": "role",
+          "value": "admin"
+        }
+      ]
+    },
+    {
+      "path": "/api/users/{id}",
+      "method": "GET",
+      "responseType": "manual",
+      "responses": [
+        {
+          "id": "user-details",
+          "isDefault": true,
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "id": 1,
+            "name": "John Doe",
+            "email": "john@example.com",
+            "role": "admin",
+            "profile": {
+              "address": "123 Main St",
+              "city": "New York",
+              "country": "USA",
+              "phone": "+1-555-123-4567"
+            },
+            "preferences": {
+              "theme": "dark",
+              "notifications": true,
+              "language": "en-US"
+            },
+            "createdAt": "2023-01-15T08:30:00Z",
+            "updatedAt": "2023-05-10T14:20:30Z"
+          },
+          "description": "Returns details for a specific user",
+          "tags": ["user", "details", "success"],
+          "category": "Success Responses"
+        },
+        {
+          "id": "user-not-found",
+          "status": 404,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "error": "Not Found",
+            "message": "User with ID {id} not found",
+            "timestamp": "2023-05-15T10:30:45Z"
+          },
+          "description": "User not found response",
+          "tags": ["user", "error", "not-found"],
+          "category": "Error Responses"
+        }
+      ],
+      "matchers": [
+        {
+          "type": "path-variable",
+          "name": "id",
+          "pattern": "\\d+"
+        }
+      ]
+    },
+    {
+      "path": "/api/users",
+      "method": "POST",
+      "responseType": "manual",
+      "responses": [
+        {
+          "id": "user-created",
+          "isDefault": true,
+          "status": 201,
+          "headers": {
+            "Content-Type": "application/json",
+            "Location": "/api/users/4"
+          },
+          "body": {
+            "id": 4,
+            "name": "New User",
+            "email": "newuser@example.com",
+            "role": "user",
+            "createdAt": "2023-05-15T10:30:45Z"
+          },
+          "description": "Successfully created a new user",
+          "tags": ["user", "create", "success"],
+          "category": "Success Responses"
+        },
+        {
+          "id": "validation-error",
+          "status": 400,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "error": "Bad Request",
+            "message": "Validation failed",
+            "details": [
+              {"field": "email", "message": "Invalid email format"},
+              {"field": "name", "message": "Name is required"}
+            ],
+            "timestamp": "2023-05-15T10:30:45Z"
+          },
+          "description": "Validation error response",
+          "tags": ["user", "create", "error", "validation"],
+          "category": "Error Responses"
+        }
+      ],
+      "matchers": [
+        {
+          "type": "body",
+          "name": "email",
+          "pattern": ".*@example\\.com"
+        }
+      ]
+    },
+    {
+      "path": "/api/products",
+      "method": "GET",
+      "responseType": "sequence",
+      "responses": [
+        {
+          "id": "products-page1",
+          "isDefault": true,
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "products": [
+              {"id": 1, "name": "Product 1", "price": 19.99},
+              {"id": 2, "name": "Product 2", "price": 29.99},
+              {"id": 3, "name": "Product 3", "price": 39.99}
+            ],
+            "pagination": {
+              "page": 1,
+              "pageSize": 3,
+              "totalItems": 9,
+              "totalPages": 3,
+              "nextPage": 2
+            }
+          },
+          "description": "Returns first page of products",
+          "tags": ["products", "pagination"],
+          "category": "Sequence Responses"
+        },
+        {
+          "id": "products-page2",
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "products": [
+              {"id": 4, "name": "Product 4", "price": 49.99},
+              {"id": 5, "name": "Product 5", "price": 59.99},
+              {"id": 6, "name": "Product 6", "price": 69.99}
+            ],
+            "pagination": {
+              "page": 2,
+              "pageSize": 3,
+              "totalItems": 9,
+              "totalPages": 3,
+              "prevPage": 1,
+              "nextPage": 3
+            }
+          },
+          "description": "Returns second page of products",
+          "tags": ["products", "pagination"],
+          "category": "Sequence Responses"
+        },
+        {
+          "id": "products-page3",
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "products": [
+              {"id": 7, "name": "Product 7", "price": 79.99},
+              {"id": 8, "name": "Product 8", "price": 89.99},
+              {"id": 9, "name": "Product 9", "price": 99.99}
+            ],
+            "pagination": {
+              "page": 3,
+              "pageSize": 3,
+              "totalItems": 9,
+              "totalPages": 3,
+              "prevPage": 2
+            }
+          },
+          "description": "Returns third page of products",
+          "tags": ["products", "pagination"],
+          "category": "Sequence Responses"
+        }
+      ]
+    },
+    {
+      "path": "/api/orders/{orderId}",
+      "method": "GET",
+      "responseType": "manual",
+      "responses": [
+        {
+          "id": "order-details",
+          "isDefault": true,
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "bodyTemplate": "{\"id\": \"{{request.pathVariables.orderId}}\", \"customerName\": \"John Doe\", \"items\": [{\"productId\": 1, \"quantity\": 2, \"price\": 39.98}, {\"productId\": 3, \"quantity\": 1, \"price\": 39.99}], \"total\": 79.97, \"status\": \"shipped\", \"orderDate\": \"2023-05-10T14:20:30Z\"}",
+          "bodyTemplateEngine": "handlebars",
+          "description": "Returns order details with dynamic order ID",
+          "tags": ["orders", "template"],
+          "category": "Template Responses"
+        }
+      ],
+      "matchers": [
+        {
+          "type": "header",
+          "name": "Authorization",
+          "pattern": "Bearer .*"
+        }
+      ]
+    },
+    {
+      "path": "/api/health",
+      "method": "GET",
+      "responseType": "manual",
+      "responses": [
+        {
+          "id": "health-ok",
+          "isDefault": true,
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "status": "UP",
+            "components": {
+              "database": {
+                "status": "UP",
+                "details": {
+                  "database": "PostgreSQL",
+                  "version": "14.5"
+                }
+              },
+              "diskSpace": {
+                "status": "UP",
+                "details": {
+                  "total": 500000000000,
+                  "free": 220000000000,
+                  "threshold": 10000000000
+                }
+              },
+              "redis": {
+                "status": "UP",
+                "details": {
+                  "version": "6.2.6"
+                }
+              }
+            }
+          },
+          "description": "Health check response",
+          "tags": ["system", "health"],
+          "category": "System Responses"
+        },
+        {
+          "id": "health-degraded",
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "status": "UP",
+            "components": {
+              "database": {
+                "status": "UP",
+                "details": {
+                  "database": "PostgreSQL",
+                  "version": "14.5"
+                }
+              },
+              "diskSpace": {
+                "status": "UP",
+                "details": {
+                  "total": 500000000000,
+                  "free": 220000000000,
+                  "threshold": 10000000000
+                }
+              },
+              "redis": {
+                "status": "DOWN",
+                "details": {
+                  "error": "Connection refused"
+                }
+              }
+            }
+          },
+          "description": "Health check with degraded service",
+          "tags": ["system", "health", "degraded"],
+          "category": "System Responses"
+        }
+      ]
+    },
+    {
+      "path": "/api/files/upload",
+      "method": "POST",
+      "responseType": "manual",
+      "responses": [
+        {
+          "id": "file-uploaded",
+          "isDefault": true,
+          "status": 201,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "fileId": "f123-456-789",
+            "fileName": "document.pdf",
+            "fileSize": 1024000,
+            "mimeType": "application/pdf",
+            "uploadedAt": "2023-05-15T10:30:45Z",
+            "downloadUrl": "/api/files/f123-456-789"
+          },
+          "delay": 2000,
+          "description": "File upload success response with delay",
+          "tags": ["files", "upload", "success"],
+          "category": "File Operations"
+        },
+        {
+          "id": "file-too-large",
+          "status": 413,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "error": "Payload Too Large",
+            "message": "The uploaded file exceeds the maximum allowed size of 10MB",
+            "timestamp": "2023-05-15T10:30:45Z"
+          },
+          "description": "File too large error",
+          "tags": ["files", "upload", "error"],
+          "category": "File Operations"
+        }
+      ]
+    },
+    {
+      "path": "/api/auth/login",
+      "method": "POST",
+      "responseType": "manual",
+      "responses": [
+        {
+          "id": "login-success",
+          "isDefault": true,
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+            "refreshToken": "abc123def456ghi789",
+            "expiresIn": 3600,
+            "tokenType": "Bearer",
+            "user": {
+              "id": 1,
+              "name": "John Doe",
+              "email": "john@example.com",
+              "role": "admin"
+            }
+          },
+          "description": "Successful login response",
+          "tags": ["auth", "login", "success"],
+          "category": "Authentication"
+        },
+        {
+          "id": "login-failed",
+          "status": 401,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "error": "Unauthorized",
+            "message": "Invalid username or password",
+            "timestamp": "2023-05-15T10:30:45Z"
+          },
+          "description": "Failed login response",
+          "tags": ["auth", "login", "error"],
+          "category": "Authentication"
+        }
+      ],
+      "matchers": [
+        {
+          "type": "body",
+          "name": "username",
+          "value": "admin"
+        },
+        {
+          "type": "body",
+          "name": "password",
+          "value": "password"
+        }
+      ]
+    }
+  ]
+}

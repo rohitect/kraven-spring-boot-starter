@@ -28,6 +28,10 @@ export const routes: Routes = [
         data: { pluginId: 'kafka' },
         canActivate: [PluginRouteGuard]
       },
+      {
+        path: 'mock-server',
+        loadChildren: () => import('./components/mock-server/mock-server.module').then(m => m.MockServerModule)
+      },
       { path: 'documentation', component: DocumentationComponent },
       { path: 'documentation/:groupId', component: DocumentationComponent },
       { path: 'documentation/:groupId/:fileId', component: DocumentationComponent },

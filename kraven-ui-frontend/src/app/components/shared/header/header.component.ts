@@ -20,6 +20,7 @@ import { Subscription } from 'rxjs';
 export class HeaderComponent implements OnInit, OnDestroy {
   isDarkTheme = false;
   showKafka = false;
+  showMockServer = false;
   private subscriptions: Subscription[] = [];
 
   constructor(
@@ -36,8 +37,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
     });
     this.subscriptions.push(themeSub);
 
-    // Check if Kafka plugin is available and running using the plugin registry
+    // Check if plugins are available and running using the plugin registry
     this.checkKafkaPluginStatus();
+    this.checkMockServerPluginStatus();
   }
 
   ngOnDestroy(): void {
@@ -68,6 +70,31 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
     // Trigger a check
     this.pluginRegistry.checkPluginReady('kafka').subscribe();
+  }
+
+  /**
+   * Checks if the Mock Server plugin is registered and running
+   */
+  private checkMockServerPluginStatus(): void {
+    console.log('HeaderComponent: Checking Mock Server plugin status');
+
+    // First, try to get the current status
+    const isRegistered = this.pluginService.isPluginRegistered('mock-server');
+    const isRunning = this.pluginService.isPluginRunning('mock-server');
+
+    if (isRegistered && isRunning) {
+      this.showMockServer = true;
+      return;
+    }
+
+    // If not immediately available, use the registry to check with retries
+    const statusSub = this.pluginRegistry.observePluginStatus('mock-server').subscribe(status => {
+      this.showMockServer = status === PluginStatus.READY;
+    });
+    this.subscriptions.push(statusSub);
+
+    // Trigger a check
+    this.pluginRegistry.checkPluginReady('mock-server').subscribe();
   }
 
   toggleTheme(): void {

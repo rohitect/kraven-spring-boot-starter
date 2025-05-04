@@ -1,0 +1,148 @@
+<app-plugin-loader pluginId="mock-server">
+  <div class="mock-server-container">
+    <!-- Header with animated gradient -->
+    <div class="mock-server-header">
+      <div class="title-container">
+        <h1>Mock Server</h1>
+        <div class="subtitle">Simulate API responses with ease</div>
+      </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div class="loading-indicator" *ngIf="loading">
+      <div class="spinner"></div>
+      <div class="loading-text">Loading...</div>
+    </div>
+
+    <!-- Error Message -->
+    <div class="error-message" *ngIf="error">
+      <div class="error-icon">
+        <i class="fas fa-exclamation-circle"></i>
+      </div>
+      <div class="error-content">
+        <h3>Oops! Something went wrong</h3>
+        <p>{{ error }}</p>
+        <button class="btn btn-primary" (click)="refreshData()">Try Again</button>
+      </div>
+    </div>
+
+    <!-- Server Status Card with animations -->
+    <div class="server-status-card" [ngClass]="{'server-running': serverStatus?.running, 'server-stopped': !serverStatus?.running}" *ngIf="!loading && !error">
+      <div class="status-content">
+        <div class="status-left">
+          <div class="status-badge" [ngClass]="{'running': serverStatus?.running, 'stopped': !serverStatus?.running}">
+            <i class="fas" [ngClass]="serverStatus?.running ? 'fa-play' : 'fa-stop'"></i>
+            {{ serverStatus?.running ? 'RUNNING' : 'STOPPED' }}
+          </div>
+          <div class="status-details">
+            <h2>Server Status</h2>
+            <div *ngIf="serverStatus?.running" class="server-info">
+              <div class="info-item">
+                <i class="fas fa-server"></i>
+                <span>Host: <strong>{{ serverStatus?.host }}</strong></span>
+              </div>
+              <div class="info-item">
+                <i class="fas fa-plug"></i>
+                <span>Port: <strong>{{ serverStatus?.port }}</strong></span>
+              </div>
+              <div class="info-item" *ngIf="serverStatus?.basePath">
+                <i class="fas fa-sitemap"></i>
+                <span>Base Path: <strong>{{ serverStatus?.basePath }}</strong></span>
+              </div>
+              <div class="info-item">
+                <i class="fas fa-globe"></i>
+                <span>URL: <a href="http://{{ serverStatus?.host }}:{{ serverStatus?.port }}{{ serverStatus?.basePath || '' }}" target="_blank" class="server-url">
+                  http://{{ serverStatus?.host }}:{{ serverStatus?.port }}{{ serverStatus?.basePath || '' }}
+                </a></span>
+              </div>
+            </div>
+            <div *ngIf="!serverStatus?.running" class="server-info-stopped">
+              <p><i class="fas fa-info-circle"></i> The mock server is currently inactive. Start it to begin serving mock responses.</p>
+            </div>
+          </div>
+        </div>
+        <div class="status-actions">
+          <button *ngIf="!serverStatus?.running" class="btn btn-primary pulse-animation" (click)="startServer()">
+            <i class="fas fa-play"></i> Start Server
+          </button>
+          <button *ngIf="serverStatus?.running" class="btn btn-danger" (click)="stopServer()">
+            <i class="fas fa-stop"></i> Stop Server
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Configuration Summary with hover effects -->
+    <div class="config-summary" *ngIf="serverConfig && !loading && !error">
+      <h3>Configuration Summary</h3>
+      <div class="config-grid">
+        <div class="config-item" (click)="setActiveTab(1)" title="View Endpoints">
+          <div class="config-icon">
+            <i class="fas fa-exchange-alt"></i>
+          </div>
+          <div class="config-content">
+            <span class="config-label">Endpoints</span>
+            <span class="config-value">{{ serverConfig.endpointCount || 0 }}</span>
+          </div>
+        </div>
+        <div class="config-item" (click)="setActiveTab(1)" title="View Responses">
+          <div class="config-icon">
+            <i class="fas fa-reply-all"></i>
+          </div>
+          <div class="config-content">
+            <span class="config-label">Responses</span>
+            <span class="config-value">{{ serverConfig.responseCount || 0 }}</span>
+          </div>
+        </div>
+        <div class="config-item" (click)="setActiveTab(1)" title="View Auto Reload Settings">
+          <div class="config-icon">
+            <i class="fas fa-sync-alt"></i>
+          </div>
+          <div class="config-content">
+            <span class="config-label">Auto Reload</span>
+            <span class="config-value">{{ serverConfig.autoReload ? 'Enabled' : 'Disabled' }}</span>
+          </div>
+        </div>
+        <div class="config-item" (click)="setActiveTab(1)" title="View Configuration Path">
+          <div class="config-icon">
+            <i class="fas fa-file-code"></i>
+          </div>
+          <div class="config-content">
+            <span class="config-label">Config Path</span>
+            <span class="config-value config-path">{{ serverConfig.configPath }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs with smooth transitions -->
+    <div class="tabs-container" *ngIf="!loading && !error">
+      <div class="tabs-header">
+        <div class="tab" [ngClass]="{'active': activeTabIndex === 0}" (click)="setActiveTab(0)">
+          <i class="fas fa-exchange-alt"></i> Endpoints
+        </div>
+        <div class="tab" [ngClass]="{'active': activeTabIndex === 1}" (click)="setActiveTab(1)">
+          <i class="fas fa-cogs"></i> Configuration
+        </div>
+      </div>
+      <div class="tabs-content">
+        <!-- Endpoints Tab -->
+        <div *ngIf="activeTabIndex === 0" class="tab-content" [@fadeInOut]>
+          <app-endpoint-management
+            [endpoints]="endpoints"
+            [serverRunning]="serverStatus?.running || false"
+            [selectedEndpoint]="selectedEndpoint"
+            (endpointSelected)="selectEndpoint($event)">
+          </app-endpoint-management>
+        </div>
+
+        <!-- Configuration Tab -->
+        <div *ngIf="activeTabIndex === 1" class="tab-content" [@fadeInOut]>
+          <app-configuration-management
+            [serverConfig]="serverConfig">
+          </app-configuration-management>
+        </div>
+      </div>
+    </div>
+  </div>
+</app-plugin-loader>

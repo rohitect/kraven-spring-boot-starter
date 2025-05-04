@@ -1,0 +1,223 @@
+<div class="endpoint-management">
+  <!-- Left sidebar: Endpoint list -->
+  <div class="endpoint-list">
+    <div class="search-container">
+      <div class="search-input-wrapper">
+        <i class="fas fa-search search-icon"></i>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Search endpoints..."
+          [(ngModel)]="searchQuery"
+          (input)="onSearchChange(searchQuery)">
+        <button *ngIf="searchQuery" class="clear-search" (click)="searchQuery = ''; onSearchChange('')">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="endpoints-container">
+      <div *ngIf="filteredEndpoints.length === 0" class="no-endpoints">
+        <div class="empty-state">
+          <i class="fas fa-search"></i>
+          <p>No endpoints found</p>
+          <small *ngIf="searchQuery">Try a different search term</small>
+        </div>
+      </div>
+
+      <div *ngFor="let endpoint of filteredEndpoints; let i = index"
+           class="endpoint-item"
+           [ngClass]="{'selected': selectedEndpoint?.path === endpoint.path && selectedEndpoint?.method === endpoint.method}"
+           (click)="selectEndpoint(endpoint)"
+           [style.animation-delay]="i * 0.05 + 's'">
+        <div class="endpoint-method" [ngClass]="getMethodClass(endpoint.method)">
+          {{ endpoint.method }}
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-path">
+            <div [innerHTML]="formatPathWithVariables(endpoint.path)"></div>
+            <div *ngIf="endpoint.originalPath && endpoint.originalPath !== endpoint.path" class="original-path">
+              <span class="original-path-label">Template Path:</span>
+              <span [innerHTML]="formatPathWithVariables(endpoint.originalPath)"></span>
+            </div>
+          </div>
+          <div class="endpoint-responses">
+            <i class="fas fa-reply-all"></i> {{ endpoint.responses?.length || 0 }} responses
+          </div>
+        </div>
+        <div class="endpoint-arrow">
+          <i class="fas fa-chevron-right"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right content: Endpoint details -->
+  <div class="endpoint-details">
+    <div *ngIf="!endpointDetails" class="no-selection">
+      <div class="empty-state">
+        <div class="no-selection-icon">
+          <i class="fas fa-exchange-alt"></i>
+        </div>
+        <h3>No Endpoint Selected</h3>
+        <p>Select an endpoint from the list to view its details</p>
+      </div>
+    </div>
+
+    <div *ngIf="endpointDetails" class="details-container">
+      <div class="details-header">
+        <div class="endpoint-title">
+          <span class="method-badge" [ngClass]="getMethodClass(endpointDetails.method)">
+            {{ endpointDetails.method }}
+          </span>
+          <div class="endpoint-title-content">
+            <h2 [innerHTML]="formatPathWithVariables(endpointDetails.path)"></h2>
+            <div *ngIf="endpointDetails.originalPath && endpointDetails.originalPath !== endpointDetails.path" class="original-path-details">
+              <span class="original-path-label">Template Path with Variables:</span>
+              <span [innerHTML]="formatPathWithVariables(endpointDetails.originalPath)"></span>
+            </div>
+          </div>
+        </div>
+        <div class="endpoint-actions">
+          <span class="response-count">
+            <i class="fas fa-reply-all"></i> {{ endpointDetails.responses?.length || 0 }} responses
+          </span>
+        </div>
+      </div>
+
+      <div class="responses-section">
+        <div class="section-header">
+          <h3>Available Responses</h3>
+          <div class="section-actions">
+            <span class="hint-text" *ngIf="serverRunning">
+              <i class="fas fa-info-circle"></i> Click on a response to view details
+            </span>
+          </div>
+        </div>
+
+        <div class="responses-list">
+          <div *ngIf="!endpointDetails.responses || endpointDetails.responses.length === 0" class="empty-state">
+            <i class="fas fa-exclamation-circle"></i>
+            <p>No responses found for this endpoint</p>
+          </div>
+
+          <div *ngFor="let response of endpointDetails.responses || []; let i = index"
+               class="response-item"
+               [ngClass]="{'selected': selectedResponse?.id === response?.id, 'active': response?.isDefault}"
+               (click)="selectResponse(response)"
+               [style.animation-delay]="i * 0.05 + 's'">
+            <div class="response-header">
+              <div class="response-id">{{ response?.id || 'Unknown' }}</div>
+              <div class="response-status" [ngClass]="getStatusClass(response?.status)">
+                {{ response?.status || 'Unknown' }}
+              </div>
+              <div *ngIf="response?.isDefault" class="response-default-badge">
+                <i class="fas fa-check-circle"></i> Default
+              </div>
+            </div>
+            <div class="response-description">{{ response?.description || 'No description' }}</div>
+            <button *ngIf="serverRunning && response && !response.isDefault"
+                    class="btn btn-sm btn-primary set-active-btn"
+                    (click)="setActiveResponse(response); $event.stopPropagation()">
+              <i class="fas fa-check"></i> Set as Active
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="selectedResponse" class="response-details">
+        <div class="section-header">
+          <h3>Response Details: <span class="highlight">{{ selectedResponse.id }}</span></h3>
+        </div>
+
+        <div class="details-grid">
+          <div class="detail-item">
+            <div class="detail-icon">
+              <i class="fas fa-tag"></i>
+            </div>
+            <div class="detail-content">
+              <div class="detail-label">Status</div>
+              <div class="detail-value status-badge" [ngClass]="getStatusClass(selectedResponse.status)">
+                {{ selectedResponse.status }}
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-item">
+            <div class="detail-icon">
+              <i class="fas fa-align-left"></i>
+            </div>
+            <div class="detail-content">
+              <div class="detail-label">Description</div>
+              <div class="detail-value">{{ selectedResponse.description }}</div>
+            </div>
+          </div>
+
+          <div *ngIf="selectedResponse.delay" class="detail-item">
+            <div class="detail-icon">
+              <i class="fas fa-clock"></i>
+            </div>
+            <div class="detail-content">
+              <div class="detail-label">Delay</div>
+              <div class="detail-value">{{ selectedResponse.delay }}ms</div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="selectedResponse.headers" class="headers-section">
+          <div class="section-header">
+            <h4><i class="fas fa-exchange-alt"></i> Headers</h4>
+          </div>
+          <div class="headers-table">
+            <div class="header-row header-header">
+              <div class="header-name">Name</div>
+              <div class="header-value">Value</div>
+            </div>
+            <div *ngFor="let header of selectedResponse.headers | keyvalue" class="header-row">
+              <div class="header-name">{{ header.key }}</div>
+              <div class="header-value">{{ header.value }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="selectedResponse.body" class="body-section">
+          <div class="section-header">
+            <h4><i class="fas fa-code"></i> Body</h4>
+          </div>
+          <div class="body-content">
+            <app-andypf-json-viewer
+              [json]="selectedResponse.body"
+              [expanded]="true"
+              [theme]="isDarkTheme ? 'default-dark' : 'default-light'"
+              [showDataTypes]="true"
+              [showToolbar]="true"
+              [expandIconType]="'arrow'"
+              [showCopy]="true"
+              [showSize]="true">
+            </app-andypf-json-viewer>
+          </div>
+        </div>
+
+        <div *ngIf="selectedResponse.bodyTemplate" class="template-section">
+          <div class="section-header">
+            <h4><i class="fas fa-file-code"></i> Body Template <span class="template-engine">({{ selectedResponse.bodyTemplateEngine || 'simple' }})</span></h4>
+          </div>
+          <div class="template-content">
+            <app-andypf-json-viewer
+              *ngIf="isJsonTemplate(selectedResponse.bodyTemplate)"
+              [json]="parseJsonTemplate(selectedResponse.bodyTemplate)"
+              [expanded]="true"
+              [theme]="isDarkTheme ? 'default-dark' : 'default-light'"
+              [showDataTypes]="true"
+              [showToolbar]="true"
+              [expandIconType]="'arrow'"
+              [showCopy]="true"
+              [showSize]="true">
+            </app-andypf-json-viewer>
+            <pre *ngIf="!isJsonTemplate(selectedResponse.bodyTemplate)">{{ selectedResponse.bodyTemplate }}</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
