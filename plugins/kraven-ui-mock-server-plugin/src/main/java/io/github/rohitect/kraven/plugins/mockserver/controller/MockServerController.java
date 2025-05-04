@@ -79,6 +79,9 @@ public class MockServerController {
         status.put("reloadIntervalMs", config.getReloadIntervalMs());
         status.put("maxHistoryEntries", config.getMaxHistoryEntries());
         status.put("defaultDelayMs", config.getDefaultDelayMs());
+        status.put("defaultTemplateEngine", config.getDefaultTemplateEngine());
+        status.put("enableAdvancedMatching", config.isEnableAdvancedMatching());
+        status.put("enableDynamicResponses", config.isEnableDynamicResponses());
 
         try {
             MockConfiguration configuration = loadConfiguration();
@@ -324,6 +327,84 @@ public class MockServerController {
         return ResponseEntity.ok(result);
     }
 
+
+
+    /**
+     * Test a template with sample data.
+     *
+     * @param engine the template engine to use
+     * @param template the template string
+     * @param context the context for template rendering
+     * @return the rendered template
+     */
+    @PostMapping("/test-template")
+    public ResponseEntity<Map<String, Object>> testTemplate(
+            @RequestParam String engine,
+            @RequestParam String template,
+            @RequestBody(required = false) Map<String, Object> context) {
+
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            if (context == null) {
+                context = new HashMap<>();
+            }
+
+            String rendered = mockServerService.renderTemplate(engine, template, context);
+            result.put("success", true);
+            result.put("rendered", rendered);
+
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("Failed to test template", e);
+            result.put("success", false);
+            result.put("error", e.getMessage());
+            return ResponseEntity.ok(result);
+        }
+    }
+
+    /**
+     * Extract variables from a path pattern.
+     *
+     * @param pattern the path pattern with variables
+     * @param path the actual path
+     * @return the extracted variables
+     */
+    @GetMapping("/extract-path-variables")
+    public ResponseEntity<Map<String, Object>> extractPathVariables(
+            @RequestParam String pattern,
+            @RequestParam String path) {
+
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            Map<String, String> variables = mockServerService.extractPathVariables(pattern, path);
+            result.put("success", true);
+            result.put("variables", variables);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("Failed to extract path variables", e);
+            result.put("success", false);
+            result.put("error", e.getMessage());
+            return ResponseEntity.ok(result);
+        }
+    }
+
+    /**
+     * Get the available template engines.
+     *
+     * @return the list of available template engines
+     */
+    @GetMapping("/template-engines")
+    public ResponseEntity<List<String>> getTemplateEngines() {
+        try {
+            return ResponseEntity.ok(List.of("handlebars", "simple"));
+        } catch (Exception e) {
+            log.error("Failed to get template engines", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
     /**
      * Load the mock configuration from the configured path.
      */
@@ -367,4 +448,6 @@ public class MockServerController {
             return new MockConfiguration();
         }
     }
+
+
 }

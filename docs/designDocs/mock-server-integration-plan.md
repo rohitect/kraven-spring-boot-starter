@@ -80,12 +80,15 @@ kraven:
         base-path:
         # Configuration can be loaded from classpath or file system
         # File system path takes precedence if both are specified
-        config-path: classpath:mock-server/config.json
+        config-path: classpath:mock-server/comprehensive-config.json
         config-volume-path: /path/to/config/volume/mock-config.json
         auto-reload: true
         reload-interval-ms: 5000
         max-history-entries: 100
         default-delay-ms: 0
+        default-template-engine: simple  # Options: simple, handlebars
+        enable-advanced-matching: true
+        enable-dynamic-responses: true
 ```
 
 ### 2. Mock Configuration JSON Schema
@@ -304,7 +307,7 @@ public class MockServerConfig {
      * The path to the mock configuration file.
      * Can be a classpath resource or a file system path.
      */
-    private String configPath = "classpath:mock-server/config.json";
+    private String configPath = "classpath:mock-server/comprehensive-config.json";
 
     /**
      * The path to the mock configuration file on the file system.
@@ -331,6 +334,22 @@ public class MockServerConfig {
      * The default delay in milliseconds to apply to all responses.
      */
     private int defaultDelayMs = 0;
+
+    /**
+     * The default template engine to use for response templates.
+     * Possible values: "handlebars", "simple"
+     */
+    private String defaultTemplateEngine = "simple";
+
+    /**
+     * Whether to enable advanced request matching.
+     */
+    private boolean enableAdvancedMatching = true;
+
+    /**
+     * Whether to enable dynamic response generation.
+     */
+    private boolean enableDynamicResponses = true;
 }
 ```
 

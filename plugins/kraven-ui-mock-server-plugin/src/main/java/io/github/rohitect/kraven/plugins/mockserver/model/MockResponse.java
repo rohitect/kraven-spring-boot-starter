@@ -56,9 +56,33 @@ public class MockResponse {
     private String bodyTemplateEngine = "simple";
 
     /**
-     * The delay in milliseconds before sending the response.
+     * The fixed delay in milliseconds before sending the response.
+     * If both delay and delayRange are specified, delayRange takes precedence.
      */
     private int delay = 0;
+
+    /**
+     * The minimum delay in milliseconds for random delay range.
+     * Used only if delayRange is true.
+     */
+    private int minDelay = 0;
+
+    /**
+     * The maximum delay in milliseconds for random delay range.
+     * Used only if delayRange is true.
+     */
+    private int maxDelay = 0;
+
+    /**
+     * Whether to use a random delay range instead of a fixed delay.
+     */
+    private boolean delayRange = false;
+
+    /**
+     * Conditions for applying the delay.
+     * If empty or null, the delay is always applied.
+     */
+    private List<MockDelayCondition> delayConditions;
 
     /**
      * A description of this response.

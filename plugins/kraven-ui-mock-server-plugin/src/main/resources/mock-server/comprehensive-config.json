@@ -1,0 +1,578 @@
+{
+  "endpoints": [
+    {
+      "path": "/api/basic/users",
+      "method": "GET",
+      "description": "Basic endpoint with multiple response variations",
+      "responses": [
+        {
+          "id": "default",
+          "isDefault": true,
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "users": [
+              {"id": 1, "name": "John Doe"},
+              {"id": 2, "name": "Jane Smith"}
+            ]
+          },
+          "description": "Basic response with static JSON body"
+        },
+        {
+          "id": "empty",
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "users": []
+          },
+          "description": "Empty list response"
+        },
+        {
+          "id": "error",
+          "status": 500,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "error": "Internal server error",
+            "message": "Failed to retrieve users"
+          },
+          "description": "Error response"
+        }
+      ]
+    },
+    
+    {
+      "path": "/api/basic/users/{id}",
+      "method": "GET",
+      "description": "Basic endpoint with path parameter",
+      "responses": [
+        {
+          "id": "default",
+          "isDefault": true,
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "id": 1,
+            "name": "John Doe",
+            "email": "john.doe@example.com"
+          },
+          "description": "User details response"
+        },
+        {
+          "id": "not-found",
+          "status": 404,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "error": "Not found",
+            "message": "User not found"
+          },
+          "description": "User not found response"
+        }
+      ]
+    },
+    
+    {
+      "path": "/api/delay/fixed",
+      "method": "GET",
+      "description": "Endpoint with fixed delay",
+      "responses": [
+        {
+          "id": "default",
+          "isDefault": true,
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "message": "Response with fixed delay",
+            "timestamp": "2023-05-15T10:30:45Z"
+          },
+          "delay": 2000,
+          "description": "Response with 2 second fixed delay"
+        }
+      ]
+    },
+    
+    {
+      "path": "/api/delay/random",
+      "method": "GET",
+      "description": "Endpoint with random delay range",
+      "responses": [
+        {
+          "id": "default",
+          "isDefault": true,
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "message": "Response with random delay",
+            "timestamp": "2023-05-15T10:30:45Z"
+          },
+          "delayRange": true,
+          "minDelay": 500,
+          "maxDelay": 3000,
+          "description": "Response with random delay between 500ms and 3000ms"
+        }
+      ]
+    },
+    
+    {
+      "path": "/api/delay/conditional",
+      "method": "GET",
+      "description": "Endpoint with conditional delay",
+      "responses": [
+        {
+          "id": "default",
+          "isDefault": true,
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "message": "Response with conditional delay",
+            "timestamp": "2023-05-15T10:30:45Z"
+          },
+          "delay": 5000,
+          "delayConditions": [
+            {
+              "type": "header",
+              "name": "X-Slow-Response",
+              "operator": "equals",
+              "value": "true"
+            },
+            {
+              "type": "query-param",
+              "name": "simulate",
+              "operator": "equals",
+              "value": "slow-network",
+              "required": false
+            }
+          ],
+          "description": "Response with delay only when specific conditions are met"
+        }
+      ]
+    },
+    
+    {
+      "path": "/api/template/users/${userId}",
+      "method": "GET",
+      "description": "Endpoint with template-based response and path variable",
+      "responses": [
+        {
+          "id": "default",
+          "isDefault": true,
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "bodyTemplate": "{\n  \"id\": \"{{request.pathVariables.userId}}\",\n  \"name\": \"User {{request.pathVariables.userId}}\",\n  \"email\": \"user{{request.pathVariables.userId}}@example.com\",\n  \"createdAt\": \"{{timestamp}}\"\n}",
+          "bodyTemplateEngine": "handlebars",
+          "description": "Template-based response using path variables"
+        }
+      ],
+      "matchers": [
+        {
+          "type": "path-variable",
+          "name": "userId",
+          "operator": "regex",
+          "pattern": "^[0-9]+$",
+          "required": true
+        }
+      ]
+    },
+    
+    {
+      "path": "/api/template/products",
+      "method": "GET",
+      "description": "Endpoint with dynamic template-based response",
+      "responses": [
+        {
+          "id": "default",
+          "isDefault": true,
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "bodyTemplate": "{\n  \"products\": [\n    {{#each (range 1 5)}}\n    {\n      \"id\": {{this}},\n      \"name\": \"Product {{this}}\",\n      \"price\": {{random min=10 max=100}},\n      \"inStock\": {{#if (eq (mod this 2) 0)}}true{{else}}false{{/if}}\n    }{{#unless @last}},{{/unless}}\n    {{/each}}\n  ],\n  \"total\": 5,\n  \"page\": {{#if request.queryParams.page}}{{request.queryParams.page.[0]}}{{else}}1{{/if}},\n  \"pageSize\": {{#if request.queryParams.size}}{{request.queryParams.size.[0]}}{{else}}10{{/if}}\n}",
+          "bodyTemplateEngine": "handlebars",
+          "description": "Dynamic template with loops and conditional logic"
+        }
+      ]
+    },
+    
+    {
+      "path": "/api/matcher/headers",
+      "method": "GET",
+      "description": "Endpoint with header-based matching",
+      "responses": [
+        {
+          "id": "default",
+          "isDefault": true,
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "bodyTemplate": "{\n  \"headers\": {\n    {{#each request.headers}}\n    \"{{@key}}\": \"{{this}}\"{{#unless @last}},{{/unless}}\n    {{/each}}\n  }\n}",
+          "bodyTemplateEngine": "handlebars",
+          "description": "Returns all request headers"
+        }
+      ],
+      "matchers": [
+        {
+          "type": "header",
+          "name": "X-API-Key",
+          "operator": "exists",
+          "required": true
+        }
+      ]
+    },
+    
+    {
+      "path": "/api/matcher/query",
+      "method": "GET",
+      "description": "Endpoint with query parameter matching",
+      "responses": [
+        {
+          "id": "default",
+          "isDefault": true,
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "bodyTemplate": "{\n  \"query\": {\n    {{#each request.queryParams}}\n    \"{{@key}}\": [{{#each this}}\"{{this}}\"{{#unless @last}}, {{/unless}}{{/each}}]{{#unless @last}},{{/unless}}\n    {{/each}}\n  }\n}",
+          "bodyTemplateEngine": "handlebars",
+          "description": "Returns all query parameters"
+        }
+      ],
+      "matchers": [
+        {
+          "type": "query-param",
+          "name": "filter",
+          "operator": "exists",
+          "required": true
+        }
+      ]
+    },
+    
+    {
+      "path": "/api/conditional/${type}",
+      "method": "GET",
+      "description": "Endpoint with conditional response type",
+      "responseType": "conditional",
+      "responses": [
+        {
+          "id": "success",
+          "isDefault": true,
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "bodyTemplate": "{\n  \"type\": \"{{request.pathVariables.type}}\",\n  \"status\": \"success\",\n  \"data\": {\n    \"id\": \"{{uuid}}\",\n    \"timestamp\": {{timestamp}}\n  }\n}",
+          "bodyTemplateEngine": "handlebars",
+          "description": "Success response"
+        },
+        {
+          "id": "error",
+          "status": 400,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "bodyTemplate": "{\n  \"type\": \"{{request.pathVariables.type}}\",\n  \"status\": \"error\",\n  \"error\": \"Bad request\",\n  \"message\": \"Invalid type specified\"\n}",
+          "bodyTemplateEngine": "handlebars",
+          "description": "Error response"
+        }
+      ],
+      "matchers": [
+        {
+          "type": "path-variable",
+          "name": "type",
+          "operator": "equals",
+          "value": "success",
+          "required": false
+        }
+      ]
+    },
+    
+    {
+      "path": "/api/sequence/products",
+      "method": "GET",
+      "description": "Endpoint with sequence response type",
+      "responseType": "sequence",
+      "responses": [
+        {
+          "id": "products-page1",
+          "isDefault": true,
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "products": [
+              {"id": 1, "name": "Product 1", "price": 19.99},
+              {"id": 2, "name": "Product 2", "price": 29.99},
+              {"id": 3, "name": "Product 3", "price": 39.99}
+            ],
+            "pagination": {
+              "page": 1,
+              "pageSize": 3,
+              "totalItems": 9,
+              "totalPages": 3,
+              "nextPage": 2
+            }
+          },
+          "description": "First page of products"
+        },
+        {
+          "id": "products-page2",
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "products": [
+              {"id": 4, "name": "Product 4", "price": 49.99},
+              {"id": 5, "name": "Product 5", "price": 59.99},
+              {"id": 6, "name": "Product 6", "price": 69.99}
+            ],
+            "pagination": {
+              "page": 2,
+              "pageSize": 3,
+              "totalItems": 9,
+              "totalPages": 3,
+              "prevPage": 1,
+              "nextPage": 3
+            }
+          },
+          "description": "Second page of products"
+        },
+        {
+          "id": "products-page3",
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "products": [
+              {"id": 7, "name": "Product 7", "price": 79.99},
+              {"id": 8, "name": "Product 8", "price": 89.99},
+              {"id": 9, "name": "Product 9", "price": 99.99}
+            ],
+            "pagination": {
+              "page": 3,
+              "pageSize": 3,
+              "totalItems": 9,
+              "totalPages": 3,
+              "prevPage": 2
+            }
+          },
+          "description": "Third page of products"
+        }
+      ]
+    },
+    
+    {
+      "path": "/api/advanced/auth/login",
+      "method": "POST",
+      "description": "Advanced endpoint with multiple matchers and response variations",
+      "responses": [
+        {
+          "id": "login-success",
+          "isDefault": true,
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "body": {
+            "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+            "refreshToken": "abc123def456ghi789",
+            "expiresIn": 3600,
+            "tokenType": "Bearer",
+            "user": {
+              "id": 1,
+              "name": "John Doe",
+              "email": "john@example.com",
+              "role": "admin"
+            }
+          },
+          "description": "Successful login response"
+        },
+        {
+          "id": "login-failed",
+          "status": 401,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "error": "Unauthorized",
+            "message": "Invalid username or password",
+            "timestamp": "2023-05-15T10:30:45Z"
+          },
+          "description": "Failed login response"
+        },
+        {
+          "id": "login-locked",
+          "status": 403,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "error": "Forbidden",
+            "message": "Account locked due to too many failed attempts",
+            "timestamp": "2023-05-15T10:30:45Z"
+          },
+          "description": "Account locked response"
+        }
+      ],
+      "matchers": [
+        {
+          "type": "body",
+          "name": "username",
+          "operator": "equals",
+          "value": "admin",
+          "required": true
+        },
+        {
+          "type": "body",
+          "name": "password",
+          "operator": "equals",
+          "value": "password",
+          "required": true
+        },
+        {
+          "type": "header",
+          "name": "Content-Type",
+          "operator": "contains",
+          "value": "application/json",
+          "required": true
+        }
+      ]
+    },
+    
+    {
+      "path": "/api/advanced/files/upload",
+      "method": "POST",
+      "description": "Advanced endpoint with delay and multiple response variations",
+      "responses": [
+        {
+          "id": "file-uploaded",
+          "isDefault": true,
+          "status": 201,
+          "headers": {
+            "Content-Type": "application/json",
+            "Location": "/api/files/f123-456-789"
+          },
+          "body": {
+            "fileId": "f123-456-789",
+            "fileName": "document.pdf",
+            "fileSize": 1024000,
+            "mimeType": "application/pdf",
+            "uploadedAt": "2023-05-15T10:30:45Z",
+            "downloadUrl": "/api/files/f123-456-789"
+          },
+          "delayRange": true,
+          "minDelay": 1000,
+          "maxDelay": 3000,
+          "description": "File upload success with random delay"
+        },
+        {
+          "id": "file-too-large",
+          "status": 413,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "error": "Payload Too Large",
+            "message": "The uploaded file exceeds the maximum allowed size of 10MB",
+            "timestamp": "2023-05-15T10:30:45Z"
+          },
+          "description": "File too large error"
+        }
+      ],
+      "matchers": [
+        {
+          "type": "header",
+          "name": "Content-Type",
+          "operator": "startsWith",
+          "value": "multipart/form-data",
+          "required": true
+        }
+      ]
+    },
+    
+    {
+      "path": "/api/advanced/combined/${resourceType}/${resourceId}",
+      "method": "GET",
+      "description": "Advanced endpoint combining multiple features",
+      "responses": [
+        {
+          "id": "default",
+          "isDefault": true,
+          "status": 200,
+          "headers": {
+            "Content-Type": "application/json",
+            "Cache-Control": "max-age=3600"
+          },
+          "bodyTemplate": "{\n  \"resourceType\": \"{{request.pathVariables.resourceType}}\",\n  \"resourceId\": \"{{request.pathVariables.resourceId}}\",\n  \"name\": \"{{#if (eq request.pathVariables.resourceType 'user')}}User {{request.pathVariables.resourceId}}{{else}}Resource {{request.pathVariables.resourceId}}{{/if}}\",\n  \"details\": {\n    \"createdAt\": \"{{date format='yyyy-MM-dd\\'T\\'HH:mm:ss.SSSZ'}}\",\n    \"id\": \"{{uuid}}\",\n    \"randomValue\": {{random min=1 max=1000}}\n  },\n  \"queryParams\": {\n    {{#each request.queryParams}}\n    \"{{@key}}\": [{{#each this}}\"{{this}}\"{{#unless @last}}, {{/unless}}{{/each}}]{{#unless @last}},{{/unless}}\n    {{/each}}\n  },\n  \"headers\": {\n    {{#each request.headers}}\n    \"{{@key}}\": \"{{this}}\"{{#unless @last}},{{/unless}}\n    {{/each}}\n  }\n}",
+          "bodyTemplateEngine": "handlebars",
+          "delayRange": true,
+          "minDelay": 100,
+          "maxDelay": 1000,
+          "delayConditions": [
+            {
+              "type": "query-param",
+              "name": "delay",
+              "operator": "equals",
+              "value": "true",
+              "required": true
+            }
+          ],
+          "description": "Combined features response"
+        },
+        {
+          "id": "not-found",
+          "status": 404,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "bodyTemplate": "{\n  \"error\": \"Not Found\",\n  \"message\": \"{{request.pathVariables.resourceType}} with ID {{request.pathVariables.resourceId}} not found\",\n  \"timestamp\": \"{{timestamp}}\"\n}",
+          "bodyTemplateEngine": "handlebars",
+          "description": "Resource not found response"
+        }
+      ],
+      "matchers": [
+        {
+          "type": "path-variable",
+          "name": "resourceType",
+          "operator": "regex",
+          "pattern": "^(user|product|order)$",
+          "required": true
+        },
+        {
+          "type": "path-variable",
+          "name": "resourceId",
+          "operator": "regex",
+          "pattern": "^[a-zA-Z0-9-]+$",
+          "required": true
+        },
+        {
+          "type": "header",
+          "name": "Authorization",
+          "operator": "startsWith",
+          "value": "Bearer ",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

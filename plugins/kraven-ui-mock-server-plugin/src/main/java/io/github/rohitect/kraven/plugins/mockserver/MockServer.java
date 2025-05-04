@@ -5,6 +5,7 @@ import io.github.rohitect.kraven.plugins.mockserver.config.MockServerConfig;
 import io.github.rohitect.kraven.plugins.mockserver.model.MockConfiguration;
 import io.github.rohitect.kraven.plugins.mockserver.model.MockEndpoint;
 import io.github.rohitect.kraven.plugins.mockserver.model.MockResponse;
+import io.github.rohitect.kraven.plugins.mockserver.service.DelayService;
 import io.github.rohitect.kraven.plugins.mockserver.service.MockServerService;
 import io.undertow.Undertow;
 import io.undertow.server.HttpHandler;
@@ -48,6 +49,7 @@ public class MockServer {
     private final Map<String, Map<String, MockResponse>> activeResponses;
     private ScheduledExecutorService scheduler;
     private final MockServerService mockServerService;
+    private DelayService delayService;
 
     private Undertow server;
     private long lastConfigModified = 0;
@@ -63,19 +65,31 @@ public class MockServer {
     }
 
     /**
+     * Create a new MockServer with the given configuration and services.
+     *
+     * @param config the server configuration
+     * @param mockServerService the mock server service
+     * @param delayService the delay service
+     */
+    public MockServer(MockServerConfig config, MockServerService mockServerService, DelayService delayService) {
+        this.config = config;
+        this.mockServerService = mockServerService;
+        this.delayService = delayService;
+        this.objectMapper = new ObjectMapper();
+        this.mockConfiguration = new AtomicReference<>(new MockConfiguration());
+        this.activeResponses = new ConcurrentHashMap<>();
+        this.scheduler = Executors.newScheduledThreadPool(1);
+        this.isShutdown = false;
+    }
+
+    /**
      * Create a new MockServer with the given configuration and service.
      *
      * @param config the server configuration
      * @param mockServerService the mock server service
      */
     public MockServer(MockServerConfig config, MockServerService mockServerService) {
-        this.config = config;
-        this.mockServerService = mockServerService;
-        this.objectMapper = new ObjectMapper();
-        this.mockConfiguration = new AtomicReference<>(new MockConfiguration());
-        this.activeResponses = new ConcurrentHashMap<>();
-        this.scheduler = Executors.newScheduledThreadPool(1);
-        this.isShutdown = false;
+        this(config, mockServerService, null);
     }
 
     /**
@@ -360,6 +374,15 @@ public class MockServer {
             return;
         }
 
+        // Check if the request matches the endpoint matchers
+        if (mockServerService != null && !mockServerService.matchesRequest(exchange, endpoint)) {
+            log.warn("Request does not match matchers for endpoint: {}", key);
+            exchange.setStatusCode(404);
+            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "application/json");
+            exchange.getResponseSender().send("{\"error\":\"Request does not match endpoint matchers\"}");
+            return;
+        }
+
         // Get the default response
         MockResponse response = endpoint.getDefaultResponse();
         if (response == null) {
@@ -371,8 +394,17 @@ public class MockServer {
         }
 
         // Apply delay if configured
-        int delay = response.getDelay() > 0 ? response.getDelay() : config.getDefaultDelayMs();
+        int delay;
+        if (delayService != null) {
+            // Use the delay service for advanced delay calculation
+            delay = delayService.calculateDelay(response, exchange, endpoint);
+        } else {
+            // Fall back to simple delay calculation
+            delay = response.getDelay() > 0 ? response.getDelay() : config.getDefaultDelayMs();
+        }
+
         if (delay > 0) {
+            log.debug("Applying delay of {}ms for endpoint: {}", delay, key);
             try {
                 Thread.sleep(delay);
             } catch (InterruptedException e) {
@@ -391,6 +423,10 @@ public class MockServer {
         // Set response body
         try {
             String responseBody;
+
+            // Create template context with request data
+            Map<String, Object> templateContext = createTemplateContext(exchange, endpoint);
+
             if (response.getBody() != null) {
                 if (response.getBody() instanceof String) {
                     responseBody = (String) response.getBody();
@@ -398,8 +434,21 @@ public class MockServer {
                     responseBody = objectMapper.writeValueAsString(response.getBody());
                 }
             } else if (StringUtils.hasText(response.getBodyTemplate())) {
-                // TODO: Implement template rendering
-                responseBody = response.getBodyTemplate();
+                // Render the template with the context
+                if (mockServerService != null) {
+                    try {
+                        responseBody = mockServerService.renderTemplate(
+                                response.getBodyTemplateEngine(),
+                                response.getBodyTemplate(),
+                                templateContext
+                        );
+                    } catch (Exception e) {
+                        log.error("Failed to render template", e);
+                        responseBody = response.getBodyTemplate();
+                    }
+                } else {
+                    responseBody = response.getBodyTemplate();
+                }
             } else {
                 responseBody = "{}";
             }
@@ -411,6 +460,53 @@ public class MockServer {
             exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "application/json");
             exchange.getResponseSender().send("{\"error\":\"Failed to generate response\"}");
         }
+    }
+
+    /**
+     * Create a template context with request data.
+     *
+     * @param exchange the HTTP server exchange
+     * @param endpoint the endpoint being requested
+     * @return a map of context variables for template rendering
+     */
+    private Map<String, Object> createTemplateContext(HttpServerExchange exchange, MockEndpoint endpoint) {
+        Map<String, Object> context = new HashMap<>();
+
+        // Add request information
+        Map<String, Object> request = new HashMap<>();
+        request.put("method", exchange.getRequestMethod().toString());
+        request.put("path", exchange.getRequestPath());
+        request.put("uri", exchange.getRequestURI());
+        request.put("url", exchange.getRequestURL());
+
+        // Add headers
+        Map<String, String> headers = new HashMap<>();
+        exchange.getRequestHeaders().forEach(header ->
+                headers.put(header.getHeaderName().toString(), header.getFirst()));
+        request.put("headers", headers);
+
+        // Add query parameters
+        Map<String, List<String>> queryParams = new HashMap<>();
+        exchange.getQueryParameters().forEach((name, values) ->
+                queryParams.put(name, new ArrayList<>(values)));
+        request.put("queryParams", queryParams);
+
+        // Add path variables if available
+        if (mockServerService != null) {
+            Map<String, String> pathVariables = mockServerService.extractPathVariables(
+                    endpoint.getPath(), exchange.getRequestPath());
+            request.put("pathVariables", pathVariables);
+        }
+
+        // Add timestamp and random values
+        context.put("timestamp", System.currentTimeMillis());
+        context.put("random", Math.random());
+        context.put("uuid", java.util.UUID.randomUUID().toString());
+
+        // Add the request to the context
+        context.put("request", request);
+
+        return context;
     }
 
     /**

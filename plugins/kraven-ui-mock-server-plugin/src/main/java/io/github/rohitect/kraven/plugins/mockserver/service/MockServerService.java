@@ -1,12 +1,20 @@
 package io.github.rohitect.kraven.plugins.mockserver.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.jsonpath.JsonPath;
 import io.github.rohitect.kraven.plugins.mockserver.config.MockServerConfig;
 import io.github.rohitect.kraven.plugins.mockserver.model.MockConfiguration;
 import io.github.rohitect.kraven.plugins.mockserver.model.MockEndpoint;
+import io.github.rohitect.kraven.plugins.mockserver.model.MockMatcher;
 import io.github.rohitect.kraven.plugins.mockserver.model.MockResponse;
+import io.undertow.server.HttpServerExchange;
+import io.undertow.util.HeaderMap;
+import io.undertow.util.HeaderValues;
+import io.undertow.util.Headers;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
@@ -19,10 +27,9 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Service for the Mock Server plugin.
@@ -37,7 +44,27 @@ public class MockServerService {
     @Autowired
     private Environment environment;
 
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
+
+    @Autowired
+    private TemplateService templateService;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final Pattern pathVariablePattern = Pattern.compile("\\$\\{([^}]+)\\}");
+
+    /**
+     * Render a template with the given context.
+     *
+     * @param engine the template engine to use
+     * @param templateString the template string
+     * @param context the context for template rendering
+     * @return the rendered template
+     * @throws IOException if an error occurs during rendering
+     */
+    public String renderTemplate(String engine, String templateString, Map<String, Object> context) throws IOException {
+        return templateService.renderTemplate(engine, templateString, context);
+    }
 
     /**
      * Get all endpoints from the configuration.
@@ -224,6 +251,186 @@ public class MockServerService {
         }
 
         // All segments matched
+        return true;
+    }
+
+    /**
+     * Extract path variables from a template path and an actual path.
+     *
+     * @param templatePath the path with potential ${} variables
+     * @param actualPath the actual path to match against
+     * @return a map of variable names to values
+     */
+    public Map<String, String> extractPathVariables(String templatePath, String actualPath) {
+        Map<String, String> variables = new HashMap<>();
+
+        // If the template doesn't contain variables, return empty map
+        if (!templatePath.contains("${")) {
+            return variables;
+        }
+
+        // Handle leading and trailing slashes consistently
+        String normalizedTemplatePath = normalizePathSlashes(templatePath);
+        String normalizedActualPath = normalizePathSlashes(actualPath);
+
+        // Split paths into segments
+        String[] templateSegments = normalizedTemplatePath.split("/");
+        String[] actualSegments = normalizedActualPath.split("/");
+
+        // If segment count doesn't match, return empty map
+        if (templateSegments.length != actualSegments.length) {
+            return variables;
+        }
+
+        // Extract variables from each segment
+        for (int i = 0; i < templateSegments.length; i++) {
+            String templateSegment = templateSegments[i];
+            String actualSegment = actualSegments[i];
+
+            // If this segment contains a variable, extract its value
+            if (templateSegment.contains("${") && templateSegment.contains("}")) {
+                Matcher matcher = pathVariablePattern.matcher(templateSegment);
+                if (matcher.find()) {
+                    String variableName = matcher.group(1);
+
+                    // Handle segments that are just a variable
+                    if (matcher.start() == 0 && matcher.end() == templateSegment.length()) {
+                        variables.put(variableName, actualSegment);
+                    } else {
+                        // Handle segments with text and variables
+                        String prefix = templateSegment.substring(0, matcher.start());
+                        String suffix = templateSegment.substring(matcher.end());
+
+                        if (actualSegment.startsWith(prefix) && actualSegment.endsWith(suffix)) {
+                            String value = actualSegment.substring(
+                                    prefix.length(),
+                                    actualSegment.length() - suffix.length());
+                            variables.put(variableName, value);
+                        }
+                    }
+                }
+            }
+        }
+
+        return variables;
+    }
+
+    /**
+     * Check if a request matches the matchers defined for an endpoint.
+     *
+     * @param exchange the HTTP server exchange
+     * @param endpoint the endpoint to check
+     * @return true if the request matches, false otherwise
+     */
+    public boolean matchesRequest(HttpServerExchange exchange, MockEndpoint endpoint) {
+        // If no matchers are defined, the request matches
+        if (endpoint.getMatchers() == null || endpoint.getMatchers().isEmpty()) {
+            return true;
+        }
+
+        // Check each matcher
+        for (MockMatcher matcher : endpoint.getMatchers()) {
+            boolean matches = false;
+
+            switch (matcher.getType()) {
+                case "header":
+                    matches = matchesHeader(exchange, matcher);
+                    break;
+                case "query-param":
+                    matches = matchesQueryParam(exchange, matcher);
+                    break;
+                case "path-variable":
+                    matches = matchesPathVariable(exchange, endpoint.getPath(), matcher);
+                    break;
+                case "body":
+                    matches = matchesBody(exchange, matcher);
+                    break;
+                default:
+                    log.warn("Unknown matcher type: {}", matcher.getType());
+                    matches = false;
+            }
+
+            // If a required matcher doesn't match, the request doesn't match
+            if (matcher.isRequired() && !matches) {
+                return false;
+            }
+        }
+
+        // All matchers passed
+        return true;
+    }
+
+    /**
+     * Check if a request header matches a matcher.
+     *
+     * @param exchange the HTTP server exchange
+     * @param matcher the matcher to check
+     * @return true if the header matches, false otherwise
+     */
+    private boolean matchesHeader(HttpServerExchange exchange, MockMatcher matcher) {
+        HeaderMap headers = exchange.getRequestHeaders();
+        HeaderValues headerValues = headers.get(matcher.getName());
+
+        if (headerValues == null || headerValues.isEmpty()) {
+            return "exists".equals(matcher.getOperator()) && !matcher.isRequired();
+        }
+
+        // Use the first header value
+        String headerValue = headerValues.getFirst();
+        return matcher.matches(headerValue);
+    }
+
+    /**
+     * Check if a query parameter matches a matcher.
+     *
+     * @param exchange the HTTP server exchange
+     * @param matcher the matcher to check
+     * @return true if the query parameter matches, false otherwise
+     */
+    private boolean matchesQueryParam(HttpServerExchange exchange, MockMatcher matcher) {
+        Map<String, Deque<String>> queryParameters = exchange.getQueryParameters();
+        Deque<String> values = queryParameters.get(matcher.getName());
+
+        if (values == null || values.isEmpty()) {
+            return "exists".equals(matcher.getOperator()) && !matcher.isRequired();
+        }
+
+        // Use the first query parameter value
+        String value = values.getFirst();
+        return matcher.matches(value);
+    }
+
+    /**
+     * Check if a path variable matches a matcher.
+     *
+     * @param exchange the HTTP server exchange
+     * @param templatePath the path with potential ${} variables
+     * @param matcher the matcher to check
+     * @return true if the path variable matches, false otherwise
+     */
+    private boolean matchesPathVariable(HttpServerExchange exchange, String templatePath, MockMatcher matcher) {
+        String actualPath = exchange.getRequestPath();
+        Map<String, String> variables = extractPathVariables(templatePath, actualPath);
+
+        String value = variables.get(matcher.getName());
+        if (value == null) {
+            return "exists".equals(matcher.getOperator()) && !matcher.isRequired();
+        }
+
+        return matcher.matches(value);
+    }
+
+    /**
+     * Check if a request body matches a matcher.
+     *
+     * @param exchange the HTTP server exchange
+     * @param matcher the matcher to check
+     * @return true if the body matches, false otherwise
+     */
+    private boolean matchesBody(HttpServerExchange exchange, MockMatcher matcher) {
+        // TODO: Implement body matching with JsonPath
+        // This requires reading the request body, which is more complex in Undertow
+        // For now, we'll just return true
         return true;
     }
 

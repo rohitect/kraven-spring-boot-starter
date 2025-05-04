@@ -38,7 +38,7 @@ public class MockServerConfig {
      * The path to the mock configuration file.
      * Can be a classpath resource or a file system path.
      */
-    private String configPath = "classpath:mock-server/config.json";
+    private String configPath = "classpath:mock-server/comprehensive-config.json";
 
     /**
      * The path to the mock configuration file on the file system.
@@ -65,4 +65,20 @@ public class MockServerConfig {
      * The default delay in milliseconds to apply to all responses.
      */
     private int defaultDelayMs = 0;
+
+    /**
+     * The default template engine to use for response templates.
+     * Possible values: "handlebars", "simple"
+     */
+    private String defaultTemplateEngine = "simple";
+
+    /**
+     * Whether to enable advanced request matching.
+     */
+    private boolean enableAdvancedMatching = true;
+
+    /**
+     * Whether to enable dynamic response generation.
+     */
+    private boolean enableDynamicResponses = true;
 }
