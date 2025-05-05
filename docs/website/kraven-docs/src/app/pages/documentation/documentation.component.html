@@ -1,0 +1,79 @@
+<div class="documentation-layout" [class.light-theme]="!isDarkTheme">
+  <app-static-background></app-static-background>
+  <app-header></app-header>
+
+  <!-- Sidebar -->
+  <div class="sidebar" [class.sidebar-open]="isSidebarOpen">
+    <div class="sidebar-header">
+      <h2 class="sidebar-title">Documentation</h2>
+      <button class="sidebar-toggle-btn" (click)="toggleSidebar()">
+        <mat-icon>{{ isSidebarOpen ? 'close' : 'menu' }}</mat-icon>
+      </button>
+    </div>
+    <div class="sidebar-content">
+      <div class="search-box">
+        <mat-icon>search</mat-icon>
+        <input type="text" placeholder="Search documentation..." [(ngModel)]="searchQuery" (input)="filterNavItems()">
+        <button *ngIf="searchQuery" class="clear-search" (click)="clearSearch()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <!-- Navigation Sections -->
+      <div class="nav-sections">
+        <div *ngFor="let section of filteredNavItems; let i = index" class="nav-section" @fadeIn>
+          <h3 class="nav-section-title">{{ section.title }}</h3>
+          <ul class="nav-items">
+            <li *ngFor="let item of section.items" @slideIn>
+              <a [routerLink]="[item.route]" [fragment]="item.fragment"
+                 [class.active]="isItemActive(item)"
+                 class="nav-item">
+                <mat-icon>{{ item.icon }}</mat-icon>
+                <span>{{ item.title }}</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="version-info">
+        <span class="version-label">Version:</span>
+        <span class="version-number">1.0.7</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content" [class.sidebar-open]="isSidebarOpen" [class.light-theme]="!isDarkTheme">
+    <div class="content-header">
+      <button *ngIf="!isSidebarOpen" class="menu-button" (click)="toggleSidebar()">
+        <mat-icon>menu</mat-icon>
+      </button>
+      <div class="header-content">
+        <div class="logo-container">
+          <div class="logo">K</div>
+        </div>
+        <div class="header-text">
+          <h1>Kraven UI Documentation</h1>
+          <p class="header-subtitle">Modern, elegant documentation for your Spring Boot APIs</p>
+        </div>
+        <div class="version-badge">v1.0.7</div>
+      </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="tab-navigation">
+      <div class="tab"
+           *ngFor="let section of navItems; let i = index"
+           [class.active]="activeTab === i"
+           (click)="setActiveTab(i)">
+        {{ section.title }}
+      </div>
+    </div>
+
+    <!-- Content Area -->
+    <div class="content-area">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>

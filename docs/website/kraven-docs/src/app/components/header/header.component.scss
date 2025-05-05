@@ -1,0 +1,104 @@
+.app-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: rgba(21, 25, 41, 0.95);
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+
+  &.scrolled {
+    background: rgba(21, 25, 41, 0.98);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  }
+
+  :host-context(.light-theme) & {
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+
+    &.scrolled {
+      background: rgba(255, 255, 255, 0.98);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    }
+  }
+
+  .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 16px;
+  }
+
+  .logo {
+    text-decoration: none;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white;
+  }
+
+  .gradient-text {
+    background: linear-gradient(90deg, #3f51b5, #00b0ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  :host-context(.light-theme) .gradient-text {
+    background: linear-gradient(90deg, #1976d2, #0288d1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+
+    a {
+      color: white;
+      font-weight: 500;
+      opacity: 0.9;
+      transition: opacity 0.2s ease;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+
+    :host-context(.light-theme) & a {
+      color: #1a1b2e;
+    }
+
+    .theme-toggle {
+      margin-left: 8px;
+      color: white;
+      transition: all 0.3s ease;
+
+      &:hover {
+        transform: rotate(30deg);
+      }
+    }
+
+    :host-context(.light-theme) & .theme-toggle {
+      color: #1a1b2e;
+    }
+
+    @media (max-width: 768px) {
+      display: none;
+    }
+  }
+
+  .menu-button {
+    display: none;
+
+    @media (max-width: 768px) {
+      display: block;
+    }
+  }
+}

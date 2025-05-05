@@ -1,0 +1,51 @@
+<section id="features" class="features-section" [class.light-theme]="!isDarkTheme">
+  <div class="features-container">
+    <div class="features-header" @fadeInUp>
+      <h2 class="features-title">Powerful Features</h2>
+      <p class="features-description">
+        Kraven UI combines elegant readability with interactive capabilities, bringing together API testing,
+        Feign client exploration, Kafka management, and application monitoring in one unified interface.
+      </p>
+    </div>
+
+    <div class="features-content">
+      <div class="features-tabs">
+        <mat-tab-group mat-align-tabs="center" [selectedIndex]="selectedFeatureIndex"
+                      (selectedIndexChange)="selectFeature($event)" animationDuration="300ms">
+          <mat-tab *ngFor="let feature of features" [label]="feature.title">
+            <div class="feature-details" @fadeInUp>
+              <div class="feature-info">
+                <div class="feature-icon" [style.background-color]="feature.color + '22'">
+                  <img [src]="feature.icon" [alt]="feature.title">
+                </div>
+                <h3 class="feature-title">{{ feature.title }}</h3>
+                <p class="feature-description">{{ feature.description }}</p>
+                <a mat-raised-button color="primary" href="#">Learn More</a>
+              </div>
+
+              <div class="feature-image-container">
+                <div class="feature-image">
+                  <img [src]="feature.image" [alt]="feature.title">
+                  <div class="glow-effect" [style.background]="'radial-gradient(circle, ' + feature.color + '80, transparent 70%)'"></div>
+                </div>
+              </div>
+            </div>
+          </mat-tab>
+        </mat-tab-group>
+      </div>
+
+      <div class="features-grid">
+        <mat-card *ngFor="let feature of features; let i = index" class="feature-card"
+                 (click)="selectFeature(i)" @fadeInUp [style.border-color]="feature.color">
+          <mat-card-content>
+            <div class="feature-card-icon" [style.background-color]="feature.color + '22'">
+              <img [src]="feature.icon" [alt]="feature.title">
+            </div>
+            <h3 class="feature-card-title">{{ feature.title }}</h3>
+            <p class="feature-card-description">{{ feature.description.split('.')[0] }}.</p>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,431 @@
+<div class="documentation-container" [class.light-theme]="!isDarkTheme">
+  <div class="page-header" @fadeIn>
+    <h1 class="page-title">Configuration Options</h1>
+    <div class="version-badge">v1.0.7</div>
+  </div>
+
+  <div class="content-section" @fadeInUp>
+    <h2>Configuration Overview</h2>
+    <p>
+      Kraven UI provides a comprehensive set of configuration options to customize its behavior and appearance.
+      Configuration can be provided through properties files, YAML files, or environment variables.
+    </p>
+    <p>
+      <strong>Note:</strong> The UI path is hardcoded to <code>/kraven/ui</code> and the API path is hardcoded to <code>/kraven/api</code>.
+      These paths cannot be changed through configuration.
+    </p>
+  </div>
+
+  <div class="content-section" @fadeInUp>
+    <h2>Basic Configuration</h2>
+    <div class="config-table">
+      <div class="config-table-header">
+        <div class="config-property">Property</div>
+        <div class="config-description">Description</div>
+        <div class="config-default">Default Value</div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-property">kraven.ui.enabled</div>
+        <div class="config-description">Enable or disable Kraven UI</div>
+        <div class="config-default">true</div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-property">kraven.ui.version</div>
+        <div class="config-description">The version of Kraven UI (automatically set)</div>
+        <div class="config-default">1.0.7</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section" @fadeInUp>
+    <h2>Theme Configuration</h2>
+    <p>
+      Kraven UI supports both light and dark themes, with customizable colors for each.
+    </p>
+    <div class="config-table">
+      <div class="config-table-header">
+        <div class="config-property">Property</div>
+        <div class="config-description">Description</div>
+        <div class="config-default">Default Value</div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-property">kraven.ui.theme.dark-primary-color</div>
+        <div class="config-description">The primary color for the dark theme</div>
+        <div class="config-default">#6c5ce7</div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-property">kraven.ui.theme.dark-secondary-color</div>
+        <div class="config-description">The secondary color for the dark theme</div>
+        <div class="config-default">#00b894</div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-property">kraven.ui.theme.dark-background-color</div>
+        <div class="config-description">The background color for the dark theme</div>
+        <div class="config-default">#1a1b2e</div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-property">kraven.ui.theme.light-primary-color</div>
+        <div class="config-description">The primary color for the light theme</div>
+        <div class="config-default">#1976d2</div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-property">kraven.ui.theme.light-secondary-color</div>
+        <div class="config-description">The secondary color for the light theme</div>
+        <div class="config-default">#424242</div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-property">kraven.ui.theme.light-background-color</div>
+        <div class="config-description">The background color for the light theme</div>
+        <div class="config-default">#ffffff</div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-property">kraven.ui.theme.default-theme</div>
+        <div class="config-description">The default theme to use (light or dark)</div>
+        <div class="config-default">dark</div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-property">kraven.ui.theme.respect-system-preference</div>
+        <div class="config-description">Whether to respect the user's system preference for light/dark mode</div>
+        <div class="config-default">true</div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-property">kraven.ui.theme.custom-css-path</div>
+        <div class="config-description">Custom CSS file path to include</div>
+        <div class="config-default">null</div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-property">kraven.ui.theme.custom-js-path</div>
+        <div class="config-description">Custom JavaScript file path to include</div>
+        <div class="config-default">null</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section" @fadeInUp>
+    <h2>Layout Configuration</h2>
+    <div class="config-table">
+      <div class="config-table-header">
+        <div class="config-property">Property</div>
+        <div class="config-description">Description</div>
+        <div class="config-default">Default Value</div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-property">kraven.ui.layout.type</div>
+        <div class="config-description">The layout type to use (three-pane, two-pane, single-pane)</div>
+        <div class="config-default">three-pane</div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-property">kraven.ui.layout.show-sidebar</div>
+        <div class="config-description">Whether to show the sidebar by default</div>
+        <div class="config-default">true</div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-property">kraven.ui.layout.middle-pane-width</div>
+        <div class="config-description">The default width of the middle pane in pixels</div>
+        <div class="config-default">600</div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-property">kraven.ui.layout.right-pane-width</div>
+        <div class="config-description">The default width of the right pane in pixels</div>
+        <div class="config-default">400</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section" @fadeInUp>
+    <h2>API Documentation Configuration</h2>
+    <div class="config-table">
+      <div class="config-table-header">
+        <div class="config-property">Property</div>
+        <div class="config-description">Description</div>
+        <div class="config-default">Default Value</div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-property">kraven.ui.api-docs.enabled</div>
+        <div class="config-description">Enable or disable API documentation</div>
+        <div class="config-default">true</div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-property">kraven.ui.api-docs.spec-path</div>
+        <div class="config-description">The path to the OpenAPI specification</div>
+        <div class="config-default">/v3/api-docs</div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-property">kraven.ui.api-docs.try-it-out-enabled</div>
+        <div class="config-description">Enable or disable the "Try it out" feature</div>
+        <div class="config-default">true</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section" @fadeInUp>
+    <h2>Feign Client Configuration</h2>
+    <div class="config-table">
+      <div class="config-table-header">
+        <div class="config-property">Property</div>
+        <div class="config-description">Description</div>
+        <div class="config-default">Default Value</div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-property">kraven.ui.feign-client.enabled</div>
+        <div class="config-description">Enable or disable Feign client scanning</div>
+        <div class="config-default">true</div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-property">kraven.ui.feign-client.base-packages</div>
+        <div class="config-description">The base packages to scan for Feign clients</div>
+        <div class="config-default">io.github, com, org, net</div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-property">kraven.ui.feign-client.try-it-out-enabled</div>
+        <div class="config-description">Enable or disable the "Try it out" feature for Feign clients</div>
+        <div class="config-default">true</div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-property">kraven.ui.feign-client.cache-metadata</div>
+        <div class="config-description">Enable or disable caching of Feign client metadata</div>
+        <div class="config-default">true</div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-property">kraven.ui.feign-client.scan-interval-ms</div>
+        <div class="config-description">The interval in milliseconds between Feign client scans (0 = no automatic scanning)</div>
+        <div class="config-default">0</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section" @fadeInUp>
+    <h2>Kafka Configuration</h2>
+    <div class="config-table">
+      <div class="config-table-header">
+        <div class="config-property">Property</div>
+        <div class="config-description">Description</div>
+        <div class="config-default">Default Value</div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-property">kraven.ui.kafka.enabled</div>
+        <div class="config-description">Enable or disable Kafka management features</div>
+        <div class="config-default">true</div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-property">kraven.ui.kafka.base-packages</div>
+        <div class="config-description">The base packages to scan for Kafka listeners</div>
+        <div class="config-default">io.github, com, org, net</div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-property">kraven.ui.kafka.message-limit</div>
+        <div class="config-description">The maximum number of messages to fetch when browsing topics</div>
+        <div class="config-default">100</div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-property">kraven.ui.kafka.streaming-enabled</div>
+        <div class="config-description">Enable or disable live streaming of messages</div>
+        <div class="config-default">true</div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-property">kraven.ui.kafka.sse-timeout-ms</div>
+        <div class="config-description">The timeout in milliseconds for Server-Sent Events</div>
+        <div class="config-default">300000</div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-property">kraven.ui.kafka.message-production-enabled</div>
+        <div class="config-description">Enable or disable message production</div>
+        <div class="config-default">true</div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-property">kraven.ui.kafka.message-consumption-enabled</div>
+        <div class="config-description">Enable or disable message consumption</div>
+        <div class="config-default">true</div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-property">kraven.ui.kafka.topic-management-enabled</div>
+        <div class="config-description">Enable or disable topic management</div>
+        <div class="config-default">false</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section" @fadeInUp>
+    <h2>Plugin System Configuration</h2>
+    <div class="config-table">
+      <div class="config-table-header">
+        <div class="config-property">Property</div>
+        <div class="config-description">Description</div>
+        <div class="config-default">Default Value</div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-property">kraven.ui.plugins.enabled</div>
+        <div class="config-description">Enable or disable the plugin system</div>
+        <div class="config-default">true</div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-property">kraven.ui.plugins.auto-discovery</div>
+        <div class="config-description">Enable or disable auto-discovery of plugins</div>
+        <div class="config-default">true</div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-property">kraven.ui.plugins.base-packages</div>
+        <div class="config-description">The base packages to scan for plugins</div>
+        <div class="config-default">io.github, com, org, net</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section" @fadeInUp>
+    <h2>Environment Variables</h2>
+    <p>
+      You can also configure Kraven UI using environment variables with JSON format. This is particularly useful for
+      containerized environments or when you want to override configuration without modifying properties files.
+    </p>
+    <div class="code-block">
+      <pre><code>export KRAVEN_UI_CONFIG='{{ "{" }}"theme":{{ "{" }}"darkPrimaryColor":"#ff5722"{{ "}" }}{{ "}" }}'</code></pre>
+    </div>
+    <p>
+      The environment variable should contain a JSON object with the same structure as the properties, but using camelCase
+      instead of kebab-case for property names.
+    </p>
+  </div>
+
+  <div class="content-section" @fadeInUp>
+    <h2>Configuration Examples</h2>
+    <h3>Properties Format</h3>
+    <div class="code-block">
+      <pre><code># Basic configuration
+kraven.ui.enabled=true
+
+# Theme configuration
+kraven.ui.theme.dark-primary-color=#6c5ce7
+kraven.ui.theme.dark-secondary-color=#00b894
+kraven.ui.theme.dark-background-color=#1a1b2e
+kraven.ui.theme.light-primary-color=#1976d2
+kraven.ui.theme.light-secondary-color=#424242
+kraven.ui.theme.light-background-color=#ffffff
+kraven.ui.theme.default-theme=dark
+
+# API documentation configuration
+kraven.ui.api-docs.enabled=true
+kraven.ui.api-docs.spec-path=/v3/api-docs
+kraven.ui.api-docs.try-it-out-enabled=true
+
+# Feign client configuration
+kraven.ui.feign-client.enabled=true
+kraven.ui.feign-client.base-packages=io.github,com,org,net
+kraven.ui.feign-client.try-it-out-enabled=true
+kraven.ui.feign-client.cache-metadata=true
+
+# Kafka configuration
+kraven.ui.kafka.enabled=true
+kraven.ui.kafka.message-limit=100
+kraven.ui.kafka.streaming-enabled=true
+kraven.ui.kafka.message-production-enabled=true
+kraven.ui.kafka.message-consumption-enabled=true
+
+# Plugin system configuration
+kraven.ui.plugins.enabled=true
+kraven.ui.plugins.auto-discovery=true</code></pre>
+    </div>
+
+    <h3>YAML Format</h3>
+    <div class="code-block">
+      <pre><code>kraven:
+  ui:
+    enabled: true
+
+    theme:
+      # Dark theme specific colors
+      dark-primary-color: "#6c5ce7"
+      dark-secondary-color: "#00b894"
+      dark-background-color: "#1a1b2e"
+
+      # Light theme specific colors
+      light-primary-color: "#1976d2"
+      light-secondary-color: "#424242"
+      light-background-color: "#ffffff"
+
+      default-theme: dark
+      respect-system-preference: true
+
+    api-docs:
+      enabled: true
+      spec-path: /v3/api-docs
+      try-it-out-enabled: true
+
+    feign-client:
+      enabled: true
+      base-packages:
+        - io.github
+        - com
+        - org
+        - net
+      try-it-out-enabled: true
+      cache-metadata: true
+
+    kafka:
+      enabled: true
+      message-limit: 100
+      streaming-enabled: true
+      message-production-enabled: true
+      message-consumption-enabled: true
+
+    plugins:
+      enabled: true
+      auto-discovery: true</code></pre>
+    </div>
+  </div>
+
+  <div class="content-section" @fadeInUp>
+    <h2>Next Steps</h2>
+    <div class="next-steps">
+      <a routerLink="/documentation/plugins" class="next-step-card">
+        <h3>Plugins</h3>
+        <p>Explore the available plugins and how to use them</p>
+        <span class="arrow-icon">→</span>
+      </a>
+      <a routerLink="/documentation/examples" class="next-step-card">
+        <h3>Examples</h3>
+        <p>See examples of Kraven UI in action</p>
+        <span class="arrow-icon">→</span>
+      </a>
+      <a routerLink="/documentation/faq" class="next-step-card">
+        <h3>FAQ</h3>
+        <p>Find answers to common questions</p>
+        <span class="arrow-icon">→</span>
+      </a>
+    </div>
+  </div>
+</div>

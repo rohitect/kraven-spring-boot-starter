@@ -1,0 +1,16 @@
+.home-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: transparent; // Changed to transparent to show animation
+  color: white;
+  position: relative;
+  overflow: hidden;
+
+  main {
+    flex: 1;
+    padding-top: 40px; // Reduced padding to shift content up
+    position: relative;
+    z-index: 1;
+  }
+}

@@ -1,0 +1,280 @@
+<div class="documentation-container" [class.light-theme]="!isDarkTheme">
+  <div class="page-header" @fadeIn>
+    <h1 class="page-title">Kraven UI Plugins</h1>
+    <div class="version-badge">v1.0.7</div>
+  </div>
+
+  <div class="content-section" @fadeInUp>
+    <h2 id="plugin-architecture">Plugin System Overview</h2>
+    <p>
+      Kraven UI features a powerful plugin system that allows you to extend its functionality with custom plugins.
+      The plugin architecture is designed to be modular, allowing features to be added or removed as needed.
+    </p>
+    <p>
+      Key aspects of the plugin system include:
+    </p>
+    <ul>
+      <li><strong>Dynamic Registration</strong> - Plugins register with the core at runtime</li>
+      <li><strong>UI Integration</strong> - Plugins automatically appear in the UI when registered and running</li>
+      <li><strong>Independent Lifecycle</strong> - Start, stop, and manage plugins independently</li>
+      <li><strong>Configurable</strong> - Each plugin has its own configuration options</li>
+    </ul>
+  </div>
+
+  <div class="content-section" @fadeInUp>
+    <h2 id="available-plugins">Available Plugins</h2>
+    <p>
+      Kraven UI comes with the following plugins:
+    </p>
+
+    <div class="plugins-table">
+      <div class="plugins-table-header">
+        <div class="plugin-name">Plugin</div>
+        <div class="plugin-description">Description</div>
+        <div class="plugin-version">Version</div>
+        <div class="plugin-status">Status</div>
+      </div>
+
+      <div class="plugin-row">
+        <div class="plugin-name">Kafka</div>
+        <div class="plugin-description">Comprehensive Kafka management with topic browsing, message production/consumption, and streaming</div>
+        <div class="plugin-version">1.0.6</div>
+        <div class="plugin-status"><span class="status-badge available">Available</span></div>
+      </div>
+
+      <div class="plugin-row">
+        <div class="plugin-name">Mock Server</div>
+        <div class="plugin-description">Integration testing & development tool for mocking API responses</div>
+        <div class="plugin-version">1.0.7</div>
+        <div class="plugin-status"><span class="status-badge available">Available</span></div>
+      </div>
+
+      <div class="plugin-row">
+        <div class="plugin-name">Database Explorer</div>
+        <div class="plugin-description">Database management with table browsing, query execution, and schema visualization</div>
+        <div class="plugin-version">-</div>
+        <div class="plugin-status"><span class="status-badge coming-soon">Coming Soon</span></div>
+      </div>
+
+      <div class="plugin-row">
+        <div class="plugin-name">GraphQL</div>
+        <div class="plugin-description">GraphQL support with schema exploration, query builder, and mutation testing</div>
+        <div class="plugin-version">-</div>
+        <div class="plugin-status"><span class="status-badge coming-soon">Coming Soon</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section" @fadeInUp>
+    <h2 id="kafka-plugin">Kafka Plugin</h2>
+    <p>
+      The Kafka Plugin provides comprehensive Kafka management capabilities directly within your application. No more switching
+      between tools or using external Kafka management interfaces - everything you need is right here in your application.
+    </p>
+
+    <div class="feature-details">
+      <div class="feature-text">
+        <h3>Key Features:</h3>
+        <ul>
+          <li><strong>Topic Browser</strong> - View all topics and their configurations</li>
+          <li><strong>Message Producer</strong> - Send messages to topics with a simple UI</li>
+          <li><strong>Message Consumer</strong> - View messages in topics with filtering and pagination</li>
+          <li><strong>Live Streaming</strong> - Watch messages arrive in real-time</li>
+          <li><strong>Consumer Group Monitoring</strong> - Track consumer groups and their lag</li>
+          <li><strong>Partition Details</strong> - View detailed partition information</li>
+          <li><strong>Smart Loading</strong> - Features a sarcastic, funny loading animation when refreshing the page</li>
+        </ul>
+
+        <h3>Installation:</h3>
+        <div class="code-block">
+          <pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;io.github.rohitect&lt;/groupId&gt;
+    &lt;artifactId&gt;kraven-ui-kafka-plugin&lt;/artifactId&gt;
+    &lt;version&gt;1.0.6&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+        </div>
+
+        <h3>Configuration:</h3>
+        <div class="code-block">
+          <pre><code># Enable the plugin system
+kraven.ui.plugins.enabled=true
+
+# Enable the Kafka plugin
+kraven.ui.kafka.enabled=true
+
+# Configure message browsing
+kraven.ui.kafka.message-limit=100
+
+# Enable/disable streaming
+kraven.ui.kafka.streaming-enabled=true
+
+# Enable/disable message production
+kraven.ui.kafka.message-production-enabled=true
+
+# Configure Kafka clusters (optional - will use Spring Kafka's configuration by default)
+kraven.ui.kafka.clusters[0].id=local
+kraven.ui.kafka.clusters[0].name=Local Cluster
+kraven.ui.kafka.clusters[0].bootstrapServers=localhost:9092</code></pre>
+        </div>
+      </div>
+      <div class="image-placeholder">
+        <div class="placeholder-text">Kafka Plugin Screenshot</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section" @fadeInUp>
+    <h2 id="mock-server-plugin">Mock Server Plugin</h2>
+    <p>
+      The Mock Server Plugin provides a configurable mock server for integration testing and development. It's perfect for
+      testing your application without depending on external services or for developing frontend applications while backend
+      services are still in development.
+    </p>
+
+    <div class="feature-details">
+      <div class="feature-text">
+        <h3>Key Features:</h3>
+        <ul>
+          <li><strong>Configurable Mock Server</strong> - Starts on port 11000 (or custom port)</li>
+          <li><strong>JSON Configuration</strong> - Define mock endpoints and responses via JSON</li>
+          <li><strong>Multiple Response Variations</strong> - Support for multiple response variations per endpoint</li>
+          <li><strong>Runtime Switching</strong> - Switch between different mock responses via the UI</li>
+          <li><strong>Request History</strong> - Track and visualize request history</li>
+          <li><strong>Response Delay Simulation</strong> - Simulate network latency for realistic testing</li>
+          <li><strong>Dynamic Response Generation</strong> - Generate responses based on request data</li>
+        </ul>
+
+        <h3>Installation:</h3>
+        <div class="code-block">
+          <pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;io.github.rohitect&lt;/groupId&gt;
+    &lt;artifactId&gt;kraven-ui-mock-server-plugin&lt;/artifactId&gt;
+    &lt;version&gt;1.0.7&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+        </div>
+
+        <h3>Configuration:</h3>
+        <div class="code-block">
+          <pre><code># Enable the plugin system
+kraven.ui.plugins.enabled=true
+
+# Mock Server plugin configuration
+kraven.ui.plugin.mock-server.enabled=true
+kraven.ui.plugin.mock-server.auto-start=false  # Set to true to start the server automatically
+kraven.ui.plugin.mock-server.port=11000
+kraven.ui.plugin.mock-server.host=localhost
+kraven.ui.plugin.mock-server.config-path=classpath:mock-server/config.json
+kraven.ui.plugin.mock-server.auto-reload=true
+kraven.ui.plugin.mock-server.reload-interval-ms=5000
+kraven.ui.plugin.mock-server.default-delay-ms=0
+kraven.ui.plugin.mock-server.default-template-engine=simple  # Options: simple, handlebars
+kraven.ui.plugin.mock-server.enable-advanced-matching=true
+kraven.ui.plugin.mock-server.enable-dynamic-responses=true</code></pre>
+        </div>
+      </div>
+      <div class="image-placeholder">
+        <div class="placeholder-text">Mock Server Plugin Screenshot</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section" @fadeInUp>
+    <h2 id="plugin-development">Plugin Development</h2>
+    <p>
+      Kraven UI provides a Plugin SDK that allows you to develop your own plugins. The SDK provides a clean API for
+      registering new features and UI components.
+    </p>
+
+    <h3>Getting Started with Plugin Development:</h3>
+    <ol>
+      <li>
+        <strong>Add the Plugin SDK dependency:</strong>
+        <div class="code-block">
+          <pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;io.github.rohitect&lt;/groupId&gt;
+    &lt;artifactId&gt;kraven-ui-plugin-sdk&lt;/artifactId&gt;
+    &lt;version&gt;1.0.6&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+        </div>
+      </li>
+      <li>
+        <strong>Create a plugin class:</strong>
+        <div class="code-block">
+          <pre><code>// Plugin class example
+class MyPlugin {
+    // Initialize method
+    initialize(context) {
+        // Register navigation items, controllers, services, etc.
+    }
+
+    // Start method
+    start() {
+        // Start your plugin
+    }
+
+    // Stop method
+    stop() {
+        // Stop your plugin
+    }
+}</code></pre>
+        </div>
+      </li>
+      <li>
+        <strong>Create a plugin.properties file:</strong>
+        <p>Create a file at <code>src/main/resources/META-INF/kraven/plugin.properties</code> with the following content:</p>
+        <div class="code-block">
+          <pre><code>mainClass=com.example.MyPlugin
+id=my-plugin
+name=My Plugin
+version=1.0.0
+description=My custom plugin for Kraven UI
+provider=Your Name</code></pre>
+        </div>
+      </li>
+      <li>
+        <strong>Build and package your plugin:</strong>
+        <div class="code-block">
+          <pre><code>mvn clean package</code></pre>
+        </div>
+      </li>
+    </ol>
+  </div>
+
+  <div class="content-section" @fadeInUp>
+    <h2 id="plugin-configuration">Plugin Configuration</h2>
+    <p>
+      The plugin system can be configured using the following properties:
+    </p>
+    <div class="code-block">
+      <pre><code># Enable or disable the plugin system
+kraven.ui.plugins.enabled=true
+
+# Enable or disable auto-discovery of plugins
+kraven.ui.plugins.auto-discovery=true
+
+# The base packages to scan for plugins
+kraven.ui.plugins.base-packages=io.github,com,org,net</code></pre>
+    </div>
+  </div>
+
+  <div class="content-section" @fadeInUp>
+    <h2 id="next-steps">Next Steps</h2>
+    <div class="next-steps">
+      <a routerLink="/documentation/configuration" class="next-step-card">
+        <h3>Configuration Options</h3>
+        <p>Learn how to customize Kraven UI to fit your needs</p>
+        <span class="arrow-icon">→</span>
+      </a>
+      <a routerLink="/documentation/examples" class="next-step-card">
+        <h3>Examples</h3>
+        <p>See examples of Kraven UI in action</p>
+        <span class="arrow-icon">→</span>
+      </a>
+      <a routerLink="/documentation/faq" class="next-step-card">
+        <h3>FAQ</h3>
+        <p>Find answers to common questions</p>
+        <span class="arrow-icon">→</span>
+      </a>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,245 @@
+.footer {
+  background-color: #1a1b2e; /* Solid color instead of semi-transparent */
+  position: relative;
+  padding: 4rem 0 2rem;
+  z-index: 2; /* Higher z-index to ensure it's above the animation */
+  margin-top: 0; /* Ensure no extra margin */
+  transition: background-color 0.3s ease;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #3f51b5, transparent);
+  }
+
+  :host-context(.light-theme) & {
+    background-color: #f0f2f5;
+
+    &::before {
+      background: linear-gradient(90deg, transparent, #1976d2, transparent);
+    }
+  }
+}
+
+.footer-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+  margin-bottom: 3rem;
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+
+.footer-brand {
+  flex: 1;
+  max-width: 300px;
+
+  @media (max-width: 767px) {
+    text-align: center;
+    margin: 0 auto;
+  }
+}
+
+.footer-logo {
+  display: inline-block;
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  text-decoration: none;
+}
+
+.gradient-text {
+  background: linear-gradient(90deg, #3f51b5, #00b0ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.footer-tagline {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.875rem;
+  line-height: 1.5;
+
+  :host-context(.light-theme) & {
+    color: rgba(26, 27, 46, 0.6);
+  }
+}
+
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3rem;
+
+  @media (max-width: 767px) {
+    justify-content: center;
+  }
+}
+
+.footer-links-column {
+  min-width: 160px;
+}
+
+.footer-heading {
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+  position: relative;
+  transition: color 0.3s ease;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -0.5rem;
+    left: 0;
+    width: 30px;
+    height: 2px;
+    background: #3f51b5;
+    transition: background-color 0.3s ease;
+  }
+
+  :host-context(.light-theme) & {
+    color: #1a1b2e;
+
+    &::after {
+      background: #1976d2;
+    }
+  }
+
+  @media (max-width: 767px) {
+    text-align: center;
+
+    &::after {
+      left: 50%;
+      transform: translateX(-50%);
+    }
+  }
+}
+
+.footer-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  li {
+    margin-bottom: 0.75rem;
+
+    @media (max-width: 767px) {
+      text-align: center;
+    }
+  }
+
+  a {
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: none;
+    transition: color 0.3s ease;
+    font-size: 0.875rem;
+
+    &:hover {
+      color: #3f51b5;
+    }
+
+    :host-context(.light-theme) & {
+      color: rgba(26, 27, 46, 0.6);
+
+      &:hover {
+        color: #1976d2;
+      }
+    }
+  }
+}
+
+.social-links {
+  display: flex;
+  gap: 0.5rem;
+
+  @media (max-width: 767px) {
+    justify-content: center;
+  }
+
+  a {
+    color: rgba(255, 255, 255, 0.6);
+
+    &:hover {
+      color: #3f51b5;
+    }
+  }
+}
+
+.social-icons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+
+  @media (max-width: 767px) {
+    justify-content: center;
+  }
+}
+
+.social-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: rgba(63, 81, 181, 0.2);
+    color: #3f51b5;
+    transform: translateY(-3px);
+  }
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  :host-context(.light-theme) & {
+    background: rgba(0, 0, 0, 0.05);
+    color: rgba(26, 27, 46, 0.6);
+
+    &:hover {
+      background: rgba(25, 118, 210, 0.1);
+      color: #1976d2;
+    }
+  }
+}
+
+.footer-bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 1.5rem;
+  text-align: center;
+  transition: border-color 0.3s ease;
+
+  :host-context(.light-theme) & {
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+  }
+}
+
+.copyright {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.75rem;
+  transition: color 0.3s ease;
+
+  :host-context(.light-theme) & {
+    color: rgba(26, 27, 46, 0.4);
+  }
+}

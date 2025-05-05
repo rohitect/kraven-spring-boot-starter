@@ -1,0 +1,10 @@
+.main-content {
+  padding-top: 64px; // Height of the header
+  min-height: calc(100vh - 64px - 300px); // 100vh - header - footer
+  position: relative;
+  z-index: 1;
+  background: transparent; // Ensure background is transparent to show animation
+  overflow: hidden; // Prevent scrolling beyond content
+  display: flex;
+  flex-direction: column;
+}

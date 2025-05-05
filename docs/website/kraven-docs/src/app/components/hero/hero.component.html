@@ -1,0 +1,35 @@
+<section class="hero-section" [class.light-theme]="!isDarkTheme">
+  <div class="hero-container">
+    <div class="hero-content">
+      <div class="hero-text" @fadeIn>
+        <h1 class="hero-title">
+          <span class="gradient-text">Kraven UI</span>
+          <span class="subtitle">A Beautiful API Documentation & Development Toolkit</span>
+        </h1>
+        <p class="hero-description" @slideIn>
+          Elevate your API documentation with a ridiculously good-looking, highly readable, and customizable UI for OpenAPI specifications. Kraven UI combines elegant readability with interactive capabilities.
+        </p>
+        <div class="hero-actions" @fadeIn>
+          <a mat-raised-button color="primary" routerLink="/documentation" class="get-started-btn">
+            <mat-icon>play_arrow</mat-icon> Documentation
+          </a>
+          <a mat-stroked-button color="accent" href="#features" class="explore-btn">
+            <mat-icon>explore</mat-icon> Explore Features
+          </a>
+        </div>
+      </div>
+
+      <div class="hero-image-container" @slideInRight>
+        <div class="hero-image">
+          <img src="assets/dashboard-preview.png" alt="Kraven UI Dashboard">
+          <div class="glow-effect"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scroll-indicator" @fadeIn>
+      <span>Scroll to explore</span>
+      <mat-icon>keyboard_arrow_down</mat-icon>
+    </div>
+  </div>
+</section>

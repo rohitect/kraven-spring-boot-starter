@@ -1,0 +1,302 @@
+<div class="documentation-container" [class.light-theme]="!isDarkTheme">
+  <div class="page-header" @fadeIn>
+    <h1 class="page-title">Kraven UI Features</h1>
+    <div class="version-badge">v1.0.7</div>
+  </div>
+
+  <div class="content-section" @fadeInUp>
+    <h2>Core Features Overview</h2>
+    <p>
+      Kraven UI is more than just API documentation - it's a complete development and debugging toolkit that brings together
+      multiple features in one unified interface. Here's an overview of what Kraven UI offers:
+    </p>
+
+    <div class="features-showcase">
+      <div class="feature-card-large">
+        <div class="feature-card-content">
+          <div class="feature-icon-large" style="background: linear-gradient(135deg, #3f51b5, #5c6bc0);">
+            <mat-icon>description</mat-icon>
+          </div>
+          <div class="feature-text">
+            <h3>API Documentation</h3>
+            <p>Beautiful, interactive API documentation with a three-pane layout that makes your APIs shine</p>
+            <div class="feature-tags">
+              <span class="feature-tag">Interactive</span>
+              <span class="feature-tag">Customizable</span>
+              <span class="feature-tag">Responsive</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="feature-card-large">
+        <div class="feature-card-content">
+          <div class="feature-icon-large" style="background: linear-gradient(135deg, #00b0ff, #4fc3f7);">
+            <mat-icon>code</mat-icon>
+          </div>
+          <div class="feature-text">
+            <h3>API Playground</h3>
+            <p>Try out API endpoints directly from the documentation with a powerful request builder</p>
+            <div class="feature-tags">
+              <span class="feature-tag">Request History</span>
+              <span class="feature-tag">Authentication</span>
+              <span class="feature-tag">Validation</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon" style="background: linear-gradient(135deg, #00b894, #55efc4);">
+            <mat-icon>hub</mat-icon>
+          </div>
+          <h3>Feign Client Explorer</h3>
+          <p>Discover and test Feign clients in your application</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon" style="background: linear-gradient(135deg, #fd79a8, #fab1a0);">
+            <mat-icon>stream</mat-icon>
+          </div>
+          <h3>Kafka Management</h3>
+          <p>Manage Kafka topics, produce and consume messages</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon" style="background: linear-gradient(135deg, #fdcb6e, #ffeaa7);">
+            <mat-icon>monitor_heart</mat-icon>
+          </div>
+          <h3>Application Monitoring</h3>
+          <p>Monitor application health, metrics, and performance</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon" style="background: linear-gradient(135deg, #6c5ce7, #a29bfe);">
+            <mat-icon>extension</mat-icon>
+          </div>
+          <h3>Plugin System</h3>
+          <p>Extend functionality with plugins like Mock Server</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section" @fadeInUp>
+    <h2 id="api-documentation">API Documentation</h2>
+    <p>
+      The API Documentation UI is where Kraven UI really shines. It combines the elegant readability of Redoc with the
+      interactive capabilities of Swagger UI, but with a much more modern and customizable interface.
+    </p>
+    <div class="feature-details feature-card-modern">
+      <div class="feature-text">
+        <h3>Key Features:</h3>
+        <ul class="feature-list">
+          <li><strong>Three-Pane Layout</strong> - Navigation sidebar, API details, and request/response panels</li>
+          <li><strong>Syntax Highlighting</strong> - Beautiful code highlighting for JSON and other formats</li>
+          <li><strong>Markdown Support</strong> - Rich formatting for API descriptions</li>
+          <li><strong>Schema Visualization</strong> - Interactive schema diagrams</li>
+          <li><strong>Search</strong> - Quickly find endpoints and models</li>
+          <li><strong>Dark/Light Themes</strong> - Choose your preferred visual style</li>
+          <li><strong>Responsive Design</strong> - Works on desktop and mobile devices</li>
+        </ul>
+      </div>
+      <div class="image-placeholder">
+        <div class="placeholder-text">API Documentation Screenshot</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section" @fadeInUp>
+    <h2 id="api-playground">API Playground</h2>
+    <p>
+      The API Playground allows you to test your API endpoints directly from the documentation. It provides a user-friendly
+      interface for constructing requests and viewing responses.
+    </p>
+    <div class="feature-details feature-card-modern">
+      <div class="feature-text">
+        <h3>Key Features:</h3>
+        <ul class="feature-list">
+          <li><strong>Request Builder</strong> - Easily construct API requests with a form-based interface</li>
+          <li><strong>Parameter Validation</strong> - Validate request parameters before sending</li>
+          <li><strong>Authentication Support</strong> - Test authenticated endpoints with various auth methods</li>
+          <li><strong>Response Visualization</strong> - See formatted responses with syntax highlighting</li>
+          <li><strong>Request History</strong> - Keep track of previous requests for quick reference</li>
+          <li><strong>Copy as cURL</strong> - Generate cURL commands for your requests</li>
+          <li><strong>Download Response</strong> - Save API responses for later use</li>
+        </ul>
+      </div>
+      <div class="image-placeholder">
+        <div class="placeholder-text">API Playground Screenshot</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section" @fadeInUp>
+    <h2 id="feign-client-explorer">Feign Client Explorer</h2>
+    <p>
+      The Feign Client Explorer automatically discovers and displays all Feign clients in your application, allowing you to
+      explore and test external service integrations.
+    </p>
+    <div class="feature-details feature-card-modern">
+      <div class="feature-text">
+        <h3>Key Features:</h3>
+        <ul class="feature-list">
+          <li><strong>Auto-Discovery</strong> - Automatically finds all Feign clients in your application</li>
+          <li><strong>Method Exploration</strong> - View and test all methods on each client</li>
+          <li><strong>Parameter Testing</strong> - Try out different parameter values</li>
+          <li><strong>Response Visualization</strong> - See the actual responses from your external services</li>
+          <li><strong>Client Search</strong> - Find that one client among the hundreds you've created</li>
+          <li><strong>Metadata Caching</strong> - Optimized performance with metadata caching</li>
+        </ul>
+      </div>
+      <div class="image-placeholder">
+        <div class="placeholder-text">Feign Client Explorer Screenshot</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section" @fadeInUp>
+    <h2 id="kafka-management">Kafka Management</h2>
+    <p>
+      The Kafka Management UI provides comprehensive tools for managing your Kafka clusters, topics, and messages. It's
+      available through the Kafka Plugin.
+    </p>
+    <div class="feature-details feature-card-modern">
+      <div class="feature-text">
+        <h3>Key Features:</h3>
+        <ul class="feature-list">
+          <li><strong>Topic Overview</strong> - See all your Kafka topics in one place</li>
+          <li><strong>Message Producer</strong> - Send messages to topics without writing code</li>
+          <li><strong>Message Browser</strong> - View messages in topics with filtering and pagination</li>
+          <li><strong>Live Streaming</strong> - Watch messages arrive in real-time</li>
+          <li><strong>Consumer Groups</strong> - Monitor consumer groups and their lag</li>
+          <li><strong>Listener Discovery</strong> - Automatically discovers KafkaListener annotations</li>
+          <li><strong>Smart Loading</strong> - Features a sarcastic loading animation when refreshing</li>
+        </ul>
+      </div>
+      <div class="image-placeholder">
+        <div class="placeholder-text">Kafka Management Screenshot</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section" @fadeInUp>
+    <h2 id="application-monitoring">Application Monitoring</h2>
+    <p>
+      The Application Monitoring features provide insights into your application's performance and health, leveraging
+      Spring Boot Actuator endpoints.
+    </p>
+    <div class="feature-details feature-card-modern">
+      <div class="feature-text">
+        <h3>Key Features:</h3>
+        <ul class="feature-list">
+          <li><strong>Health Checks</strong> - Monitor the health of your application and its dependencies</li>
+          <li><strong>JVM Metrics</strong> - Track memory usage, garbage collection, and more</li>
+          <li><strong>Thread Dumps</strong> - Generate and analyze thread dumps</li>
+          <li><strong>Environment</strong> - View application environment and configuration</li>
+          <li><strong>Logging</strong> - Adjust log levels at runtime</li>
+          <li><strong>HTTP Metrics</strong> - Monitor HTTP request performance</li>
+          <li><strong>Custom Metrics</strong> - View application-specific metrics</li>
+        </ul>
+      </div>
+      <div class="image-placeholder">
+        <div class="placeholder-text">Application Monitoring Screenshot</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section" @fadeInUp>
+    <h2 id="actuator-insights">Actuator Insights</h2>
+    <p>
+      Actuator Insights provides a beautiful visualization of Spring Boot Actuator endpoints, making it easy to monitor
+      and manage your application's health, metrics, and configuration.
+    </p>
+    <div class="feature-details feature-card-modern">
+      <div class="feature-text">
+        <h3>Key Features:</h3>
+        <ul class="feature-list">
+          <li><strong>Interactive Dashboards</strong> - Visual representation of actuator data</li>
+          <li><strong>Real-time Updates</strong> - Live monitoring of application metrics</li>
+          <li><strong>Customizable Views</strong> - Configure which metrics to display</li>
+          <li><strong>Alert Configuration</strong> - Set up alerts for critical metrics</li>
+          <li><strong>Historical Data</strong> - Track metrics over time with trend analysis</li>
+          <li><strong>Export Options</strong> - Download metrics data for offline analysis</li>
+        </ul>
+      </div>
+      <div class="image-placeholder">
+        <div class="placeholder-text">Actuator Insights Dashboard</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section" @fadeInUp>
+    <h2 id="mock-server">Mock Server Plugin</h2>
+    <p>
+      The Mock Server Plugin provides a configurable mock server for integration testing and development, allowing you to
+      mock API endpoints without depending on external services.
+    </p>
+    <div class="feature-details feature-card-modern">
+      <div class="feature-text">
+        <h3>Key Features:</h3>
+        <ul class="feature-list">
+          <li><strong>Configurable Mock Server</strong> - Starts on port 11000 (or custom port)</li>
+          <li><strong>JSON Configuration</strong> - Define mock endpoints and responses via JSON</li>
+          <li><strong>Multiple Response Variations</strong> - Support for multiple response variations per endpoint</li>
+          <li><strong>Runtime Switching</strong> - Switch between different mock responses via the UI</li>
+          <li><strong>Request History</strong> - Track and visualize request history</li>
+          <li><strong>Response Delay Simulation</strong> - Simulate network latency for realistic testing</li>
+          <li><strong>Dynamic Response Generation</strong> - Generate responses based on request data</li>
+        </ul>
+      </div>
+      <div class="image-placeholder">
+        <div class="placeholder-text">Mock Server Screenshot</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section" @fadeInUp>
+    <h2 id="plugin-system">Plugin System</h2>
+    <p>
+      Kraven UI features a powerful plugin system that allows you to extend its functionality with custom plugins. The
+      plugin system provides a clean API for registering new features and UI components.
+    </p>
+    <div class="feature-details feature-card-modern">
+      <div class="feature-text">
+        <h3>Key Features:</h3>
+        <ul class="feature-list">
+          <li><strong>Dynamic Registration</strong> - Plugins register with the core at runtime</li>
+          <li><strong>UI Integration</strong> - Plugins automatically appear in the UI when registered</li>
+          <li><strong>Independent Lifecycle</strong> - Start, stop, and manage plugins independently</li>
+          <li><strong>Configurable</strong> - Each plugin has its own configuration options</li>
+          <li><strong>API Extensions</strong> - Plugins can extend the Kraven UI API</li>
+          <li><strong>Event System</strong> - Event-based notifications for plugin actions</li>
+        </ul>
+      </div>
+      <div class="image-placeholder">
+        <div class="placeholder-text">Plugin System Architecture Diagram</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section" @fadeInUp>
+    <h2>Next Steps</h2>
+    <div class="next-steps">
+      <a routerLink="/documentation/configuration" class="next-step-card">
+        <h3>Configuration Options</h3>
+        <p>Learn how to customize Kraven UI to fit your needs</p>
+        <span class="arrow-icon">→</span>
+      </a>
+      <a routerLink="/documentation/plugins" class="next-step-card">
+        <h3>Plugins</h3>
+        <p>Explore the available plugins and how to use them</p>
+        <span class="arrow-icon">→</span>
+      </a>
+      <a routerLink="/documentation/examples" class="next-step-card">
+        <h3>Examples</h3>
+        <p>See examples of Kraven UI in action</p>
+        <span class="arrow-icon">→</span>
+      </a>
+    </div>
+  </div>
+</div>
