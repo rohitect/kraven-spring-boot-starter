@@ -107,7 +107,7 @@
                 </svg>
               </div>
               <div class="client-item-content">
-                <div class="client-name">{{ client.name || client.className?.split('.')?.pop() || 'Unnamed Client' }}</div>
+                <div class="client-name">{{ client.name || (client.className ? client.className.split('.').pop() : null) || 'Unnamed Client' }}</div>
                 <div class="client-meta">
                   <span class="client-path" *ngIf="client.path">{{ client.path }}</span>
                   <span class="client-methods-count">{{ client.methods.length || 0 }} methods</span>
@@ -158,7 +158,7 @@
                 </svg>
               </div>
               <div class="client-item-content">
-                <div class="client-name">{{ client.name || client.className?.split('.')?.pop() || 'Unnamed Client' }}</div>
+                <div class="client-name">{{ client.name || (client.className ? client.className.split('.').pop() : null) || 'Unnamed Client' }}</div>
                 <div class="client-meta">
                   <span class="client-path" *ngIf="client.path">{{ client.path }}</span>
                   <span class="client-methods-count">{{ client.methods.length || 0 }} methods</span>
@@ -182,7 +182,7 @@
                 </svg>
               </div>
               <div class="client-card-content">
-                <div class="client-name">{{ client.name || client.className?.split('.')?.pop() || 'Unnamed Client' }}</div>
+                <div class="client-name">{{ client.name || (client.className ? client.className.split('.').pop() : null) || 'Unnamed Client' }}</div>
                 <div class="client-card-footer">
                   <span class="client-methods-count">{{ client.methods.length || 0 }} methods</span>
                 </div>
@@ -244,7 +244,7 @@
         <!-- Client Header -->
         <div class="client-header">
           <div class="client-title-section">
-            <h2 class="client-title">{{ selectedClient.name || selectedClient.className?.split('.')?.pop() || 'Unnamed Client' }}</h2>
+            <h2 class="client-title">{{ selectedClient.name || (selectedClient.className ? selectedClient.className.split('.').pop() : null) || 'Unnamed Client' }}</h2>
             <div class="client-badges">
               <span class="client-badge" *ngIf="selectedClient.url">URL: {{ selectedClient.url }}</span>
               <span class="client-badge" *ngIf="selectedClient.path">Path: {{ selectedClient.path }}</span>

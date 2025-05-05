@@ -42,7 +42,7 @@
             </div>
           </div>
           <div class="endpoint-responses">
-            <i class="fas fa-reply-all"></i> {{ endpoint.responses?.length || 0 }} responses
+            <i class="fas fa-reply-all"></i> {{ endpoint.responses ? endpoint.responses.length : 0 }} responses
           </div>
         </div>
         <div class="endpoint-arrow">
@@ -80,7 +80,7 @@
         </div>
         <div class="endpoint-actions">
           <span class="response-count">
-            <i class="fas fa-reply-all"></i> {{ endpointDetails.responses?.length || 0 }} responses
+            <i class="fas fa-reply-all"></i> {{ endpointDetails.responses ? endpointDetails.responses.length : 0 }} responses
           </span>
         </div>
       </div>

@@ -120,43 +120,128 @@
           <!-- Bean details panel -->
           <div class="bean-details-panel" *ngIf="selectedBean && getBeanByName(selectedBean)">
             <div class="panel-header">
-              <h3>{{ selectedBean }}</h3>
+              <div class="header-content">
+                <h3 title="{{ selectedBean }}">{{ selectedBean }}</h3>
+                <div class="scope-indicator">
+                  <span class="scope-badge" [ngClass]="getScopeBadgeClass(getBeanByName(selectedBean)?.scope)">
+                    {{ getBeanByName(selectedBean)?.scope }}
+                  </span>
+                </div>
+              </div>
               <button class="close-button" (click)="selectedBean = null">
                 <i class="fas fa-times"></i>
               </button>
             </div>
+
             <div class="panel-content">
-              <div class="detail-section">
-                <h4>Type</h4>
-                <p class="detail-value">{{ getBeanByName(selectedBean)?.type }}</p>
+              <!-- Bean summary card -->
+              <div class="bean-summary-card">
+                <div class="bean-type">
+                  <i class="fas fa-cube"></i>
+                  <span class="type-label">Type:</span>
+                  <span class="type-value">{{ getShortTypeName(getBeanByName(selectedBean)?.type) }}</span>
+                </div>
+
+                <div class="bean-stats">
+                  <div class="stat-item" *ngIf="getBeanByName(selectedBean)?.dependencies?.length">
+                    <span class="stat-value">{{ getBeanByName(selectedBean)?.dependencies?.length || 0 }}</span>
+                    <span class="stat-label">Dependencies</span>
+                  </div>
+                  <div class="stat-item" *ngIf="getBeanDependents(selectedBean).length">
+                    <span class="stat-value">{{ getBeanDependents(selectedBean).length }}</span>
+                    <span class="stat-label">Dependents</span>
+                  </div>
+                </div>
               </div>
-              <div class="detail-section">
-                <h4>Scope</h4>
-                <p class="detail-value">
-                  <span class="scope-badge" [ngClass]="getScopeBadgeClass(getBeanByName(selectedBean)?.scope)">
-                    {{ getBeanByName(selectedBean)?.scope }}
-                  </span>
-                </p>
+
+              <!-- Full type with copy button -->
+              <div class="detail-section type-section">
+                <div class="section-header">
+                  <h4><i class="fas fa-code"></i> Full Type</h4>
+                  <button class="copy-button" (click)="copyToClipboard(getBeanByName(selectedBean)?.type)" title="Copy to clipboard">
+                    <i class="fas fa-copy"></i>
+                  </button>
+                </div>
+                <div class="code-container">
+                  <code class="full-type" [title]="getBeanByName(selectedBean)?.type">{{ getBeanByName(selectedBean)?.type }}</code>
+                </div>
               </div>
-              <div class="detail-section">
-                <h4>Resource</h4>
-                <p class="detail-value">{{ getBeanByName(selectedBean)?.resource || 'Unknown' }}</p>
+
+              <!-- Resource section -->
+              <div class="detail-section resource-section" *ngIf="getBeanByName(selectedBean)?.resource">
+                <div class="section-header">
+                  <h4><i class="fas fa-file-code"></i> Resource</h4>
+                  <button class="copy-button" (click)="copyToClipboard(getBeanByName(selectedBean)?.resource)" title="Copy to clipboard">
+                    <i class="fas fa-copy"></i>
+                  </button>
+                </div>
+                <div class="resource-value" [title]="getBeanByName(selectedBean)?.resource">
+                  {{ getBeanByName(selectedBean)?.resource || 'Unknown' }}
+                </div>
               </div>
-              <div class="detail-section" *ngIf="selectedBean && getBeanByName(selectedBean) && getBeanByName(selectedBean)!.dependencies && getBeanByName(selectedBean)!.dependencies!.length > 0">
-                <h4>Dependencies</h4>
-                <ul class="dependencies-list">
-                  <li *ngFor="let dep of getBeanByName(selectedBean)!.dependencies!" (click)="selectBean(dep)">
-                    <i class="fas fa-arrow-right"></i> {{ dep }}
-                  </li>
-                </ul>
+
+              <!-- Dependencies section -->
+              <div class="detail-section dependencies-section" *ngIf="selectedBean && getBeanByName(selectedBean) && getBeanByName(selectedBean)!.dependencies && getBeanByName(selectedBean)!.dependencies!.length > 0">
+                <div class="section-header">
+                  <h4><i class="fas fa-arrow-right"></i> Dependencies</h4>
+                  <div class="header-actions">
+                    <button class="copy-all-button" (click)="copyAllDependencies()" title="Copy all dependencies">
+                      <i class="fas fa-copy"></i>
+                    </button>
+                    <span class="count-badge">{{ getBeanByName(selectedBean)!.dependencies!.length }}</span>
+                  </div>
+                </div>
+                <div class="list-container">
+                  <ul class="dependencies-list">
+                    <li *ngFor="let dep of getBeanByName(selectedBean)!.dependencies!"
+                        (click)="selectBean(dep)"
+                        [title]="'View details for ' + dep"
+                        class="dependency-item">
+                      <div class="list-item-content">
+                        <i class="fas fa-cube item-icon"></i>
+                        <span class="item-name" [title]="dep">{{ dep }}</span>
+                      </div>
+                      <div class="item-actions">
+                        <button class="copy-item-button" (click)="copyToClipboard(dep); $event.stopPropagation()" title="Copy to clipboard">
+                          <i class="fas fa-copy"></i>
+                        </button>
+                        <i class="fas fa-chevron-right navigate-icon"></i>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
               </div>
-              <div class="detail-section" *ngIf="getBeanDependents(selectedBean).length > 0">
-                <h4>Dependents</h4>
-                <ul class="dependents-list">
-                  <li *ngFor="let dep of getBeanDependents(selectedBean)" (click)="selectBean(dep)">
-                    <i class="fas fa-arrow-left"></i> {{ dep }}
-                  </li>
-                </ul>
+
+              <!-- Dependents section -->
+              <div class="detail-section dependents-section" *ngIf="getBeanDependents(selectedBean).length > 0">
+                <div class="section-header">
+                  <h4><i class="fas fa-arrow-left"></i> Dependents</h4>
+                  <div class="header-actions">
+                    <button class="copy-all-button" (click)="copyAllDependents()" title="Copy all dependents">
+                      <i class="fas fa-copy"></i>
+                    </button>
+                    <span class="count-badge">{{ getBeanDependents(selectedBean).length }}</span>
+                  </div>
+                </div>
+                <div class="list-container">
+                  <ul class="dependents-list">
+                    <li *ngFor="let dep of getBeanDependents(selectedBean)"
+                        (click)="selectBean(dep)"
+                        [title]="'View details for ' + dep"
+                        class="dependent-item">
+                      <div class="list-item-content">
+                        <i class="fas fa-cube item-icon"></i>
+                        <span class="item-name" [title]="dep">{{ dep }}</span>
+                      </div>
+                      <div class="item-actions">
+                        <button class="copy-item-button" (click)="copyToClipboard(dep); $event.stopPropagation()" title="Copy to clipboard">
+                          <i class="fas fa-copy"></i>
+                        </button>
+                        <i class="fas fa-chevron-right navigate-icon"></i>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
@@ -164,30 +249,131 @@
 
         <!-- Graph view -->
         <div class="beans-graph-view" *ngIf="activeView === 'graph'">
+          <!-- Graph Controls Panel -->
+          <div class="graph-controls-panel">
+            <div class="graph-controls-container">
+              <!-- Search functionality removed -->
+
+              <!-- Bean selector dropdown -->
+              <div class="dropdown-container" [class.active]="showGraphDropdown">
+                <div class="selected-bean" (click)="toggleGraphDropdown()">
+                  <span *ngIf="!graphRootBean">Select a bean</span>
+                  <span *ngIf="graphRootBean" class="selected-bean-name">{{ graphRootBean }}</span>
+                  <i class="fas fa-chevron-down dropdown-icon"></i>
+                </div>
+                <div class="dropdown-menu" *ngIf="showGraphDropdown">
+                  <!-- Dropdown content -->
+                  <div class="dropdown-menu-inner">
+                    <div *ngIf="filteredGraphBeans.length === 0" class="no-results">
+                      No beans match your search
+                    </div>
+                    <div
+                      *ngFor="let bean of filteredGraphBeans"
+                      class="dropdown-item"
+                      [class.active]="bean.name === graphRootBean"
+                      (click)="selectGraphBean(bean.name)"
+                    >
+                      <div class="bean-item-content">
+                        <span class="bean-name">{{ bean.name }}</span>
+                        <span class="bean-type">{{ getShortTypeName(bean.type) }}</span>
+                      </div>
+                      <span class="scope-indicator" [ngClass]="getScopeBadgeClass(bean.scope)">
+                        {{ bean.scope }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Show dependents toggle -->
+              <div class="option-group">
+                <label class="switch-label">
+                  <span class="switch-text">Show Dependents</span>
+                  <div class="switch">
+                    <input type="checkbox" [(ngModel)]="graphShowDependents" (change)="updateGraph()">
+                    <span class="slider round"></span>
+                  </div>
+                </label>
+              </div>
+
+              <!-- Depth slider -->
+              <div class="option-group depth-slider">
+                <span class="depth-label">Depth: {{ graphDepthLimit }}</span>
+                <div class="slider-container">
+                  <input
+                    type="range"
+                    [(ngModel)]="graphDepthLimit"
+                    min="1"
+                    max="5"
+                    (change)="updateGraph()"
+                    class="depth-range"
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Graph Container -->
           <div class="graph-container">
-            <div class="graph-placeholder">
+            <div class="graph-placeholder" *ngIf="!graphRootBean">
               <i class="fas fa-project-diagram"></i>
               <p>Select a bean to view its dependency graph</p>
             </div>
+
+            <!-- Graph Legend -->
+            <div class="graph-legend" *ngIf="graphRootBean">
+              <div class="legend-title">Legend</div>
+              <div class="legend-items">
+                <div class="legend-item">
+                  <span class="legend-color singleton"></span>
+                  <span class="legend-label">Singleton</span>
+                </div>
+                <div class="legend-item">
+                  <span class="legend-color prototype"></span>
+                  <span class="legend-label">Prototype</span>
+                </div>
+                <div class="legend-item">
+                  <span class="legend-color request"></span>
+                  <span class="legend-label">Request</span>
+                </div>
+                <div class="legend-item">
+                  <span class="legend-color session"></span>
+                  <span class="legend-label">Session</span>
+                </div>
+                <div class="legend-item">
+                  <span class="legend-color other"></span>
+                  <span class="legend-label">Other</span>
+                </div>
+              </div>
+              <div class="legend-items">
+                <div class="legend-item">
+                  <span class="legend-line depends"></span>
+                  <span class="legend-label">Depends On</span>
+                </div>
+                <div class="legend-item" *ngIf="graphShowDependents">
+                  <span class="legend-line dependent"></span>
+                  <span class="legend-label">Dependent</span>
+                </div>
+              </div>
+            </div>
+
             <!-- Dependency graph will be rendered here using D3.js -->
             <div id="dependency-graph" class="dependency-graph"></div>
-          </div>
-          <div class="graph-controls">
-            <div class="graph-search">
-              <select [(ngModel)]="graphRootBean" (change)="updateGraph()">
-                <option value="">Select a root bean</option>
-                <option *ngFor="let bean of filteredBeans" [value]="bean.name">{{ bean.name }}</option>
-              </select>
-            </div>
-            <div class="graph-options">
-              <label class="graph-option">
-                <input type="checkbox" [(ngModel)]="graphShowDependents" (change)="updateGraph()">
-                <span>Show Dependents</span>
-              </label>
-              <label class="graph-option">
-                <input type="range" [(ngModel)]="graphDepthLimit" min="1" max="5" (change)="updateGraph()">
-                <span>Depth: {{ graphDepthLimit }}</span>
-              </label>
+
+            <!-- Graph Instructions -->
+            <div class="graph-instructions" *ngIf="graphRootBean">
+              <div class="instruction-item">
+                <i class="fas fa-mouse-pointer"></i>
+                <span>Click on a node to select it</span>
+              </div>
+              <div class="instruction-item">
+                <i class="fas fa-hand-paper"></i>
+                <span>Drag to move nodes</span>
+              </div>
+              <div class="instruction-item">
+                <i class="fas fa-search-plus"></i>
+                <span>Scroll to zoom</span>
+              </div>
             </div>
           </div>
         </div>

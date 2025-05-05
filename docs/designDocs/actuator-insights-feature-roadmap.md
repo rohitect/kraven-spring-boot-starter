@@ -182,7 +182,7 @@ The tab system will be implemented using the following architecture:
 ### Phase 3: Advanced Monitoring (Weeks 9-12)
 
 #### Milestone 3.1: Thread & Memory Analysis Tabs (Week 9-10)
-- Create dedicated tabs for Thread and Memory analysis
+- Create dedicated tabs for Thread and Memory analysis and not a single tab
 - Implement thread dump visualization with filtering options
 - Create memory usage monitoring components with real-time graphs
 - Develop thread state analysis features with secondary tabs for different views
