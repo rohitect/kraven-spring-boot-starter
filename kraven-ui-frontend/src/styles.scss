@@ -34,11 +34,6 @@
   --radius: 0.5rem;
   --transition-duration: 0.3s;
 
-  /* Sidebar variables */
-  --sidebar-width: 250px;
-  --sidebar-collapsed-width: 70px;
-  --sidebar-transition: width 0.3s ease;
-
   /* Theme variables that will be set dynamically */
   --primary-color-dark: #6c5ce7; /* Vibrant purple */
   --secondary-color-dark: #00b894; /* Mint green */
@@ -61,6 +56,7 @@
   --accent-color: #2d3748; /* Dark slate */
   --accent-foreground-color: #f8fafc;
   --border-color: #2d3452; /* Slightly lighter than background */
+  --border-color-rgb: 45, 52, 82; /* RGB format for border color */
   --card-color: #212338; /* Slightly lighter than background */
   --card-foreground-color: #e2e8f0;
   --card-shadow: 0 8px 16px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(108, 92, 231, 0.1);
@@ -71,6 +67,7 @@
   --error-color-rgb: 231, 76, 60; /* Red in RGB format */
   --success-color: #2ecc71; /* Green */
   --success-color-rgb: 46, 204, 113; /* Green in RGB format */
+  --code-bg-color: #2a2d45; /* Code background for dark theme */
 }
 
 :root.light-theme, html.light-theme {
@@ -88,6 +85,7 @@
   --accent-color: #e2e8f0;
   --accent-foreground-color: #0f172a;
   --border-color: #cbd5e1;
+  --border-color-rgb: 203, 213, 225; /* RGB format for border color */
   --card-color: var(--background-color-light);
   --card-foreground-color: #0f172a;
   --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -98,6 +96,7 @@
   --error-color-rgb: 229, 62, 62; /* Red in RGB format */
   --success-color: #38a169; /* Green */
   --success-color-rgb: 56, 161, 105; /* Green in RGB format */
+  --code-bg-color: #f0f4f8; /* Code background for light theme */
 }
 
 * {

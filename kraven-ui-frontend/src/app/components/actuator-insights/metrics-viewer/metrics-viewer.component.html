@@ -1,0 +1,40 @@
+<div class="metrics-viewer">
+  <!-- Search filter -->
+  <div class="metrics-filter">
+    <div class="search-input">
+      <i class="fas fa-search"></i>
+      <input type="text" [(ngModel)]="searchTerm" (input)="applyFilter()" placeholder="Search metrics...">
+      <button *ngIf="searchTerm" (click)="searchTerm = ''; applyFilter()" class="clear-button">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Key metrics section -->
+  <div class="key-metrics" *ngIf="keyMetrics.length > 0 && !searchTerm">
+    <div class="metric-card" *ngFor="let metric of keyMetrics" (click)="metricSelected.emit(metric.name)">
+      <div class="metric-value">{{ formatMetricValue(metric) }}</div>
+      <div class="metric-name">{{ metric.name }}</div>
+      <div class="metric-description" *ngIf="metric.description">{{ metric.description }}</div>
+    </div>
+  </div>
+
+  <!-- All metrics list -->
+  <div class="metrics-list">
+    <div class="metric-item" *ngFor="let metric of filteredMetrics" (click)="metricSelected.emit(metric.name)">
+      <div class="metric-header">
+        <span class="metric-name">{{ metric.name }}</span>
+        <span class="metric-value">{{ formatMetricValue(metric) }}</span>
+      </div>
+      <div class="metric-details" *ngIf="metric.description">
+        <span class="metric-description">{{ metric.description }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- No metrics message -->
+  <div class="no-metrics" *ngIf="!metricsData || filteredMetrics.length === 0">
+    <p *ngIf="!metricsData">No metrics data available</p>
+    <p *ngIf="metricsData && filteredMetrics.length === 0">No metrics match your search</p>
+  </div>
+</div>

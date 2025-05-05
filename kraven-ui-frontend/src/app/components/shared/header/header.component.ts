@@ -21,6 +21,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   isDarkTheme = false;
   showKafka = false;
   showMockServer = false;
+  showActuatorInsights = false;
   private subscriptions: Subscription[] = [];
 
   constructor(
@@ -40,6 +41,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     // Check if plugins are available and running using the plugin registry
     this.checkKafkaPluginStatus();
     this.checkMockServerPluginStatus();
+    this.checkActuatorInsightsPluginStatus();
   }
 
   ngOnDestroy(): void {
@@ -108,5 +110,30 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
     // For other routes, check if the URL starts with the route
     return this.router.url.startsWith(route);
+  }
+
+  /**
+   * Checks if the Actuator Insights plugin is registered and running
+   */
+  private checkActuatorInsightsPluginStatus(): void {
+    console.log('HeaderComponent: Checking Actuator Insights plugin status');
+
+    // First, try to get the current status
+    const isRegistered = this.pluginService.isPluginRegistered('actuator-insights');
+    const isRunning = this.pluginService.isPluginRunning('actuator-insights');
+
+    if (isRegistered && isRunning) {
+      this.showActuatorInsights = true;
+      return;
+    }
+
+    // If not immediately available, use the registry to check with retries
+    const statusSub = this.pluginRegistry.observePluginStatus('actuator-insights').subscribe(status => {
+      this.showActuatorInsights = status === PluginStatus.READY;
+    });
+    this.subscriptions.push(statusSub);
+
+    // Trigger a check
+    this.pluginRegistry.checkPluginReady('actuator-insights').subscribe();
   }
 }

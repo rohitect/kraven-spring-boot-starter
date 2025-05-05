@@ -32,6 +32,10 @@ export const routes: Routes = [
         path: 'mock-server',
         loadChildren: () => import('./components/mock-server/mock-server.module').then(m => m.MockServerModule)
       },
+      {
+        path: 'actuator-insights',
+        loadChildren: () => import('./components/actuator-insights/actuator-insights.module').then(m => m.ActuatorInsightsModule)
+      },
       { path: 'documentation', component: DocumentationComponent },
       { path: 'documentation/:groupId', component: DocumentationComponent },
       { path: 'documentation/:groupId/:fileId', component: DocumentationComponent },

@@ -1,0 +1,105 @@
+<div class="environment-tab-container">
+  <div class="tab-header">
+    <h2>Environment & Configuration</h2>
+    <div class="tab-controls">
+      <button class="refresh-button" (click)="forceRefresh()">
+        <i class="fas fa-sync-alt"></i> Refresh Now
+      </button>
+    </div>
+  </div>
+
+  <div class="tab-content">
+    <!-- Loading indicator -->
+    <div class="loading-indicator" *ngIf="isLoading">
+      <i class="fas fa-spinner fa-spin"></i>
+      <span>Loading environment data...</span>
+    </div>
+
+    <div class="environment-content" *ngIf="!isLoading">
+      <!-- Search filter -->
+      <div class="search-container">
+        <div class="search-input">
+          <i class="fas fa-search"></i>
+          <input type="text" [(ngModel)]="searchTerm" (input)="applyFilter()" placeholder="Search properties...">
+          <button *ngIf="searchTerm" (click)="searchTerm = ''; applyFilter()" class="clear-button">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Active profiles -->
+      <div class="profiles-container" *ngIf="envData?.activeProfiles">
+        <h3>Active Profiles</h3>
+        <div class="profiles-list">
+          <div class="profile-badge" *ngFor="let profile of envData.activeProfiles">
+            {{ profile }}
+          </div>
+          <div class="profile-badge default" *ngIf="envData.activeProfiles.length === 0">
+            default
+          </div>
+        </div>
+      </div>
+
+      <!-- Application info -->
+      <div class="info-container" *ngIf="infoData">
+        <h3>Application Info</h3>
+        <div class="info-grid">
+          <div class="info-card" *ngFor="let item of infoData | keyvalue">
+            <div class="info-card-header">
+              <h4>{{ item.key }}</h4>
+            </div>
+            <div class="info-card-content">
+              <pre>{{ item.value | json }}</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Property sources -->
+      <div class="property-sources-container" *ngIf="filteredEnvData?.propertySources">
+        <h3>Property Sources</h3>
+        <div class="property-sources-list">
+          <div class="property-source" *ngFor="let source of filteredEnvData.propertySources; let i = index">
+            <div class="property-source-header" (click)="toggleSection('source-' + i)">
+              <div class="source-name">
+                <i class="fas" [ngClass]="isSectionActive('source-' + i) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                <span>{{ source.name }}</span>
+              </div>
+              <div class="property-count">
+                {{ getPropertyCount(source) }} properties
+              </div>
+            </div>
+            <div class="property-source-content" *ngIf="isSectionActive('source-' + i)">
+              <table class="properties-table">
+                <thead>
+                  <tr>
+                    <th>Property</th>
+                    <th>Value</th>
+                    <th>Origin</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let prop of getPropertyEntries(source.properties)">
+                    <td class="property-name" [title]="prop[0]">{{ prop[0] }}</td>
+                    <td class="property-value">
+                      <span *ngIf="!isObject(prop[1].value)" [title]="prop[1].value">{{ prop[1].value }}</span>
+                      <pre *ngIf="isObject(prop[1].value)" [title]="prop[1].value | json">{{ prop[1].value | json }}</pre>
+                    </td>
+                    <td class="property-origin" [title]="prop[1].origin || '-'">{{ prop[1].origin || '-' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- No data message -->
+      <div class="no-data-message" *ngIf="!isLoading && !envData">
+        <i class="fas fa-exclamation-circle"></i>
+        <h3>No Environment Data Available</h3>
+        <p>Unable to retrieve environment information from the actuator endpoint.</p>
+      </div>
+    </div>
+  </div>
+</div>

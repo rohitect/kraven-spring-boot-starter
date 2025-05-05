@@ -1,0 +1,26 @@
+<div class="actuator-tabs-container">
+  <button class="scroll-button scroll-left" *ngIf="showScrollLeft" (click)="scrollLeft()">
+    <i class="fas fa-chevron-left"></i>
+  </button>
+
+  <div class="tabs-container" #tabsContainer (scroll)="onScroll()">
+    <div 
+      *ngFor="let tab of tabs" 
+      class="tab" 
+      [class.active]="tab.id === activeTabId"
+      [attr.data-tab-id]="tab.id"
+      (click)="selectTab(tab.id)"
+    >
+      <i class="fas" [ngClass]="tab.icon"></i>
+      <span class="tab-label">{{ tab.label }}</span>
+    </div>
+  </div>
+
+  <button class="scroll-button scroll-right" *ngIf="showScrollRight" (click)="scrollRight()">
+    <i class="fas fa-chevron-right"></i>
+  </button>
+</div>
+
+<div class="tab-content">
+  <router-outlet></router-outlet>
+</div>

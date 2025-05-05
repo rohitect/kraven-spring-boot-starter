@@ -1,0 +1,275 @@
+.health-tab-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  .tab-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+
+    h2 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    .tab-controls {
+      display: flex;
+      align-items: center;
+
+      .refresh-control {
+        display: flex;
+        align-items: center;
+        margin-right: 1rem;
+
+        label {
+          margin-right: 0.5rem;
+          color: var(--text-muted-color);
+        }
+
+        input {
+          width: 60px;
+          padding: 0.25rem 0.5rem;
+          border-radius: 4px;
+          border: 1px solid var(--border-color);
+          background-color: var(--input-bg-color);
+          color: var(--text-color);
+          text-align: center;
+        }
+
+        span {
+          margin-left: 0.5rem;
+          color: var(--text-muted-color);
+        }
+      }
+
+      .refresh-button {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        border: 1px solid var(--border-color);
+        background-color: var(--button-bg-color);
+        color: var(--text-color);
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+
+        i {
+          margin-right: 0.5rem;
+        }
+
+        &:hover {
+          background-color: var(--button-hover-bg-color);
+        }
+      }
+    }
+  }
+
+  .tab-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    .loading-indicator {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      color: var(--text-muted-color);
+
+      i {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+      }
+    }
+
+    .health-monitor-container {
+      margin-bottom: 2rem;
+    }
+
+    .health-logs-container {
+      margin-top: 2rem;
+      background-color: var(--card-bg-color);
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+
+      .logs-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        background-color: var(--card-header-bg-color);
+        border-bottom: 1px solid var(--border-color);
+
+        h3 {
+          margin: 0;
+          font-size: 1.2rem;
+          font-weight: 600;
+        }
+
+        .logs-controls {
+          display: flex;
+          gap: 0.5rem;
+
+          .logs-control-button {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 0.75rem;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background-color: var(--button-bg-color);
+            color: var(--text-color);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+
+            i {
+              margin-right: 0.5rem;
+            }
+
+            &:hover {
+              background-color: var(--button-hover-bg-color);
+            }
+          }
+        }
+      }
+
+      .logs-container {
+        flex: 1;
+        overflow-y: auto;
+        min-height: 0; /* Important for flex containers to respect child overflow */
+
+        .no-logs-message {
+          padding: 1.5rem;
+          text-align: center;
+          color: var(--text-muted-color);
+
+          p {
+            margin: 0;
+            font-size: 0.95rem;
+          }
+        }
+
+        .log-entry-single-line {
+          display: flex;
+          align-items: center;
+          padding: 0.75rem 1rem;
+          border-bottom: 1px solid var(--border-color);
+          transition: background-color 0.2s ease;
+
+          &:last-child {
+            border-bottom: none;
+          }
+
+          &:hover {
+            background-color: var(--hover-bg-color);
+          }
+
+          &.status-up {
+            border-left: 4px solid #28a745;
+
+            .log-status, .log-status-text {
+              color: #28a745;
+            }
+          }
+
+          &.status-down {
+            border-left: 4px solid #dc3545;
+
+            .log-status, .log-status-text {
+              color: #dc3545;
+            }
+          }
+
+          &.status-out-of-service {
+            border-left: 4px solid #ffc107;
+
+            .log-status, .log-status-text {
+              color: #ffc107;
+            }
+          }
+
+          &.status-unknown {
+            border-left: 4px solid #6c757d;
+
+            .log-status, .log-status-text {
+              color: #6c757d;
+            }
+          }
+
+          .log-status {
+            display: flex;
+            align-items: center;
+            margin-right: 0.75rem;
+
+            i {
+              font-size: 1.1rem;
+            }
+          }
+
+          .log-status-text {
+            font-weight: 600;
+            min-width: 60px;
+            margin-right: 1rem;
+          }
+
+          .log-components {
+            flex: 1;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-right: 1rem;
+          }
+
+          .log-timestamp {
+            color: var(--text-muted-color);
+            font-size: 0.85rem;
+            white-space: nowrap;
+          }
+        }
+      }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .no-data-message {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem;
+      color: var(--text-muted-color);
+      text-align: center;
+
+      i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: var(--warning-color);
+      }
+
+      h3 {
+        margin-top: 0;
+        margin-bottom: 0.5rem;
+        font-size: 1.2rem;
+        font-weight: 600;
+      }
+
+      p {
+        margin: 0;
+        max-width: 400px;
+      }
+    }
+  }
+}

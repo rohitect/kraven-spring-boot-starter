@@ -1,0 +1,34 @@
+<div class="health-monitor">
+  <!-- Overall health status -->
+  <div class="overall-status">
+    <div class="status-indicator" [ngClass]="getStatusClass(status)">
+      <i class="fas" [ngClass]="getStatusIcon(status)"></i>
+      <span class="status-text">{{ status }}</span>
+    </div>
+  </div>
+  
+  <!-- Component health status -->
+  <div class="components-list" *ngIf="components.length > 0">
+    <h3>Components</h3>
+    <div class="component-item" *ngFor="let component of components">
+      <div class="component-header">
+        <span class="component-name">{{ component.name }}</span>
+        <div class="component-status" [ngClass]="getStatusClass(component.status)">
+          <i class="fas" [ngClass]="getStatusIcon(component.status)"></i>
+          <span class="status-text">{{ component.status }}</span>
+        </div>
+      </div>
+      <div class="component-details" *ngIf="component.details && hasKeys(component.details)">
+        <div class="detail-item" *ngFor="let detail of getObjectEntries(component.details)">
+          <span class="detail-name">{{ detail[0] }}:</span>
+          <span class="detail-value">{{ detail[1] | json }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- No health data message -->
+  <div class="no-health-data" *ngIf="!healthData">
+    <p>No health data available</p>
+  </div>
+</div>

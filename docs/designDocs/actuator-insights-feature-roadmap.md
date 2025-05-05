@@ -95,8 +95,41 @@ The Actuator Insights feature will be implemented as a plugin with the following
 2. **Frontend Components**: Integrated directly into the main Kraven UI Angular project
    - Angular-based interactive UI components in the main frontend codebase
    - Chart and visualization libraries integration
-   - Responsive dashboard implementation
+   - Tab-based navigation system
    - Consistent styling with the main Kraven UI
+
+### Tab System Architecture
+
+The tab system will be implemented using the following architecture:
+
+1. **Tab Container Component**:
+   - Manages the overall tab system
+   - Handles tab selection, creation, and state persistence
+   - Provides keyboard navigation support
+   - Manages tab overflow behavior
+
+2. **Tab Component**:
+   - Represents an individual tab
+   - Contains tab-specific content and controls
+   - Manages tab state (active, hover, loading)
+   - Handles tab-specific events
+
+3. **Tab Content Components**:
+   - Specialized components for each tab type
+   - Lazy-loaded to improve performance
+   - Implement tab-specific visualizations and interactions
+
+4. **Tab Service**:
+   - Manages tab state across the application
+   - Handles tab persistence in local storage
+   - Provides API for creating, updating, and removing tabs
+   - Manages tab history for navigation
+
+5. **Tab Routing**:
+   - Maps URLs to specific tabs
+   - Enables deep linking to specific tab content
+   - Preserves tab state during navigation
+   - Supports browser history integration
 
 ### Integration Points
 - Spring Boot Actuator endpoint detection and consumption
@@ -129,59 +162,88 @@ The Actuator Insights feature will be implemented as a plugin with the following
 
 ### Phase 2: Essential Visualizations (Weeks 5-8)
 
-#### Milestone 2.1: Health & Metrics Dashboard (Week 5-6)
+#### Milestone 2.1: Tab-Based UI Framework & Health Dashboard (Week 5-6)
+- Implement tab-based navigation framework for actuator insights
+- Create tab persistence mechanism to maintain state across page refreshes
+- Design and implement tab styling with active, hover, and focus states
 - Implement health status visualization with animations
 - Create metrics visualization components
-- Develop dashboard layout framework
 - Implement real-time data updates
 
-#### Milestone 2.2: Environment & Beans Explorer (Week 7-8)
+#### Milestone 2.2: Environment & Beans Explorer Tabs (Week 7-8)
+- Create dedicated tabs for Environment and Beans sections
+- Implement secondary tabs for different property sources
 - Create interactive environment property explorer
-- Implement bean visualization components
-- Develop search and filter capabilities
+- Implement bean visualization components with dependency graphs
+- Develop search and filter capabilities across tabs
 - Add property comparison features
+- Ensure consistent navigation between primary and secondary tabs
 
 ### Phase 3: Advanced Monitoring (Weeks 9-12)
 
-#### Milestone 3.1: Thread & Memory Analysis (Week 9-10)
-- Implement thread dump visualization
-- Create memory usage monitoring components
-- Develop thread state analysis features
+#### Milestone 3.1: Thread & Memory Analysis Tabs (Week 9-10)
+- Create dedicated tabs for Thread and Memory analysis
+- Implement thread dump visualization with filtering options
+- Create memory usage monitoring components with real-time graphs
+- Develop thread state analysis features with secondary tabs for different views
 - Add heap dump request and analysis capabilities
+- Implement tab-specific controls and filters
+- Ensure consistent UI patterns across all tabs
 
-#### Milestone 3.2: HTTP & Logging Insights (Week 11-12)
-- Create HTTP request monitoring visualizations
-- Implement logging control interface
-- Develop endpoint usage analysis
-- Add log level management features
+#### Milestone 3.2: HTTP & Logging Insights Tabs (Week 11-12)
+- Create dedicated tabs for HTTP Requests and Logging
+- Implement HTTP request monitoring visualizations with filtering by endpoint
+- Create secondary tabs for different HTTP metrics (response time, error rate, etc.)
+- Implement logging control interface with log level management
+- Develop endpoint usage analysis with interactive charts
+- Add log level management features with real-time updates
+- Ensure tab content is optimized for different screen sizes
+- Implement tab-specific search and filter capabilities
 
 ### Phase 4: Enhanced Features (Weeks 13-16)
 
-#### Milestone 4.1: Scheduled Tasks & Integration (Week 13-14)
-- Implement scheduled tasks monitoring
-- Create task execution timeline visualization
+#### Milestone 4.1: Scheduled Tasks Tab & Tab System Refinement (Week 13-14)
+- Create dedicated tab for Scheduled Tasks monitoring
+- Implement scheduled tasks monitoring with status indicators
+- Create task execution timeline visualization with interactive elements
+- Refine tab navigation system based on user feedback
+- Implement keyboard shortcuts for tab navigation
+- Add tab state persistence in browser local storage
 - Develop integration with other Kraven UI features
-- Add export and sharing capabilities
+- Add export and sharing capabilities for tab content
+- Implement URL-based deep linking to specific tabs
 
-#### Milestone 4.2: Alerts & Recommendations (Week 15-16)
-- Implement threshold-based alerting system
+#### Milestone 4.2: Alerts Tab & Cross-Tab Notifications (Week 15-16)
+- Create dedicated Alerts & Recommendations tab
+- Implement threshold-based alerting system with visual indicators
 - Create recommendation engine for common issues
-- Develop notification system
-- Add customizable alert rules
+- Develop notification system that works across all tabs
+- Add customizable alert rules with configuration UI
+- Implement alert status indicators visible in tab headers
+- Create a global notification center accessible from any tab
+- Add ability to navigate directly to relevant tab from alerts
 
 ### Phase 5: Refinement & Documentation (Weeks 17-20)
 
-#### Milestone 5.1: Performance Optimization (Week 17-18)
-- Optimize data collection and processing
-- Improve UI rendering performance
-- Implement efficient data storage
-- Conduct load testing and optimization
+#### Milestone 5.1: Tab System Performance Optimization (Week 17-18)
+- Optimize tab switching performance with lazy loading
+- Implement efficient tab content rendering with virtualization
+- Optimize data collection and processing for each tab
+- Improve UI rendering performance across all tabs
+- Implement efficient data storage with tab-specific caching
+- Conduct load testing and optimization for complex tab content
+- Implement tab prefetching for improved user experience
+- Add tab content compression for large datasets
 
-#### Milestone 5.2: Documentation & Release (Week 19-20)
-- Create comprehensive user documentation
-- Develop interactive tutorials
-- Prepare release notes and examples
-- Finalize plugin packaging
+#### Milestone 5.2: Tab-Specific Documentation & Release (Week 19-20)
+- Create comprehensive user documentation for each tab
+- Develop interactive tutorials with tab-specific guidance
+- Create contextual help accessible within each tab
+- Implement guided tours for complex tab features
+- Prepare release notes and examples highlighting tab-based navigation
+- Create demo videos showcasing tab navigation and features
+- Finalize plugin packaging with optimized tab assets
+- Implement tab usage analytics for future improvements
 
 ## UI Design Principles
 
@@ -191,11 +253,40 @@ The Actuator Insights feature will be implemented as a plugin with the following
 - Micro-interactions for user feedback
 - Information density balanced with clarity
 
+### Tab-Based Interface Design
+- **Primary Navigation Tabs**: Main categories of actuator insights
+  - Health & Status
+  - Metrics & Performance
+  - Environment & Configuration
+  - Beans & Dependencies
+  - Threads & Memory
+  - Logging & Tracing
+  - HTTP Requests
+  - Scheduled Tasks
+
+- **Tab Design Principles**:
+  - Clear visual indicators for active tabs
+  - Consistent tab height and padding
+  - Optional icons alongside tab labels
+  - Responsive design that adapts to available width
+  - Overflow handling for many tabs (scrollable or dropdown)
+  - Subtle hover and focus states
+
+- **Tab Content Organization**:
+  - Each tab has a consistent header area with key metrics
+  - Content area with specialized visualizations for that category
+  - Optional secondary tabs for related sub-features
+  - Consistent placement of controls and filters
+  - Empty states with helpful guidance when no data is available
+
 ### Layout Structure
-- Main dashboard with customizable widgets
-- Sidebar navigation for feature sections
+- Tab-based navigation for primary feature sections
+- Each tab contains a dedicated view with specialized visualizations
+- Persistent tab state across page refreshes
+- Secondary tabs within primary tabs for related sub-features
 - Detail panels for drill-down information
 - Modal dialogs for actions and configurations
+- Optional mini-dashboard with key metrics visible across all tabs
 
 ### Interaction Patterns
 - Click to drill down into details
@@ -242,8 +333,12 @@ kraven:
 
 ### UI Integration
 - Add Actuator Insights to the main navigation
-- Ensure consistent styling with the main Kraven UI
-- Implement smooth transitions between sections
+- Implement a tab-based interface for different actuator features
+- Design tabs to be visually distinct yet cohesive with the main Kraven UI
+- Ensure tab state persistence across page refreshes
+- Implement smooth transitions between tabs
+- Support keyboard navigation between tabs (arrow keys, tab key, shortcuts)
+- Allow tabs to be bookmarked directly via URL parameters
 
 ### Data Collection Strategy
 - Use non-blocking reactive clients for endpoint polling
@@ -261,38 +356,58 @@ kraven:
 ### Challenge: High-Frequency Data Collection
 **Solution**: Implement adaptive polling with backoff strategies and WebSocket support where available.
 
-### Challenge: Large Data Visualization
-**Solution**: Use data aggregation, virtualized rendering, and progressive loading techniques.
+### Challenge: Large Data Visualization Across Multiple Tabs
+**Solution**: Use data aggregation, virtualized rendering, and progressive loading techniques. Implement tab-specific data loading to avoid overwhelming the browser with all tab data at once.
 
 ### Challenge: Thread Dump Analysis
 **Solution**: Implement custom parsing and visualization algorithms with filtering capabilities.
 
-### Challenge: Real-Time Updates
-**Solution**: Combine WebSocket for push notifications with efficient UI rendering using change detection strategies.
+### Challenge: Real-Time Updates Across Multiple Tabs
+**Solution**: Combine WebSocket for push notifications with efficient UI rendering using change detection strategies. Implement a central event bus to distribute updates to visible tabs while queuing updates for hidden tabs.
 
 ### Challenge: Historical Data Storage
 **Solution**: Implement time-series data storage with automatic aggregation for older data points.
+
+### Challenge: Tab State Management
+**Solution**: Implement a robust tab state management system using a combination of Angular services, local storage, and URL parameters. Use NgRx or a similar state management library to maintain tab state across the application.
 
 ## Success Metrics
 
 The success of the Actuator Insights feature will be measured by:
 
 1. **User Engagement**: Time spent using the feature
-2. **Feature Utilization**: Which visualizations are most frequently used
-3. **Issue Resolution**: How often the feature helps identify and resolve issues
-4. **User Feedback**: Direct feedback from developers using the feature
-5. **Performance Impact**: Minimal overhead on monitored applications
+2. **Tab Utilization**: Which tabs are most frequently accessed and used
+3. **Tab Navigation Patterns**: How users navigate between different tabs
+4. **Tab Session Duration**: How long users spend on each tab
+5. **Feature Utilization**: Which visualizations within tabs are most frequently used
+6. **Issue Resolution**: How often the feature helps identify and resolve issues
+7. **Tab Switching Efficiency**: How quickly users can find and access the information they need
+8. **User Feedback**: Direct feedback from developers using the tab-based interface
+9. **Performance Impact**: Minimal overhead on monitored applications and browser performance
+10. **Tab Retention**: How often users return to previously used tabs
 
 ## Future Enhancements (Post-Release)
 
-1. **Machine Learning Insights**: Anomaly detection and predictive analytics
-2. **Custom Metric Dashboards**: User-defined metric combinations and visualizations
-3. **Comparative Analysis**: Compare metrics across different application instances
-4. **Remote Instance Monitoring**: Monitor multiple application instances from a single dashboard
+1. **Machine Learning Insights**: Anomaly detection and predictive analytics with dedicated ML insights tab
+2. **Custom Metric Dashboards**: User-defined metric combinations and visualizations with customizable tab layouts
+3. **Comparative Analysis**: Compare metrics across different application instances with split-view tabs
+4. **Remote Instance Monitoring**: Monitor multiple application instances from a single dashboard with instance-specific tabs
 5. **Integration with APM Tools**: Export data to external Application Performance Monitoring tools
+6. **Tab Customization**: Allow users to create custom tabs with personalized combinations of visualizations
+7. **Tab Sharing**: Enable sharing of tab configurations between team members
+8. **Tab Templates**: Provide pre-configured tab templates for common monitoring scenarios
+9. **Tab Groups**: Allow organizing tabs into logical groups for better navigation
+10. **Mobile-Optimized Tabs**: Create responsive tab designs optimized for mobile devices
 
 ## Conclusion
 
-The Actuator Insights feature will transform how developers interact with Spring Boot Actuator data, providing intuitive visualizations and actionable insights. By following this roadmap, we will deliver a powerful, user-friendly tool that enhances developer productivity and application reliability.
+The Actuator Insights feature will transform how developers interact with Spring Boot Actuator data, providing intuitive visualizations and actionable insights through a well-organized tab-based interface. By following this roadmap, we will deliver a powerful, user-friendly tool that enhances developer productivity and application reliability.
+
+The tab-based design offers several key advantages:
+- **Focused Context**: Each tab provides a dedicated view for a specific aspect of actuator data
+- **Improved Navigation**: Users can quickly switch between different views without losing context
+- **Better Organization**: Related information is logically grouped within tabs and sub-tabs
+- **Enhanced Usability**: Tab persistence ensures users can return to their previous state
+- **Scalability**: The tab system can easily accommodate new features in the future
 
 This feature aligns with Kraven UI's mission to provide developers with modern, interactive tools for Spring Boot application development and monitoring, further establishing it as an essential companion for Spring Boot developers.

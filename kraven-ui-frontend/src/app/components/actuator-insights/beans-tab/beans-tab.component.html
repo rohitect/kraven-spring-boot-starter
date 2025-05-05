@@ -1,0 +1,211 @@
+<div class="beans-tab-container">
+  <div class="tab-header">
+    <h2>Beans & Dependencies</h2>
+    <div class="tab-controls">
+      <button class="refresh-button" (click)="forceRefresh()">
+        <i class="fas fa-sync-alt"></i> Refresh Now
+      </button>
+    </div>
+  </div>
+
+  <div class="tab-content">
+    <!-- Loading indicator -->
+    <div class="loading-indicator" *ngIf="isLoading">
+      <i class="fas fa-spinner fa-spin"></i>
+      <span>Loading beans data...</span>
+    </div>
+
+    <div class="beans-content" *ngIf="!isLoading">
+      <!-- Search filter -->
+      <div class="search-container">
+        <div class="search-input">
+          <i class="fas fa-search"></i>
+          <input type="text" [(ngModel)]="searchTerm" (input)="applyFilter()" placeholder="Search beans...">
+          <button *ngIf="searchTerm" (click)="searchTerm = ''; applyFilter()" class="clear-button">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="filter-options">
+          <label class="filter-option">
+            <input type="checkbox" [(ngModel)]="showSingletons" (change)="applyFilter()">
+            <span>Singletons</span>
+          </label>
+          <label class="filter-option">
+            <input type="checkbox" [(ngModel)]="showPrototypes" (change)="applyFilter()">
+            <span>Prototypes</span>
+          </label>
+          <label class="filter-option">
+            <input type="checkbox" [(ngModel)]="showOtherScopes" (change)="applyFilter()">
+            <span>Other Scopes</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Beans visualization -->
+      <div class="beans-visualization">
+        <!-- Secondary tabs for different views -->
+        <div class="secondary-tabs">
+          <button
+            class="secondary-tab"
+            [class.active]="activeView === 'list'"
+            (click)="setActiveView('list')"
+          >
+            <i class="fas fa-list"></i> List View
+          </button>
+          <button
+            class="secondary-tab"
+            [class.active]="activeView === 'graph'"
+            (click)="setActiveView('graph')"
+          >
+            <i class="fas fa-project-diagram"></i> Dependency Graph
+          </button>
+        </div>
+
+        <!-- List view -->
+        <div class="beans-list-view" *ngIf="activeView === 'list' && filteredBeans.length > 0">
+          <div class="beans-stats">
+            <div class="stat-item">
+              <span class="stat-value">{{ filteredBeans.length }}</span>
+              <span class="stat-label">Beans</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value">{{ getSingletonCount() }}</span>
+              <span class="stat-label">Singletons</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value">{{ getPrototypeCount() }}</span>
+              <span class="stat-label">Prototypes</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value">{{ getOtherScopesCount() }}</span>
+              <span class="stat-label">Other Scopes</span>
+            </div>
+          </div>
+
+          <div class="beans-table-container">
+            <table class="beans-table">
+              <thead>
+                <tr>
+                  <th (click)="sortBeans('name')">
+                    Bean Name
+                    <i *ngIf="sortField === 'name'" class="fas" [ngClass]="sortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down'"></i>
+                  </th>
+                  <th (click)="sortBeans('type')">
+                    Type
+                    <i *ngIf="sortField === 'type'" class="fas" [ngClass]="sortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down'"></i>
+                  </th>
+                  <th (click)="sortBeans('scope')">
+                    Scope
+                    <i *ngIf="sortField === 'scope'" class="fas" [ngClass]="sortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down'"></i>
+                  </th>
+                  <th>Dependencies</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let bean of filteredBeans" (click)="toggleBeanDetails(bean.name)" [class.active]="selectedBean === bean.name">
+                  <td class="bean-name">{{ bean.name }}</td>
+                  <td class="bean-type">{{ getShortTypeName(bean.type) }}</td>
+                  <td class="bean-scope">
+                    <span class="scope-badge" [ngClass]="getScopeBadgeClass(bean.scope)">{{ bean.scope }}</span>
+                  </td>
+                  <td class="bean-dependencies">
+                    <span *ngIf="bean.dependencies && bean.dependencies.length > 0">{{ bean.dependencies.length }} dependencies</span>
+                    <span *ngIf="!bean.dependencies || bean.dependencies.length === 0">No dependencies</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Bean details panel -->
+          <div class="bean-details-panel" *ngIf="selectedBean && getBeanByName(selectedBean)">
+            <div class="panel-header">
+              <h3>{{ selectedBean }}</h3>
+              <button class="close-button" (click)="selectedBean = null">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <div class="panel-content">
+              <div class="detail-section">
+                <h4>Type</h4>
+                <p class="detail-value">{{ getBeanByName(selectedBean)?.type }}</p>
+              </div>
+              <div class="detail-section">
+                <h4>Scope</h4>
+                <p class="detail-value">
+                  <span class="scope-badge" [ngClass]="getScopeBadgeClass(getBeanByName(selectedBean)?.scope)">
+                    {{ getBeanByName(selectedBean)?.scope }}
+                  </span>
+                </p>
+              </div>
+              <div class="detail-section">
+                <h4>Resource</h4>
+                <p class="detail-value">{{ getBeanByName(selectedBean)?.resource || 'Unknown' }}</p>
+              </div>
+              <div class="detail-section" *ngIf="selectedBean && getBeanByName(selectedBean) && getBeanByName(selectedBean)!.dependencies && getBeanByName(selectedBean)!.dependencies!.length > 0">
+                <h4>Dependencies</h4>
+                <ul class="dependencies-list">
+                  <li *ngFor="let dep of getBeanByName(selectedBean)!.dependencies!" (click)="selectBean(dep)">
+                    <i class="fas fa-arrow-right"></i> {{ dep }}
+                  </li>
+                </ul>
+              </div>
+              <div class="detail-section" *ngIf="getBeanDependents(selectedBean).length > 0">
+                <h4>Dependents</h4>
+                <ul class="dependents-list">
+                  <li *ngFor="let dep of getBeanDependents(selectedBean)" (click)="selectBean(dep)">
+                    <i class="fas fa-arrow-left"></i> {{ dep }}
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Graph view -->
+        <div class="beans-graph-view" *ngIf="activeView === 'graph'">
+          <div class="graph-container">
+            <div class="graph-placeholder">
+              <i class="fas fa-project-diagram"></i>
+              <p>Select a bean to view its dependency graph</p>
+            </div>
+            <!-- Dependency graph will be rendered here using D3.js -->
+            <div id="dependency-graph" class="dependency-graph"></div>
+          </div>
+          <div class="graph-controls">
+            <div class="graph-search">
+              <select [(ngModel)]="graphRootBean" (change)="updateGraph()">
+                <option value="">Select a root bean</option>
+                <option *ngFor="let bean of filteredBeans" [value]="bean.name">{{ bean.name }}</option>
+              </select>
+            </div>
+            <div class="graph-options">
+              <label class="graph-option">
+                <input type="checkbox" [(ngModel)]="graphShowDependents" (change)="updateGraph()">
+                <span>Show Dependents</span>
+              </label>
+              <label class="graph-option">
+                <input type="range" [(ngModel)]="graphDepthLimit" min="1" max="5" (change)="updateGraph()">
+                <span>Depth: {{ graphDepthLimit }}</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- No beans message -->
+        <div class="no-beans-message" *ngIf="!isLoading && (!filteredBeans || filteredBeans.length === 0)">
+          <i class="fas fa-exclamation-circle"></i>
+          <h3>No Beans Found</h3>
+          <p>No beans match your current filter criteria. Try adjusting your search or filters.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- No data message -->
+    <div class="no-data-message" *ngIf="!isLoading && !beansData">
+      <i class="fas fa-exclamation-circle"></i>
+      <h3>No Beans Data Available</h3>
+      <p>Unable to retrieve beans information from the actuator endpoint.</p>
+    </div>
+  </div>
+</div>

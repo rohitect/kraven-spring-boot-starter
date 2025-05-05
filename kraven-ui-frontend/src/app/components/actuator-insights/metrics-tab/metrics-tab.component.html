@@ -1,0 +1,79 @@
+<div class="metrics-tab-container">
+  <div class="tab-header">
+    <h2>Metrics & Performance</h2>
+    <div class="tab-controls">
+      <div class="refresh-control">
+        <label for="metricsRefreshInterval">Refresh interval:</label>
+        <input type="number" id="metricsRefreshInterval" [(ngModel)]="refreshInterval" min="5" max="60" (change)="updateRefreshInterval()">
+        <span>seconds</span>
+      </div>
+      <button class="refresh-button" (click)="forceRefresh()">
+        <i class="fas fa-sync-alt"></i> Refresh Now
+      </button>
+    </div>
+  </div>
+
+  <div class="tab-content">
+    <!-- Loading indicator -->
+    <div class="loading-indicator" *ngIf="isLoading">
+      <i class="fas fa-spinner fa-spin"></i>
+      <span>Loading metrics data...</span>
+    </div>
+
+    <!-- Metrics viewer -->
+    <div class="metrics-viewer-container" *ngIf="!isLoading && metricsData">
+      <app-metrics-viewer 
+        [metricsData]="metricsData"
+        (metricSelected)="onMetricSelected($event)">
+      </app-metrics-viewer>
+    </div>
+
+    <!-- Metric history chart -->
+    <div class="metric-history-container" *ngIf="!isLoading && selectedMetric && metricHistory[selectedMetric]?.length > 0">
+      <h3>{{ selectedMetric }} History</h3>
+      <div class="metric-chart">
+        <div class="chart-container">
+          <!-- Simple chart visualization -->
+          <div class="chart-bars">
+            <div 
+              *ngFor="let item of metricHistory[selectedMetric]" 
+              class="chart-bar" 
+              [style.height.%]="(item.value / getMaxValue(metricHistory[selectedMetric])) * 100"
+              [title]="formatValue(item.value, item.baseUnit) + ' at ' + (item.timestamp | date:'medium')"
+            ></div>
+          </div>
+          <div class="chart-labels">
+            <div *ngFor="let item of metricHistory[selectedMetric]" class="chart-label">
+              {{ formatTimestamp(item.timestamp) }}
+            </div>
+          </div>
+        </div>
+        <div class="chart-legend">
+          <div class="legend-item">
+            <span class="legend-label">Latest:</span>
+            <span class="legend-value">{{ formatValue(getLatestValue(metricHistory[selectedMetric]), getBaseUnit(metricHistory[selectedMetric])) }}</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-label">Max:</span>
+            <span class="legend-value">{{ formatValue(getMaxValue(metricHistory[selectedMetric]), getBaseUnit(metricHistory[selectedMetric])) }}</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-label">Min:</span>
+            <span class="legend-value">{{ formatValue(getMinValue(metricHistory[selectedMetric]), getBaseUnit(metricHistory[selectedMetric])) }}</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-label">Avg:</span>
+            <span class="legend-value">{{ formatValue(getAvgValue(metricHistory[selectedMetric]), getBaseUnit(metricHistory[selectedMetric])) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- No data message -->
+    <div class="no-data-message" *ngIf="!isLoading && !metricsData">
+      <i class="fas fa-exclamation-circle"></i>
+      <h3>No Metrics Data Available</h3>
+      <p>Unable to retrieve metrics information from the actuator endpoint.</p>
+    </div>
+  </div>
+</div>

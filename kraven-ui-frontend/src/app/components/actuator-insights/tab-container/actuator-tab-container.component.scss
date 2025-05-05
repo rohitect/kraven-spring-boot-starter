@@ -1,0 +1,81 @@
+.actuator-tabs-container {
+  display: flex;
+  align-items: center;
+  background-color: var(--card-bg-color);
+  border-bottom: 1px solid var(--border-color);
+  position: relative;
+  height: 48px;
+  
+  .scroll-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 48px;
+    background-color: var(--card-bg-color);
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted-color);
+    z-index: 2;
+    
+    &:hover {
+      color: var(--text-color);
+      background-color: var(--hover-bg-color);
+    }
+    
+    &.scroll-left {
+      border-right: 1px solid var(--border-color);
+    }
+    
+    &.scroll-right {
+      border-left: 1px solid var(--border-color);
+    }
+  }
+  
+  .tabs-container {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+    flex: 1;
+    
+    &::-webkit-scrollbar {
+      display: none; /* Chrome, Safari, Opera */
+    }
+    
+    .tab {
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      height: 48px;
+      white-space: nowrap;
+      cursor: pointer;
+      color: var(--text-muted-color);
+      border-right: 1px solid var(--border-color);
+      transition: background-color 0.2s ease, color 0.2s ease;
+      
+      i {
+        margin-right: 8px;
+      }
+      
+      &:hover {
+        background-color: var(--hover-bg-color);
+        color: var(--text-color);
+      }
+      
+      &.active {
+        background-color: var(--active-tab-bg-color);
+        color: var(--primary-color);
+        font-weight: 500;
+        border-bottom: 2px solid var(--primary-color);
+      }
+    }
+  }
+}
+
+.tab-content {
+  flex: 1;
+  overflow: auto;
+  padding: 1rem;
+  background-color: var(--bg-color);
+}

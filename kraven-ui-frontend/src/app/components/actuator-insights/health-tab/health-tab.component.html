@@ -1,0 +1,65 @@
+<div class="health-tab-container">
+  <div class="tab-header">
+    <h2>Health & Status</h2>
+    <div class="tab-controls">
+      <div class="refresh-control">
+        <label for="healthRefreshInterval">Refresh interval:</label>
+        <input type="number" id="healthRefreshInterval" [(ngModel)]="refreshInterval" min="5" max="60" (change)="updateRefreshInterval()">
+        <span>seconds</span>
+      </div>
+      <button class="refresh-button" (click)="forceRefresh()">
+        <i class="fas fa-sync-alt"></i> Refresh Now
+      </button>
+    </div>
+  </div>
+
+  <div class="tab-content">
+    <!-- Loading indicator -->
+    <div class="loading-indicator" *ngIf="isLoading">
+      <i class="fas fa-spinner fa-spin"></i>
+      <span>Loading health data...</span>
+    </div>
+
+    <!-- Health monitor -->
+    <div class="health-monitor-container" *ngIf="!isLoading && healthData">
+      <app-health-monitor [healthData]="healthData"></app-health-monitor>
+    </div>
+
+    <!-- Health Status Logs -->
+    <div class="health-logs-container" *ngIf="!isLoading">
+      <div class="logs-header">
+        <h3>Health Status Logs</h3>
+        <div class="logs-controls">
+          <button class="logs-control-button" (click)="clearLogs()" title="Clear logs">
+            <i class="fas fa-trash-alt"></i>
+            Clear
+          </button>
+        </div>
+      </div>
+
+      <div class="logs-container">
+        <div *ngIf="healthHistory.length === 0" class="no-logs-message">
+          <p>No health status logs available yet. Logs will appear as health checks are performed.</p>
+        </div>
+
+        <div class="log-entry-single-line" *ngFor="let item of healthHistory" [ngClass]="getStatusClass(item.status)">
+          <div class="log-status">
+            <i class="fas" [ngClass]="getStatusIcon(item.status)"></i>
+          </div>
+          <div class="log-status-text">{{ item.status }}</div>
+          <div class="log-components" *ngIf="item.details?.components">
+            {{ getComponentsSummary(item.details.components) }}
+          </div>
+          <div class="log-timestamp">{{ item.timestamp | date:'MMM d, y, h:mm:ss a' }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- No data message -->
+    <div class="no-data-message" *ngIf="!isLoading && !healthData">
+      <i class="fas fa-exclamation-circle"></i>
+      <h3>No Health Data Available</h3>
+      <p>Unable to retrieve health information from the actuator endpoint.</p>
+    </div>
+  </div>
+</div>

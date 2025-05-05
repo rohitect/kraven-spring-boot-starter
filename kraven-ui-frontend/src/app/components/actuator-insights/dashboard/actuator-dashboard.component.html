@@ -1,0 +1,143 @@
+<div class="actuator-dashboard-container">
+  <!-- Plugin loader for when the plugin is not ready -->
+  <app-plugin-loader *ngIf="pluginStatus !== 'ready'" 
+                    [pluginId]="'actuator-insights'">
+  </app-plugin-loader>
+
+  <!-- Main dashboard content when plugin is ready -->
+  <div *ngIf="pluginStatus === 'ready'" class="dashboard-content">
+    
+    <!-- Header section -->
+    <div class="dashboard-header">
+      <h1>Actuator Insights</h1>
+      <div class="dashboard-controls">
+        <div class="refresh-control">
+          <label for="refreshInterval">Refresh interval:</label>
+          <input type="number" id="refreshInterval" [(ngModel)]="refreshInterval" min="5" max="60" (change)="updateRefreshInterval()">
+          <span>seconds</span>
+        </div>
+        <button class="refresh-button" (click)="forceRefresh()">
+          <i class="fas fa-sync-alt"></i> Refresh Now
+        </button>
+      </div>
+    </div>
+
+    <!-- Actuator not detected message -->
+    <div *ngIf="!actuatorDetected" class="actuator-not-detected">
+      <div class="message-box">
+        <i class="fas fa-exclamation-triangle"></i>
+        <h2>Spring Boot Actuator Not Detected</h2>
+        <p>
+          The Actuator Insights plugin could not detect Spring Boot Actuator in your application.
+          Please make sure that Spring Boot Actuator is included in your project and that the endpoints are enabled.
+        </p>
+        <div class="code-snippet">
+          <pre><code>
+// Add this to your pom.xml
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;
+&lt;/dependency&gt;
+
+// Or in build.gradle
+implementation 'org.springframework.boot:spring-boot-starter-actuator'
+          </code></pre>
+        </div>
+        <p>
+          Then configure actuator in your application.yml:
+        </p>
+        <div class="code-snippet">
+          <pre><code>
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+          </code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main dashboard when actuator is detected -->
+    <div *ngIf="actuatorDetected" class="dashboard-grid">
+      
+      <!-- Health status card -->
+      <div class="dashboard-card health-card">
+        <div class="card-header">
+          <h2>Health Status</h2>
+        </div>
+        <div class="card-content">
+          <app-health-monitor [healthData]="actuatorData?.health"></app-health-monitor>
+        </div>
+      </div>
+      
+      <!-- Metrics card -->
+      <div class="dashboard-card metrics-card">
+        <div class="card-header">
+          <h2>Key Metrics</h2>
+        </div>
+        <div class="card-content">
+          <app-metrics-viewer [metricsData]="actuatorData?.metrics"></app-metrics-viewer>
+        </div>
+      </div>
+      
+      <!-- Info card -->
+      <div class="dashboard-card info-card">
+        <div class="card-header">
+          <h2>Application Info</h2>
+        </div>
+        <div class="card-content">
+          <div *ngIf="actuatorData?.info" class="info-content">
+            <div *ngFor="let item of actuatorData.info | keyvalue" class="info-item">
+              <h3>{{ item.key }}</h3>
+              <pre>{{ item.value | json }}</pre>
+            </div>
+          </div>
+          <div *ngIf="!actuatorData?.info" class="no-data">
+            <p>No application info available</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Environment card -->
+      <div class="dashboard-card env-card">
+        <div class="card-header">
+          <h2>Environment</h2>
+        </div>
+        <div class="card-content">
+          <div *ngIf="actuatorData?.env" class="env-content">
+            <div *ngFor="let item of actuatorData.env | keyvalue" class="env-item">
+              <h3>{{ item.key }}</h3>
+              <pre>{{ item.value | json }}</pre>
+            </div>
+          </div>
+          <div *ngIf="!actuatorData?.env" class="no-data">
+            <p>No environment data available</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Available endpoints card -->
+      <div class="dashboard-card endpoints-card">
+        <div class="card-header">
+          <h2>Available Endpoints</h2>
+        </div>
+        <div class="card-content">
+          <div *ngIf="availableEndpoints.length > 0" class="endpoints-list">
+            <div *ngFor="let endpoint of availableEndpoints" class="endpoint-item">
+              <span class="endpoint-name">{{ endpoint.name }}</span>
+              <a [href]="endpoint.url" target="_blank" class="endpoint-url">{{ endpoint.url }}</a>
+            </div>
+          </div>
+          <div *ngIf="availableEndpoints.length === 0" class="no-data">
+            <p>No endpoints discovered</p>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</div>

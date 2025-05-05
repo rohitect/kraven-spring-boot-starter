@@ -368,7 +368,7 @@ Here's a complete example of how to set up a Spring Boot REST API with Kraven UI
         <dependency>
             <groupId>io.github.rohitect</groupId>
             <artifactId>kraven-ui</artifactId>
-            <version>1.0.7</version>
+            <version>1.0.8</version>
         </dependency>
     </dependencies>
 </project>
