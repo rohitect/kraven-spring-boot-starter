@@ -7,6 +7,11 @@
   background: rgba(21, 25, 41, 0.95);
   transition: all 0.3s ease;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  height: 64px; /* Fixed height for consistency */
+
+  @media (max-width: 480px) {
+    height: 56px; /* Slightly smaller height on mobile */
+  }
 
   &.scrolled {
     background: rgba(21, 25, 41, 0.98);
@@ -32,6 +37,11 @@
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 16px;
+    height: 100%;
+
+    @media (max-width: 480px) {
+      padding: 0 12px;
+    }
   }
 
   .logo {
@@ -39,6 +49,10 @@
     font-size: 1.5rem;
     font-weight: 700;
     color: white;
+
+    @media (max-width: 480px) {
+      font-size: 1.25rem;
+    }
   }
 
   .gradient-text {
@@ -96,9 +110,57 @@
 
   .menu-button {
     display: none;
+    color: white;
+    transition: all 0.2s ease;
 
     @media (max-width: 768px) {
-      display: block;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    :host-context(.light-theme) & {
+      color: #1a1b2e;
+
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+      }
+    }
+  }
+
+  /* Custom styles for the mobile menu */
+  ::ng-deep {
+    .mat-mdc-menu-panel {
+      border-radius: 8px;
+      overflow: hidden;
+      margin-top: 8px;
+      background-color: #1a1b2e;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+
+      .light-theme &, :host-context(.light-theme) & {
+        background-color: white;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      }
+    }
+
+    .mat-mdc-menu-item {
+      font-size: 0.9375rem;
+      height: 48px;
+      line-height: 48px;
+
+      .mat-icon {
+        margin-right: 8px;
+      }
+
+      @media (max-width: 480px) {
+        font-size: 0.875rem;
+        height: 44px;
+        line-height: 44px;
+      }
     }
   }
 }

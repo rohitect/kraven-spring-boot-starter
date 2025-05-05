@@ -6,11 +6,22 @@
   color: white;
   position: relative;
   overflow: hidden;
+  width: 100%;
+  max-width: 100%;
+
+  @media (max-width: 480px) {
+    overflow-x: hidden; // Ensure no horizontal scrolling on mobile
+  }
 
   main {
     flex: 1;
     padding-top: 40px; // Reduced padding to shift content up
     position: relative;
     z-index: 1;
+    width: 100%;
+
+    @media (max-width: 480px) {
+      padding-top: 20px; // Even less padding on mobile
+    }
   }
 }

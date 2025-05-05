@@ -59,6 +59,23 @@ html, body {
   color: var(--dark-text-primary);
   position: relative; /* Ensure proper stacking context */
   transition: color var(--transition-normal) ease;
+  -webkit-text-size-adjust: 100%; /* Prevent font size adjustment on orientation change */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  touch-action: manipulation; /* Improves touch experience */
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 480px) {
+  html, body {
+    font-size: 15px; /* Slightly smaller base font size on mobile */
+  }
+
+  /* Improve tap targets for mobile */
+  button, a, [role="button"], input, select, textarea {
+    min-height: 44px; /* Minimum touch target size */
+    min-width: 44px;
+  }
 }
 
 /* Light theme styles */
@@ -387,6 +404,11 @@ pre {
   overflow-x: auto;
   border-left: 3px solid var(--dark-primary);
 
+  @media (max-width: 480px) {
+    padding: 1rem;
+    font-size: 0.875rem;
+  }
+
   .light-theme & {
     background: rgba(0, 0, 0, 0.05);
     border-left-color: var(--light-primary);
@@ -402,5 +424,44 @@ pre {
     .light-theme & {
       color: var(--light-text-primary);
     }
+  }
+}
+
+/* Mobile-friendly utility classes */
+.hide-on-mobile {
+  @media (max-width: 480px) {
+    display: none !important;
+  }
+}
+
+.show-on-mobile {
+  display: none !important;
+
+  @media (max-width: 480px) {
+    display: block !important;
+  }
+}
+
+.mobile-full-width {
+  @media (max-width: 480px) {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    box-sizing: border-box !important;
+  }
+}
+
+/* Improved touch feedback for mobile */
+@media (max-width: 480px) {
+  a:active, button:active, [role="button"]:active {
+    opacity: 0.7;
+    transform: scale(0.98);
+  }
+
+  .mat-mdc-raised-button:active, .mat-mdc-stroked-button:active {
+    transform: scale(0.98);
   }
 }

@@ -7,6 +7,11 @@
   overflow: hidden;
   padding-top: 40px; // Reduced padding from 64px
   background: transparent; // Remove the gradient to show animation
+
+  @media (max-width: 480px) {
+    min-height: auto; // Allow natural height on very small screens
+    padding-top: 80px; // More padding on mobile to account for fixed header
+  }
 }
 
 .hero-container {
@@ -15,6 +20,10 @@
   margin: 0 auto;
   padding: 2rem;
   position: relative;
+
+  @media (max-width: 480px) {
+    padding: 1.5rem 1rem; // Smaller padding on mobile
+  }
 }
 
 .hero-content {
@@ -49,6 +58,11 @@
     font-size: 3.5rem;
   }
 
+  @media (max-width: 480px) {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+
   .gradient-text {
     display: block;
     font-size: 4rem;
@@ -61,11 +75,19 @@
     @media (min-width: 768px) {
       font-size: 5rem;
     }
+
+    @media (max-width: 480px) {
+      font-size: 3rem;
+    }
   }
 
   .subtitle {
     display: block;
     color: white;
+
+    @media (max-width: 480px) {
+      font-size: 1.2rem;
+    }
 
     :host-context(.light-theme) &, .light-theme & {
       color: #1a1b2e;
@@ -78,6 +100,12 @@
   color: rgba(255, 255, 255, 0.8);
   margin-bottom: 2rem;
   line-height: 1.6;
+
+  @media (max-width: 480px) {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+  }
 
   :host-context(.light-theme) &, .light-theme & {
     color: rgba(26, 27, 46, 0.8);
@@ -93,14 +121,31 @@
     justify-content: center;
   }
 
+  @media (max-width: 480px) {
+    gap: 0.75rem;
+    width: 100%;
+  }
+
   .get-started-btn {
     padding: 0.5rem 1.5rem;
     font-weight: 500;
+
+    @media (max-width: 480px) {
+      padding: 0.5rem 1rem;
+      flex: 1;
+      min-width: 140px;
+    }
   }
 
   .explore-btn {
     padding: 0.5rem 1.5rem;
     font-weight: 500;
+
+    @media (max-width: 480px) {
+      padding: 0.5rem 1rem;
+      flex: 1;
+      min-width: 140px;
+    }
   }
 }
 
@@ -110,6 +155,12 @@
 
   @media (max-width: 767px) {
     width: 100%;
+    margin-top: 1rem;
+  }
+
+  @media (max-width: 480px) {
+    margin-top: 2rem;
+    max-width: 100%;
   }
 }
 
@@ -118,6 +169,10 @@
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+
+  @media (max-width: 480px) {
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+  }
 
   img {
     width: 100%;
@@ -137,6 +192,13 @@
     filter: blur(30px);
     z-index: -1;
 
+    @media (max-width: 480px) {
+      width: 150px;
+      height: 150px;
+      top: -30px;
+      right: -30px;
+    }
+
     &::after {
       content: '';
       position: absolute;
@@ -147,6 +209,13 @@
       background: radial-gradient(circle, rgba(233, 30, 99, 0.6), rgba(156, 39, 176, 0.6), transparent 70%);
       border-radius: 50%;
       filter: blur(30px);
+
+      @media (max-width: 480px) {
+        width: 100px;
+        height: 100px;
+        bottom: -100px;
+        left: -50px;
+      }
     }
   }
 }
@@ -163,12 +232,23 @@
   font-size: 0.875rem;
   animation: bounce 2s infinite;
 
+  @media (max-width: 480px) {
+    bottom: 1rem;
+    font-size: 0.75rem;
+  }
+
   :host-context(.light-theme) &, .light-theme & {
     color: rgba(26, 27, 46, 0.7);
   }
 
   mat-icon {
     margin-top: 0.5rem;
+
+    @media (max-width: 480px) {
+      font-size: 18px;
+      height: 18px;
+      width: 18px;
+    }
   }
 }
 
