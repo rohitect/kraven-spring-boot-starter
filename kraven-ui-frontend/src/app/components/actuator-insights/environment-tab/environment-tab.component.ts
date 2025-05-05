@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActuatorDataService } from '../services/actuator-data.service';
+import { HighlightSearchPipe } from '../../../pipes/highlight-search.pipe';
 
 @Component({
   selector: 'app-environment-tab',
@@ -10,7 +11,8 @@ import { ActuatorDataService } from '../services/actuator-data.service';
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule
+    FormsModule,
+    HighlightSearchPipe
   ]
 })
 export class EnvironmentTabComponent implements OnInit {
@@ -91,22 +93,31 @@ export class EnvironmentTabComponent implements OnInit {
         // Check if any property matches
         if (source.properties) {
           const matchingProperties = Object.entries(source.properties).filter(([key, value]: [string, any]) => {
-            return key.toLowerCase().includes(searchTermLower) ||
-                  (value.value && value.value.toString().toLowerCase().includes(searchTermLower));
+            // Check if key contains search term
+            if (key.toLowerCase().includes(searchTermLower)) {
+              return true;
+            }
+
+            // Check if value contains search term
+            if (value.value) {
+              // Handle different value types
+              if (typeof value.value === 'object') {
+                // For objects, convert to JSON string and search
+                const jsonString = JSON.stringify(value.value).toLowerCase();
+                return jsonString.includes(searchTermLower);
+              } else {
+                // For primitive values, convert to string and search
+                return value.value.toString().toLowerCase().includes(searchTermLower);
+              }
+            }
+
+            return false;
           });
 
+          // If any property matches, return the source with all properties
+          // The individual property rows will be filtered in getPropertyEntries
           if (matchingProperties.length > 0) {
-            // Create a new properties object with only matching properties
-            const filteredProperties: any = {};
-            matchingProperties.forEach(([key, value]) => {
-              filteredProperties[key] = value;
-            });
-
-            // Return a new source object with filtered properties
-            return {
-              ...source,
-              properties: filteredProperties
-            };
+            return true;
           }
         }
 
@@ -124,14 +135,54 @@ export class EnvironmentTabComponent implements OnInit {
   }
 
   getPropertyCount(source: any): number {
-    return source.properties ? Object.keys(source.properties).length : 0;
+    if (!source.properties) {
+      return 0;
+    }
+
+    // If there's a search term, count only the matching properties
+    if (this.searchTerm) {
+      return this.getPropertyEntries(source.properties).length;
+    }
+
+    // Otherwise, return the total count
+    return Object.keys(source.properties).length;
   }
 
   getPropertyEntries(properties: any): [string, any][] {
-    return Object.entries(properties);
+    if (!this.searchTerm) {
+      return Object.entries(properties);
+    }
+
+    // If there's a search term, filter the properties to only show matching ones
+    const searchTermLower = this.searchTerm.toLowerCase();
+    return Object.entries(properties).filter(([key, value]: [string, any]) => {
+      // Check if key contains search term
+      if (key.toLowerCase().includes(searchTermLower)) {
+        return true;
+      }
+
+      // Check if value contains search term
+      if (value.value) {
+        // Handle different value types
+        if (typeof value.value === 'object') {
+          // For objects, convert to JSON string and search
+          const jsonString = JSON.stringify(value.value).toLowerCase();
+          return jsonString.includes(searchTermLower);
+        } else {
+          // For primitive values, convert to string and search
+          return value.value.toString().toLowerCase().includes(searchTermLower);
+        }
+      }
+
+      return false;
+    });
   }
 
   isObject(value: any): boolean {
     return typeof value === 'object' && value !== null;
+  }
+
+  getTotalPropertyCount(source: any): number {
+    return source.properties ? Object.keys(source.properties).length : 0;
   }
 }

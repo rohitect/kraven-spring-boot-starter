@@ -32,6 +32,9 @@ kraven:
       endpoints:
         include: "*"
         exclude: "heapdump,shutdown"
+      sensitive-data:
+        mask-sensitive-values: true
+        sensitive-patterns: "password,passwd,secret,credential,token,key,auth,private,access"
 ```
 
 > **Note:** The plugin will automatically use the application's actual port from `server.port` and context path from either `server.servlet.context-path` or `spring.mvc.servlet.path` if they are configured in your Spring Boot application. The `base-url` and `context-path` settings above are only used as fallbacks.
@@ -48,6 +51,8 @@ kraven:
 | `data-collection.retention-period` | Period to retain historical data | `1h` |
 | `endpoints.include` | Endpoints to include (comma-separated or "*" for all) | `*` |
 | `endpoints.exclude` | Endpoints to exclude (comma-separated) | `heapdump,shutdown` |
+| `sensitive-data.mask-sensitive-values` | Whether to mask sensitive values in environment properties | `true` |
+| `sensitive-data.sensitive-patterns` | Comma-separated list of patterns to consider sensitive | `password,passwd,secret,credential,token,key,auth,private,access` |
 
 ## 🚀 Usage
 
@@ -59,6 +64,8 @@ kraven:
 
 ### Environment Properties Display
 
+#### Spring Boot Masking
+
 In Spring Boot 3, all environment property values are masked by default in the `/env` endpoint for security reasons. If you want to display the actual values, you need to add the following configuration to your application:
 
 ```yaml
@@ -69,6 +76,17 @@ management:
 ```
 
 Alternatively, you can set it to `when-authorized` to only show values to authenticated users with appropriate roles.
+
+#### Plugin Sensitive Value Masking
+
+The Actuator Insights plugin provides an additional layer of security by masking sensitive values in environment properties. This is enabled by default and can be configured using the `sensitive-data` configuration options.
+
+The plugin will mask values for properties whose keys contain any of the configured sensitive patterns (e.g., "password", "secret", "token", etc.). You can customize the list of sensitive patterns or disable masking entirely if needed.
+
+This feature is particularly useful when:
+- You want to display most environment values but mask sensitive ones
+- You're using Spring Boot 2.x which doesn't have built-in masking
+- You need more fine-grained control over which values are masked
 
 ## 🔍 Auto-Detection
 

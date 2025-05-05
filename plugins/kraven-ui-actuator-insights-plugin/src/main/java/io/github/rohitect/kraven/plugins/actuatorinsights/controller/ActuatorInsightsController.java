@@ -158,6 +158,9 @@ public class ActuatorInsightsController {
     public ResponseEntity<Map<String, Object>> refreshData() {
         Map<String, Object> response = new HashMap<>();
 
+        // Clear all caches
+        dataCollectionService.clearCaches();
+
         // Stop and restart data collection to force a refresh
         dataCollectionService.stopDataCollection();
         dataCollectionService.startDataCollection();

@@ -37,6 +37,9 @@ public class ActuatorDataCollectionService {
     // Cache for actuator data
     private final Cache<String, Object> dataCache;
 
+    // Service for masking sensitive data
+    private final SensitiveDataMaskingService sensitiveDataMaskingService;
+
     // No longer storing history in the backend
 
     // Available endpoints
@@ -47,6 +50,7 @@ public class ActuatorDataCollectionService {
         this.environment = environment;
         this.restTemplate = new RestTemplate();
         this.scheduler = Executors.newScheduledThreadPool(1);
+        this.sensitiveDataMaskingService = new SensitiveDataMaskingService(config);
 
         // Parse the retention period from the config
         String retentionPeriod = config.getDataCollection().getRetentionPeriod();
@@ -98,6 +102,15 @@ public class ActuatorDataCollectionService {
                 Thread.currentThread().interrupt();
             }
         }
+    }
+
+    /**
+     * Clear all caches, including the sensitive data masking cache.
+     * This should be called when forcing a refresh of the data.
+     */
+    public void clearCaches() {
+        log.info("Clearing all caches");
+        sensitiveDataMaskingService.clearCache();
     }
 
     /**
@@ -520,6 +533,9 @@ public class ActuatorDataCollectionService {
             Map<String, Object> body = response.getBody();
 
             if (body != null) {
+                // Clear the sensitive data masking cache since we have new data
+                sensitiveDataMaskingService.clearCache();
+
                 // Store in cache
                 dataCache.put("env", body);
                 log.info("Successfully collected env data with {} properties",
@@ -629,9 +645,9 @@ public class ActuatorDataCollectionService {
     }
 
     /**
-     * Get the latest environment data from the cache.
+     * Get the latest environment data from the cache with sensitive values masked.
      *
-     * @return the latest environment data
+     * @return the latest environment data with sensitive values masked
      */
     public Map<String, Object> getEnvData() {
         Object cachedData = dataCache.getIfPresent("env");
@@ -640,7 +656,8 @@ public class ActuatorDataCollectionService {
         }
 
         if (cachedData instanceof Map) {
-            return (Map<String, Object>) cachedData;
+            // Mask sensitive values before returning
+            return sensitiveDataMaskingService.maskSensitiveValues((Map<String, Object>) cachedData);
         }
 
         log.warn("Unexpected type for environment data in cache: {}", cachedData.getClass().getName());

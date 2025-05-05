@@ -41,6 +41,11 @@ public class ActuatorInsightsConfig {
     private Endpoints endpoints = new Endpoints();
 
     /**
+     * Sensitive data configuration.
+     */
+    private SensitiveData sensitiveData = new SensitiveData();
+
+    /**
      * Data collection configuration properties.
      */
     @Data
@@ -73,5 +78,22 @@ public class ActuatorInsightsConfig {
          * Comma-separated list of endpoints to exclude.
          */
         private String exclude = "heapdump,shutdown";
+    }
+
+    /**
+     * Sensitive data configuration properties.
+     */
+    @Data
+    public static class SensitiveData {
+        /**
+         * Whether to mask sensitive values in environment properties.
+         */
+        private boolean maskSensitiveValues = true;
+
+        /**
+         * Comma-separated list of patterns to consider sensitive.
+         * These patterns are used to identify sensitive keys in environment properties.
+         */
+        private String sensitivePatterns = "password,passwd,secret,credential,token,key,auth,private,access";
     }
 }

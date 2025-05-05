@@ -72,6 +72,8 @@ Kraven UI Actuator Insights Plugin Installation Guide
    kraven.plugins.actuator-insights.data-collection.retention-period=1h
    kraven.plugins.actuator-insights.endpoints.include=*
    kraven.plugins.actuator-insights.endpoints.exclude=heapdump,shutdown
+   kraven.plugins.actuator-insights.sensitive-data.mask-sensitive-values=true
+   kraven.plugins.actuator-insights.sensitive-data.sensitive-patterns=password,passwd,secret,credential,token,key,auth,private,access
 
 4. Make sure Spring Boot Actuator is enabled in your application:
 

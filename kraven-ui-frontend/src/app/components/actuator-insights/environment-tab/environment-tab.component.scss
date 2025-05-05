@@ -3,6 +3,15 @@
   flex-direction: column;
   height: 100%;
 
+  // Highlight style for search matches
+  ::ng-deep .highlight-search {
+    background-color: rgba(var(--primary-color-rgb, 25, 118, 210), 0.2);
+    border-radius: 2px;
+    padding: 0 2px;
+    font-weight: bold;
+    color: var(--primary-color, #1976d2);
+  }
+
   .tab-header {
     display: flex;
     justify-content: space-between;
@@ -256,6 +265,22 @@
             .property-source-content {
               padding: 1rem;
               overflow-x: auto;
+
+              .filter-info {
+                margin-bottom: 1rem;
+                padding: 0.5rem 0.75rem;
+                background-color: rgba(var(--primary-color-rgb, 25, 118, 210), 0.1);
+                border-radius: 4px;
+                font-size: 0.9rem;
+                color: var(--text-color);
+                display: flex;
+                align-items: center;
+
+                i {
+                  margin-right: 0.5rem;
+                  color: var(--primary-color);
+                }
+              }
 
               .properties-table {
                 width: 100%;

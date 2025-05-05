@@ -32,7 +32,7 @@
         <h3>Active Profiles</h3>
         <div class="profiles-list">
           <div class="profile-badge" *ngFor="let profile of envData.activeProfiles">
-            {{ profile }}
+            <span [innerHTML]="profile | highlightSearch: searchTerm"></span>
           </div>
           <div class="profile-badge default" *ngIf="envData.activeProfiles.length === 0">
             default
@@ -46,10 +46,10 @@
         <div class="info-grid">
           <div class="info-card" *ngFor="let item of infoData | keyvalue">
             <div class="info-card-header">
-              <h4>{{ item.key }}</h4>
+              <h4 [innerHTML]="item.key | highlightSearch: searchTerm"></h4>
             </div>
             <div class="info-card-content">
-              <pre>{{ item.value | json }}</pre>
+              <pre [innerHTML]="(item.value | json) | highlightSearch: searchTerm"></pre>
             </div>
           </div>
         </div>
@@ -63,13 +63,21 @@
             <div class="property-source-header" (click)="toggleSection('source-' + i)">
               <div class="source-name">
                 <i class="fas" [ngClass]="isSectionActive('source-' + i) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
-                <span>{{ source.name }}</span>
+                <span [innerHTML]="source.name | highlightSearch: searchTerm"></span>
               </div>
               <div class="property-count">
-                {{ getPropertyCount(source) }} properties
+                <ng-container *ngIf="searchTerm && getPropertyCount(source) !== getTotalPropertyCount(source)">
+                  {{ getPropertyCount(source) }}/{{ getTotalPropertyCount(source) }} properties
+                </ng-container>
+                <ng-container *ngIf="!searchTerm || getPropertyCount(source) === getTotalPropertyCount(source)">
+                  {{ getPropertyCount(source) }} properties
+                </ng-container>
               </div>
             </div>
             <div class="property-source-content" *ngIf="isSectionActive('source-' + i)">
+              <div class="filter-info" *ngIf="searchTerm && getPropertyCount(source) !== getTotalPropertyCount(source)">
+                <i class="fas fa-filter"></i> Showing {{ getPropertyCount(source) }} of {{ getTotalPropertyCount(source) }} properties matching "<span class="highlight-search">{{ searchTerm }}</span>"
+              </div>
               <table class="properties-table">
                 <thead>
                   <tr>
@@ -80,10 +88,10 @@
                 </thead>
                 <tbody>
                   <tr *ngFor="let prop of getPropertyEntries(source.properties)">
-                    <td class="property-name" [title]="prop[0]">{{ prop[0] }}</td>
+                    <td class="property-name" [title]="prop[0]" [innerHTML]="prop[0] | highlightSearch: searchTerm"></td>
                     <td class="property-value">
-                      <span *ngIf="!isObject(prop[1].value)" [title]="prop[1].value">{{ prop[1].value }}</span>
-                      <pre *ngIf="isObject(prop[1].value)" [title]="prop[1].value | json">{{ prop[1].value | json }}</pre>
+                      <span *ngIf="!isObject(prop[1].value)" [title]="prop[1].value" [innerHTML]="prop[1].value | highlightSearch: searchTerm"></span>
+                      <pre *ngIf="isObject(prop[1].value)" [title]="prop[1].value | json" [innerHTML]="(prop[1].value | json) | highlightSearch: searchTerm"></pre>
                     </td>
                     <td class="property-origin" [title]="prop[1].origin || '-'">{{ prop[1].origin || '-' }}</td>
                   </tr>
