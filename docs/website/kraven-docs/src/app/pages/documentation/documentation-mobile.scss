@@ -1,0 +1,206 @@
+/* Mobile-specific styles for documentation pages */
+
+/* Common mobile styles for all documentation pages */
+@media (max-width: 480px) {
+  /* Improve touch targets */
+  a, button, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+  
+  /* Add active state feedback for touch interactions */
+  a:active, button:active, [role="button"]:active {
+    opacity: 0.7;
+    transform: scale(0.98);
+  }
+  
+  /* Improve code blocks */
+  pre, code {
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
+    padding: 0.75rem !important;
+    border-radius: 6px !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    white-space: pre !important;
+    word-wrap: normal !important;
+  }
+  
+  /* Improve tables */
+  table {
+    display: block !important;
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    border-collapse: collapse !important;
+  }
+  
+  th, td {
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.875rem !important;
+  }
+  
+  /* Improve images */
+  img {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+  
+  /* Improve lists */
+  ul, ol {
+    padding-left: 1.5rem !important;
+  }
+  
+  li {
+    margin-bottom: 0.5rem !important;
+  }
+  
+  /* Improve blockquotes */
+  blockquote {
+    padding: 0.75rem !important;
+    margin: 1rem 0 !important;
+    font-size: 0.9375rem !important;
+    border-left-width: 4px !important;
+  }
+  
+  /* Improve form elements */
+  input, select, textarea {
+    font-size: 16px !important; /* Prevent iOS zoom on focus */
+    padding: 0.5rem 0.75rem !important;
+    border-radius: 6px !important;
+  }
+  
+  /* Improve buttons */
+  .mat-mdc-raised-button, 
+  .mat-mdc-stroked-button, 
+  .mat-mdc-button {
+    padding: 0 1rem !important;
+    height: 40px !important;
+    font-size: 0.875rem !important;
+  }
+  
+  /* Improve cards */
+  .mat-mdc-card {
+    padding: 1rem !important;
+    border-radius: 8px !important;
+  }
+  
+  /* Improve spacing */
+  .mat-mdc-card-content {
+    padding: 0.75rem 0 !important;
+  }
+  
+  .mat-mdc-card-actions {
+    padding: 0.5rem 0 0 !important;
+  }
+  
+  /* Improve dialogs */
+  .mat-mdc-dialog-container {
+    padding: 1rem !important;
+  }
+  
+  /* Improve tabs */
+  .mat-mdc-tab {
+    min-width: 80px !important;
+    padding: 0 12px !important;
+  }
+  
+  .mat-mdc-tab-header {
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+  
+  .mat-mdc-tab-header::-webkit-scrollbar {
+    display: none !important;
+  }
+  
+  /* Improve tooltips */
+  .mat-mdc-tooltip {
+    font-size: 0.75rem !important;
+    padding: 0.5rem 0.75rem !important;
+  }
+}
+
+/* Configuration page specific mobile styles */
+.config-table {
+  @media (max-width: 480px) {
+    font-size: 0.875rem;
+    
+    .config-table-header, .config-row {
+      display: flex;
+      flex-direction: column;
+      padding: 0.75rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      
+      .light-theme & {
+        border-bottom-color: rgba(0, 0, 0, 0.1);
+      }
+    }
+    
+    .config-property {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    
+    .config-description {
+      margin-bottom: 0.5rem;
+    }
+    
+    .config-default {
+      font-family: 'Roboto Mono', monospace;
+      font-size: 0.8125rem;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      display: inline-block;
+      
+      .light-theme & {
+        background: rgba(0, 0, 0, 0.05);
+      }
+    }
+  }
+}
+
+/* Plugins page specific mobile styles */
+.plugin-card {
+  @media (max-width: 480px) {
+    margin-bottom: 1rem;
+    
+    .plugin-header {
+      flex-direction: column;
+      align-items: flex-start;
+      
+      .plugin-title {
+        margin-bottom: 0.5rem;
+      }
+      
+      .plugin-badge {
+        align-self: flex-start;
+      }
+    }
+  }
+}
+
+/* Getting started page specific mobile styles */
+.step-container {
+  @media (max-width: 480px) {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    
+    .step-number {
+      width: 32px;
+      height: 32px;
+      font-size: 1rem;
+      margin-right: 0.75rem;
+    }
+    
+    .step-content {
+      h3 {
+        font-size: 1.25rem;
+      }
+    }
+  }
+}

@@ -50,7 +50,7 @@
                 }
               ],
               "outputHashing": "all",
-              "baseHref": "/kravenUI/"
+              "baseHref": "/KravenUI/"
             },
             "development": {
               "optimization": false,

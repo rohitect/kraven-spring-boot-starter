@@ -35,7 +35,7 @@ interface NavSection {
     HeaderComponent
   ],
   templateUrl: './documentation.component.html',
-  styleUrls: ['./documentation.component.scss'],
+  styleUrls: ['./documentation.component.scss', './documentation-mobile.scss'],
   animations: [
     trigger('fadeIn', [
       state('void', style({
@@ -146,7 +146,13 @@ export class DocumentationComponent implements OnInit, OnDestroy {
         const element = document.getElementById(fragment);
         if (element) {
           // Get the header height to offset the scroll position
-          const headerHeight = 64; // Default header height
+          let headerHeight = 64; // Default header height for desktop
+
+          // Check if we're on mobile (max-width: 480px)
+          if (window.innerWidth <= 480) {
+            headerHeight = 56; // Smaller header height for mobile
+          }
+
           const yOffset = -headerHeight - 20; // Additional 20px for spacing
           const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
 
