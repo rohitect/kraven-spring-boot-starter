@@ -6,6 +6,7 @@ import io.github.rohitect.kraven.plugins.actuatorinsights.model.HealthStatus;
 import io.github.rohitect.kraven.plugins.actuatorinsights.model.MetricData;
 import io.github.rohitect.kraven.plugins.actuatorinsights.service.ActuatorDataCollectionService;
 import io.github.rohitect.kraven.plugins.actuatorinsights.service.ActuatorDetectionService;
+import io.github.rohitect.kraven.plugins.actuatorinsights.service.ThreadDumpAnalysisService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,12 +25,15 @@ public class ActuatorInsightsController {
 
     private final ActuatorDetectionService detectionService;
     private final ActuatorDataCollectionService dataCollectionService;
+    private final ThreadDumpAnalysisService threadDumpAnalysisService;
 
     public ActuatorInsightsController(
             ActuatorDetectionService detectionService,
-            ActuatorDataCollectionService dataCollectionService) {
+            ActuatorDataCollectionService dataCollectionService,
+            ThreadDumpAnalysisService threadDumpAnalysisService) {
         this.detectionService = detectionService;
         this.dataCollectionService = dataCollectionService;
+        this.threadDumpAnalysisService = threadDumpAnalysisService;
     }
 
     /**
@@ -194,5 +198,86 @@ public class ActuatorInsightsController {
         response.put("success", true);
 
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get the thread dump data from the actuator endpoint.
+     *
+     * @return the thread dump data
+     */
+    @GetMapping("/threaddump")
+    public ResponseEntity<Map<String, Object>> getThreadDumpData() {
+        return ResponseEntity.ok(dataCollectionService.getThreadDumpData());
+    }
+
+    /**
+     * Analyze thread dump data.
+     *
+     * @param analysisType the type of analysis to perform
+     * @return the analysis results
+     */
+    @GetMapping("/threaddump/analyze")
+    public ResponseEntity<Map<String, Object>> analyzeThreadDump(@RequestParam String analysisType) {
+        Map<String, Object> threadDumpData = dataCollectionService.getThreadDumpData();
+        Map<String, Object> analysisResults = threadDumpAnalysisService.analyzeThreadDump(threadDumpData, analysisType);
+        return ResponseEntity.ok(analysisResults);
+    }
+
+    /**
+     * Get available thread dump analysis types.
+     *
+     * @return the available analysis types
+     */
+    @GetMapping("/threaddump/analysis-types")
+    public ResponseEntity<List<Map<String, Object>>> getThreadDumpAnalysisTypes() {
+        List<Map<String, Object>> analysisTypes = List.of(
+            Map.of(
+                "id", "state-distribution",
+                "name", "Thread State Distribution",
+                "description", "Analyzes the distribution of threads across different states"
+            ),
+            Map.of(
+                "id", "deadlock-detection",
+                "name", "Deadlock Detection",
+                "description", "Detects potential deadlocks between threads"
+            ),
+            Map.of(
+                "id", "lock-contention",
+                "name", "Lock Contention Analysis",
+                "description", "Identifies locks causing contention between threads"
+            ),
+            Map.of(
+                "id", "thread-pool",
+                "name", "Thread Pool Analysis",
+                "description", "Analyzes thread pools and their utilization"
+            ),
+            Map.of(
+                "id", "stack-trace-patterns",
+                "name", "Stack Trace Pattern Analysis",
+                "description", "Identifies common patterns in thread stack traces"
+            ),
+            Map.of(
+                "id", "thread-groups",
+                "name", "Thread Grouping Analysis",
+                "description", "Groups threads by their function or subsystem"
+            ),
+            Map.of(
+                "id", "cpu-intensive",
+                "name", "CPU-Intensive Thread Analysis",
+                "description", "Identifies threads that may be consuming CPU resources"
+            ),
+            Map.of(
+                "id", "memory-leak",
+                "name", "Memory Leak Indicators",
+                "description", "Detects potential indicators of memory leaks related to threads"
+            ),
+            Map.of(
+                "id", "comprehensive",
+                "name", "Comprehensive Analysis",
+                "description", "Performs all analyses and provides a complete report"
+            )
+        );
+
+        return ResponseEntity.ok(analysisTypes);
     }
 }

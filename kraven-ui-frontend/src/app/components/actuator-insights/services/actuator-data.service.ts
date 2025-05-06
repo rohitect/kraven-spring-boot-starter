@@ -18,6 +18,8 @@ export class ActuatorDataService {
   // In-memory storage for history data
   private metricHistory: { [key: string]: any[] } = {};
   private healthHistory: any[] = [];
+  private memoryHistory: any[] = [];
+  private threadHistory: any[] = [];
 
   // Maximum number of history entries to keep
   private readonly MAX_HISTORY_SIZE = 100;
@@ -356,11 +358,142 @@ export class ActuatorDataService {
   // Removed duplicate forceRefresh method
 
   /**
+   * Get thread dump data
+   */
+  getThreadDumpData(): Observable<any> {
+    // Ensure the plugin is initialized
+    if (!this.pluginInitialized) {
+      return this.initializeAndGetData('threaddump');
+    }
+
+    const url = `${this.baseUrl}${this.apiPath}/plugins/actuator-insights/threaddump`;
+
+    return this.http.get<any>(url).pipe(
+      map(data => {
+        // Update thread history
+        const threadData = {
+          timestamp: new Date(),
+          data: data
+        };
+
+        this.threadHistory.push(threadData);
+
+        // Trim history if it gets too large
+        if (this.threadHistory.length > this.MAX_HISTORY_SIZE) {
+          this.threadHistory.shift();
+        }
+
+        return data;
+      }),
+      catchError(error => {
+        console.error('Error getting thread dump data:', error);
+        return of(null);
+      })
+    );
+  }
+
+  /**
+   * Get memory data
+   */
+  getMemoryData(): Observable<any> {
+    // Ensure the plugin is initialized
+    if (!this.pluginInitialized) {
+      return this.initializeAndGetData('memory');
+    }
+
+    const url = `${this.baseUrl}${this.apiPath}/plugins/actuator-insights/memory`;
+
+    return this.http.get<any>(url).pipe(
+      map(data => {
+        // Update memory history
+        const memoryData = {
+          timestamp: new Date(),
+          data: data
+        };
+
+        this.memoryHistory.push(memoryData);
+
+        // Trim history if it gets too large
+        if (this.memoryHistory.length > this.MAX_HISTORY_SIZE) {
+          this.memoryHistory.shift();
+        }
+
+        return data;
+      }),
+      catchError(error => {
+        console.error('Error getting memory data:', error);
+        return of(null);
+      })
+    );
+  }
+
+  /**
+   * Request a heap dump
+   */
+  requestHeapDump(): Observable<any> {
+    const url = `${this.baseUrl}${this.apiPath}/plugins/actuator-insights/heapdump`;
+
+    return this.http.post<any>(url, {}).pipe(
+      catchError(error => {
+        console.error('Error requesting heap dump:', error);
+        return of({ success: false, message: 'Failed to request heap dump' });
+      })
+    );
+  }
+
+  /**
+   * Get thread history data
+   */
+  getThreadHistory(): Observable<any[]> {
+    return of(this.threadHistory);
+  }
+
+  /**
+   * Get memory history data
+   */
+  getMemoryHistory(): Observable<any[]> {
+    return of(this.memoryHistory);
+  }
+
+  /**
+   * Get available thread dump analysis types
+   */
+  getThreadDumpAnalysisTypes(): Observable<any[]> {
+    const url = `${this.baseUrl}${this.apiPath}/plugins/actuator-insights/threaddump/analysis-types`;
+
+    return this.http.get<any[]>(url).pipe(
+      catchError(error => {
+        console.error('Error getting thread dump analysis types:', error);
+        return of([]);
+      })
+    );
+  }
+
+  /**
+   * Analyze thread dump
+   */
+  analyzeThreadDump(analysisType: string): Observable<any> {
+    const url = `${this.baseUrl}${this.apiPath}/plugins/actuator-insights/threaddump/analyze?analysisType=${analysisType}`;
+
+    return this.http.get<any>(url).pipe(
+      catchError(error => {
+        console.error('Error analyzing thread dump:', error);
+        return of({
+          success: false,
+          error: 'Failed to analyze thread dump'
+        });
+      })
+    );
+  }
+
+  /**
    * Clear all history data
    */
   clearHistory(): void {
     this.metricHistory = {};
     this.healthHistory = [];
+    this.memoryHistory = [];
+    this.threadHistory = [];
   }
 
   /**

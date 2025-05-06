@@ -27,6 +27,8 @@
     "clsx": "^2.1.1",
     "d3": "^7.9.0",
     "highlight.js": "^11.11.1",
+    "jspdf": "^3.0.1",
+    "jspdf-autotable": "^5.0.2",
     "lucide-angular": "^0.488.0",
     "marked": "^15.0.11",
     "mermaid": "^11.6.0",

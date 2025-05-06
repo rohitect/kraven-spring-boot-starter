@@ -7,6 +7,7 @@ import { MetricsTabComponent } from './metrics-tab/metrics-tab.component';
 import { EnvironmentTabComponent } from './environment-tab/environment-tab.component';
 import { BeansTabComponent } from './beans-tab/beans-tab.component';
 import { ThreadsTabComponent } from './threads-tab/threads-tab.component';
+import { MemoryTabComponent } from './memory-tab/memory-tab.component';
 import { PluginRouteGuard } from '../../guards/plugin-route.guard';
 
 const routes: Routes = [
@@ -21,7 +22,8 @@ const routes: Routes = [
       { path: 'metrics', component: MetricsTabComponent },
       { path: 'environment', component: EnvironmentTabComponent },
       { path: 'beans', component: BeansTabComponent },
-      { path: 'threads', component: ThreadsTabComponent }
+      { path: 'threads', component: ThreadsTabComponent },
+      { path: 'memory', component: MemoryTabComponent }
     ]
   }
 ];
@@ -34,7 +36,8 @@ const routes: Routes = [
     MetricsTabComponent,
     EnvironmentTabComponent,
     BeansTabComponent,
-    ThreadsTabComponent
+    ThreadsTabComponent,
+    MemoryTabComponent
   ],
   exports: [
     RouterModule

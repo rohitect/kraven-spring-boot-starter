@@ -8,6 +8,7 @@ import io.github.rohitect.kraven.plugins.actuatorinsights.config.ActuatorInsight
 import io.github.rohitect.kraven.plugins.actuatorinsights.controller.ActuatorInsightsController;
 import io.github.rohitect.kraven.plugins.actuatorinsights.service.ActuatorDetectionService;
 import io.github.rohitect.kraven.plugins.actuatorinsights.service.ActuatorDataCollectionService;
+import io.github.rohitect.kraven.plugins.actuatorinsights.service.ThreadDumpAnalysisService;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -27,6 +28,7 @@ public class ActuatorInsightsPlugin implements KravenUIPlugin {
     private ActuatorInsightsConfig config;
     private ActuatorDetectionService detectionService;
     private ActuatorDataCollectionService dataCollectionService;
+    private ThreadDumpAnalysisService threadDumpAnalysisService;
     private boolean actuatorDetected = false;
 
     @Override
@@ -67,8 +69,11 @@ public class ActuatorInsightsPlugin implements KravenUIPlugin {
         dataCollectionService = new ActuatorDataCollectionService(config, environment);
         context.registerService(dataCollectionService);
 
+        threadDumpAnalysisService = new ThreadDumpAnalysisService();
+        context.registerService(threadDumpAnalysisService);
+
         // Register controllers
-        context.registerController(new ActuatorInsightsController(detectionService, dataCollectionService));
+        context.registerController(new ActuatorInsightsController(detectionService, dataCollectionService, threadDumpAnalysisService));
 
         // Register navigation item
         context.registerNavigationItem(

@@ -684,6 +684,41 @@ public class ActuatorDataCollectionService {
     }
 
     /**
+     * Get the thread dump data from the actuator endpoint.
+     *
+     * @return the thread dump data
+     */
+    public Map<String, Object> getThreadDumpData() {
+        // Check if we have cached data
+        Object cachedData = dataCache.getIfPresent("threaddump");
+        if (cachedData != null && cachedData instanceof Map) {
+            return (Map<String, Object>) cachedData;
+        }
+
+        // If not cached or not a map, fetch fresh data
+        String threadDumpUrl = getEndpointPath("threaddump");
+
+        try {
+            log.info("Fetching thread dump data from: {}", threadDumpUrl);
+            ResponseEntity<Map> response = restTemplate.getForEntity(threadDumpUrl, Map.class);
+            Map<String, Object> body = response.getBody();
+
+            if (body != null) {
+                // Store in cache
+                dataCache.put("threaddump", body);
+                log.info("Successfully fetched thread dump data");
+                return body;
+            } else {
+                log.warn("Thread dump endpoint returned null body");
+                return new HashMap<>();
+            }
+        } catch (RestClientException e) {
+            log.warn("Failed to fetch thread dump data: {}", e.getMessage());
+            return new HashMap<>();
+        }
+    }
+
+    /**
      * Parse a duration string into a Duration object.
      *
      * @param durationStr the duration string (e.g., "15s", "1m", "1h")

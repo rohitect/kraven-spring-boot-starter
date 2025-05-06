@@ -1,14 +1,1261 @@
 <div class="threads-tab-container">
   <div class="tab-header">
-    <h2>Threads & Memory</h2>
+    <h2>Thread Analysis</h2>
+    <div class="tab-controls">
+      <button class="thread-dump-button" (click)="takeThreadDump()">
+        <i class="fas fa-download"></i> Take Thread Dump
+      </button>
+    </div>
   </div>
 
-  <div class="tab-content">
-    <div class="coming-soon-message">
-      <i class="fas fa-microchip"></i>
-      <h3>Coming Soon</h3>
-      <p>The Threads & Memory analysis is under development and will be available in a future update.</p>
-      <p class="feature-description">This feature will provide detailed insights into your application's thread usage and memory consumption, helping you identify performance bottlenecks and memory leaks.</p>
+  <!-- Loading indicator -->
+  <div class="loading-indicator" *ngIf="isLoading">
+    <i class="fas fa-spinner fa-spin"></i>
+    <span>Loading thread data...</span>
+  </div>
+
+  <!-- Secondary Tabs -->
+  <div class="secondary-tabs" *ngIf="!isLoading && threadDumpData">
+    <div class="tab" [class.active]="activeSecondaryTab === 'overview'" (click)="switchSecondaryTab('overview')">
+      <i class="fas fa-chart-pie"></i> Overview
     </div>
+    <div class="tab" [class.active]="activeSecondaryTab === 'details'" (click)="switchSecondaryTab('details')" [class.disabled]="!selectedThread">
+      <i class="fas fa-info-circle"></i> Thread Details
+    </div>
+    <div class="tab" [class.active]="activeSecondaryTab === 'state'" (click)="switchSecondaryTab('state')">
+      <i class="fas fa-tasks"></i> Thread States
+    </div>
+    <div class="tab" [class.active]="activeSecondaryTab === 'stacktrace'" (click)="switchSecondaryTab('stacktrace')" [class.disabled]="!selectedThread">
+      <i class="fas fa-stream"></i> Stack Trace
+    </div>
+    <div class="tab" [class.active]="activeSecondaryTab === 'analysis'" (click)="switchSecondaryTab('analysis')">
+      <i class="fas fa-chart-line"></i> Analysis
+    </div>
+  </div>
+
+  <!-- Tab Content -->
+  <div class="tab-content" *ngIf="!isLoading && threadDumpData">
+    <!-- Overview Tab -->
+    <div class="thread-overview" *ngIf="activeSecondaryTab === 'overview'">
+      <!-- Thread Summary -->
+      <div class="thread-summary">
+        <div class="summary-card total-threads">
+          <div class="summary-icon">
+            <i class="fas fa-microchip"></i>
+          </div>
+          <div class="summary-content">
+            <div class="summary-title">Total Threads</div>
+            <div class="summary-value">{{ getTotalThreadCount() }}</div>
+          </div>
+        </div>
+
+        <div class="summary-card runnable-threads">
+          <div class="summary-icon">
+            <i class="fas fa-play"></i>
+          </div>
+          <div class="summary-content">
+            <div class="summary-title">Runnable</div>
+            <div class="summary-value">{{ threadStateCounts['RUNNABLE'] || 0 }}</div>
+          </div>
+        </div>
+
+        <div class="summary-card blocked-threads">
+          <div class="summary-icon">
+            <i class="fas fa-ban"></i>
+          </div>
+          <div class="summary-content">
+            <div class="summary-title">Blocked</div>
+            <div class="summary-value">{{ threadStateCounts['BLOCKED'] || 0 }}</div>
+          </div>
+        </div>
+
+        <div class="summary-card waiting-threads">
+          <div class="summary-icon">
+            <i class="fas fa-hourglass-half"></i>
+          </div>
+          <div class="summary-content">
+            <div class="summary-title">Waiting</div>
+            <div class="summary-value">{{ threadStateCounts['WAITING'] || 0 }}</div>
+          </div>
+        </div>
+
+        <div class="summary-card timed-waiting-threads">
+          <div class="summary-icon">
+            <i class="fas fa-clock"></i>
+          </div>
+          <div class="summary-content">
+            <div class="summary-title">Timed Waiting</div>
+            <div class="summary-value">{{ threadStateCounts['TIMED_WAITING'] || 0 }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Common Thread Pools Summary -->
+      <div class="common-thread-pools" *ngIf="hasCommonThreadPools()">
+        <div class="section-header">
+          <h3>Common Thread Pools</h3>
+          <div class="section-description">Summary of key thread pools in your application</div>
+        </div>
+
+        <div class="thread-pools-grid">
+          <!-- HikariCP Connection Pool -->
+          <div class="thread-pool-card" *ngIf="getThreadPoolInfo('hikari').count > 0">
+            <div class="pool-header">
+              <div class="pool-icon">
+                <i class="fas fa-database"></i>
+              </div>
+              <div class="pool-title">HikariCP</div>
+              <div class="pool-count">{{ getThreadPoolInfo('hikari').count }} threads</div>
+            </div>
+            <div class="pool-states">
+              <div class="state-distribution">
+                <div class="state-bar" *ngFor="let state of getThreadPoolStateEntries('hikari')"
+                     [style.width.%]="getStatePercentage('hikari', state)"
+                     [style.background-color]="getThreadStateColor(state.key)"
+                     [title]="state.key + ': ' + state.value">
+                </div>
+              </div>
+              <div class="state-legend">
+                <div class="state-item" *ngFor="let state of getThreadPoolStateEntries('hikari')">
+                  <div class="state-color" [style.background-color]="getThreadStateColor(state.key)"></div>
+                  <div class="state-label">{{ state.key }}: {{ state.value }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="pool-actions">
+              <button class="view-threads-button" (click)="filterThreadsByPool('hikari')">
+                View Threads
+              </button>
+            </div>
+          </div>
+
+          <!-- Kafka Threads -->
+          <div class="thread-pool-card" *ngIf="getThreadPoolInfo('kafka').count > 0">
+            <div class="pool-header">
+              <div class="pool-icon">
+                <i class="fas fa-exchange-alt"></i>
+              </div>
+              <div class="pool-title">Kafka</div>
+              <div class="pool-count">{{ getThreadPoolInfo('kafka').count }} threads</div>
+            </div>
+            <div class="pool-states">
+              <div class="state-distribution">
+                <div class="state-bar" *ngFor="let state of getThreadPoolStateEntries('kafka')"
+                     [style.width.%]="getStatePercentage('kafka', state)"
+                     [style.background-color]="getThreadStateColor(state.key)"
+                     [title]="state.key + ': ' + state.value">
+                </div>
+              </div>
+              <div class="state-legend">
+                <div class="state-item" *ngFor="let state of getThreadPoolStateEntries('kafka')">
+                  <div class="state-color" [style.background-color]="getThreadStateColor(state.key)"></div>
+                  <div class="state-label">{{ state.key }}: {{ state.value }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="pool-actions">
+              <button class="view-threads-button" (click)="filterThreadsByPool('kafka')">
+                View Threads
+              </button>
+            </div>
+          </div>
+
+          <!-- Spring Threads -->
+          <div class="thread-pool-card" *ngIf="getThreadPoolInfo('spring').count > 0">
+            <div class="pool-header">
+              <div class="pool-icon">
+                <i class="fas fa-leaf"></i>
+              </div>
+              <div class="pool-title">Spring</div>
+              <div class="pool-count">{{ getThreadPoolInfo('spring').count }} threads</div>
+            </div>
+            <div class="pool-states">
+              <div class="state-distribution">
+                <div class="state-bar" *ngFor="let state of getThreadPoolStateEntries('spring')"
+                     [style.width.%]="getStatePercentage('spring', state)"
+                     [style.background-color]="getThreadStateColor(state.key)"
+                     [title]="state.key + ': ' + state.value">
+                </div>
+              </div>
+              <div class="state-legend">
+                <div class="state-item" *ngFor="let state of getThreadPoolStateEntries('spring')">
+                  <div class="state-color" [style.background-color]="getThreadStateColor(state.key)"></div>
+                  <div class="state-label">{{ state.key }}: {{ state.value }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="pool-actions">
+              <button class="view-threads-button" (click)="filterThreadsByPool('spring')">
+                View Threads
+              </button>
+            </div>
+          </div>
+
+          <!-- Tomcat/Jetty Threads -->
+          <div class="thread-pool-card" *ngIf="getThreadPoolInfo('web-container').count > 0">
+            <div class="pool-header">
+              <div class="pool-icon">
+                <i class="fas fa-server"></i>
+              </div>
+              <div class="pool-title">Web Container</div>
+              <div class="pool-count">{{ getThreadPoolInfo('web-container').count }} threads</div>
+            </div>
+            <div class="pool-states">
+              <div class="state-distribution">
+                <div class="state-bar" *ngFor="let state of getThreadPoolStateEntries('web-container')"
+                     [style.width.%]="getStatePercentage('web-container', state)"
+                     [style.background-color]="getThreadStateColor(state.key)"
+                     [title]="state.key + ': ' + state.value">
+                </div>
+              </div>
+              <div class="state-legend">
+                <div class="state-item" *ngFor="let state of getThreadPoolStateEntries('web-container')">
+                  <div class="state-color" [style.background-color]="getThreadStateColor(state.key)"></div>
+                  <div class="state-label">{{ state.key }}: {{ state.value }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="pool-actions">
+              <button class="view-threads-button" (click)="filterThreadsByPool('web-container')">
+                View Threads
+              </button>
+            </div>
+          </div>
+
+          <!-- Redis Threads -->
+          <div class="thread-pool-card" *ngIf="getThreadPoolInfo('redis').count > 0">
+            <div class="pool-header">
+              <div class="pool-icon">
+                <i class="fas fa-database"></i>
+              </div>
+              <div class="pool-title">Redis</div>
+              <div class="pool-count">{{ getThreadPoolInfo('redis').count }} threads</div>
+            </div>
+            <div class="pool-states">
+              <div class="state-distribution">
+                <div class="state-bar" *ngFor="let state of getThreadPoolStateEntries('redis')"
+                     [style.width.%]="getStatePercentage('redis', state)"
+                     [style.background-color]="getThreadStateColor(state.key)"
+                     [title]="state.key + ': ' + state.value">
+                </div>
+              </div>
+              <div class="state-legend">
+                <div class="state-item" *ngFor="let state of getThreadPoolStateEntries('redis')">
+                  <div class="state-color" [style.background-color]="getThreadStateColor(state.key)"></div>
+                  <div class="state-label">{{ state.key }}: {{ state.value }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="pool-actions">
+              <button class="view-threads-button" (click)="filterThreadsByPool('redis')">
+                View Threads
+              </button>
+            </div>
+          </div>
+
+          <!-- Temporal Threads -->
+          <div class="thread-pool-card" *ngIf="getThreadPoolInfo('temporal').count > 0">
+            <div class="pool-header">
+              <div class="pool-icon">
+                <i class="fas fa-clock"></i>
+              </div>
+              <div class="pool-title">Temporal</div>
+              <div class="pool-count">{{ getThreadPoolInfo('temporal').count }} threads</div>
+            </div>
+            <div class="pool-states">
+              <div class="state-distribution">
+                <div class="state-bar" *ngFor="let state of getThreadPoolStateEntries('temporal')"
+                     [style.width.%]="getStatePercentage('temporal', state)"
+                     [style.background-color]="getThreadStateColor(state.key)"
+                     [title]="state.key + ': ' + state.value">
+                </div>
+              </div>
+              <div class="state-legend">
+                <div class="state-item" *ngFor="let state of getThreadPoolStateEntries('temporal')">
+                  <div class="state-color" [style.background-color]="getThreadStateColor(state.key)"></div>
+                  <div class="state-label">{{ state.key }}: {{ state.value }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="pool-actions">
+              <button class="view-threads-button" (click)="filterThreadsByPool('temporal')">
+                View Threads
+              </button>
+            </div>
+          </div>
+
+          <!-- JVM System Threads -->
+          <div class="thread-pool-card" *ngIf="getThreadPoolInfo('jvm').count > 0">
+            <div class="pool-header">
+              <div class="pool-icon">
+                <i class="fas fa-cogs"></i>
+              </div>
+              <div class="pool-title">JVM System</div>
+              <div class="pool-count">{{ getThreadPoolInfo('jvm').count }} threads</div>
+            </div>
+            <div class="pool-states">
+              <div class="state-distribution">
+                <div class="state-bar" *ngFor="let state of getThreadPoolStateEntries('jvm')"
+                     [style.width.%]="getStatePercentage('jvm', state)"
+                     [style.background-color]="getThreadStateColor(state.key)"
+                     [title]="state.key + ': ' + state.value">
+                </div>
+              </div>
+              <div class="state-legend">
+                <div class="state-item" *ngFor="let state of getThreadPoolStateEntries('jvm')">
+                  <div class="state-color" [style.background-color]="getThreadStateColor(state.key)"></div>
+                  <div class="state-label">{{ state.key }}: {{ state.value }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="pool-actions">
+              <button class="view-threads-button" (click)="filterThreadsByPool('jvm')">
+                View Threads
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Deadlock Warning -->
+      <div class="deadlock-warning" *ngIf="hasDeadlocks()">
+        <div class="warning-icon">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="warning-content">
+          <div class="warning-title">Deadlock Detected!</div>
+          <div class="warning-message">
+            {{ getDeadlockedThreads().length }} threads are deadlocked. This can cause your application to hang or become unresponsive.
+          </div>
+          <div class="deadlocked-threads">
+            <div class="deadlocked-thread" *ngFor="let thread of getDeadlockedThreads()">
+              <span class="thread-name">{{ thread.threadName }}</span>
+              <span class="thread-id">(ID: {{ thread.threadId }})</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Thread List -->
+      <div class="thread-list-section">
+        <div class="thread-list-header">
+          <h3>Thread List</h3>
+          <div class="thread-controls">
+            <div class="search-container">
+              <input
+                type="text"
+                placeholder="Search threads..."
+                [(ngModel)]="searchTerm"
+                (input)="searchThreads()"
+              >
+              <button *ngIf="searchTerm" class="clear-search" (click)="clearSearch()">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <div class="filter-controls">
+              <div class="filter-button"
+                   [class.active]="showRunnable"
+                   (click)="toggleStateFilter('RUNNABLE')"
+                   [style.background-color]="showRunnable ? getThreadStateBackgroundColor('RUNNABLE') : ''"
+                   [style.color]="showRunnable ? getThreadStateColor('RUNNABLE') : ''">
+                <i class="fas fa-play"></i> Runnable
+              </div>
+              <div class="filter-button"
+                   [class.active]="showBlocked"
+                   (click)="toggleStateFilter('BLOCKED')"
+                   [style.background-color]="showBlocked ? getThreadStateBackgroundColor('BLOCKED') : ''"
+                   [style.color]="showBlocked ? getThreadStateColor('BLOCKED') : ''">
+                <i class="fas fa-ban"></i> Blocked
+              </div>
+              <div class="filter-button"
+                   [class.active]="showWaiting"
+                   (click)="toggleStateFilter('WAITING')"
+                   [style.background-color]="showWaiting ? getThreadStateBackgroundColor('WAITING') : ''"
+                   [style.color]="showWaiting ? getThreadStateColor('WAITING') : ''">
+                <i class="fas fa-hourglass-half"></i> Waiting
+              </div>
+              <div class="filter-button"
+                   [class.active]="showTimedWaiting"
+                   (click)="toggleStateFilter('TIMED_WAITING')"
+                   [style.background-color]="showTimedWaiting ? getThreadStateBackgroundColor('TIMED_WAITING') : ''"
+                   [style.color]="showTimedWaiting ? getThreadStateColor('TIMED_WAITING') : ''">
+                <i class="fas fa-clock"></i> Timed Waiting
+              </div>
+              <div class="filter-button"
+                   [class.active]="showTerminated"
+                   (click)="toggleStateFilter('TERMINATED')"
+                   [style.background-color]="showTerminated ? getThreadStateBackgroundColor('TERMINATED') : ''"
+                   [style.color]="showTerminated ? getThreadStateColor('TERMINATED') : ''">
+                <i class="fas fa-stop"></i> Terminated
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="thread-list">
+          <div class="thread-list-empty" *ngIf="filteredThreads.length === 0">
+            <i class="fas fa-search"></i>
+            <p>No threads match your search criteria.</p>
+          </div>
+
+          <div class="thread-item" *ngFor="let thread of filteredThreads" (click)="selectThread(thread)" [class.selected]="selectedThread?.threadId === thread.threadId">
+            <div class="thread-header">
+              <div class="thread-name">{{ thread.threadName }}</div>
+              <div class="thread-state"
+                   [style.background-color]="getThreadStateBackgroundColor(thread.threadState)"
+                   [style.color]="getThreadStateColor(thread.threadState)">
+                {{ thread.threadState }}
+              </div>
+            </div>
+            <div class="thread-details">
+              <div class="thread-id">ID: {{ thread.threadId }}</div>
+              <div class="thread-priority">Priority: {{ thread.priority }}</div>
+              <div class="thread-daemon" *ngIf="thread.daemon">Daemon Thread</div>
+            </div>
+            <div class="thread-stack-preview" *ngIf="thread.stackTrace && thread.stackTrace.length > 0">
+              <div class="stack-frame">{{ thread.stackTrace[0].className }}.{{ thread.stackTrace[0].methodName }}({{ thread.stackTrace[0].fileName || 'Unknown Source' }}:{{ thread.stackTrace[0].lineNumber > 0 ? thread.stackTrace[0].lineNumber : 'Native Method' }})</div>
+              <div class="more-frames" *ngIf="thread.stackTrace.length > 1">+ {{ thread.stackTrace.length - 1 }} more frames</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Thread Details Tab -->
+    <div class="thread-details-view" *ngIf="activeSecondaryTab === 'details'">
+      <div class="no-thread-selected" *ngIf="!selectedThread">
+        <i class="fas fa-info-circle"></i>
+        <p>Select a thread from the overview to view its details.</p>
+      </div>
+
+      <div class="thread-detail-content" *ngIf="selectedThread">
+        <div class="thread-detail-header">
+          <h3>{{ selectedThread.threadName }}</h3>
+          <div class="thread-state"
+               [style.background-color]="getThreadStateBackgroundColor(selectedThread.threadState)"
+               [style.color]="getThreadStateColor(selectedThread.threadState)">
+            {{ selectedThread.threadState }}
+          </div>
+        </div>
+
+        <div class="thread-properties">
+          <div class="property-group">
+            <div class="property">
+              <div class="property-label">Thread ID</div>
+              <div class="property-value">{{ selectedThread.threadId }}</div>
+            </div>
+            <div class="property">
+              <div class="property-label">Priority</div>
+              <div class="property-value">{{ selectedThread.priority }}</div>
+            </div>
+            <div class="property">
+              <div class="property-label">Daemon</div>
+              <div class="property-value">{{ selectedThread.daemon ? 'Yes' : 'No' }}</div>
+            </div>
+          </div>
+
+          <div class="property-group" *ngIf="selectedThread.lockName || selectedThread.lockOwnerId >= 0">
+            <div class="property" *ngIf="selectedThread.lockName">
+              <div class="property-label">Lock</div>
+              <div class="property-value">{{ selectedThread.lockName }}</div>
+            </div>
+            <div class="property" *ngIf="selectedThread.lockOwnerId >= 0">
+              <div class="property-label">Lock Owner</div>
+              <div class="property-value">{{ selectedThread.lockOwnerName }} (ID: {{ selectedThread.lockOwnerId }})</div>
+            </div>
+          </div>
+
+          <div class="property-group" *ngIf="selectedThread.blockedCount !== undefined || selectedThread.blockedTime !== undefined">
+            <div class="property" *ngIf="selectedThread.blockedCount !== undefined">
+              <div class="property-label">Blocked Count</div>
+              <div class="property-value">{{ selectedThread.blockedCount }}</div>
+            </div>
+            <div class="property" *ngIf="selectedThread.blockedTime !== undefined">
+              <div class="property-label">Blocked Time</div>
+              <div class="property-value">{{ selectedThread.blockedTime === -1 ? 'N/A' : selectedThread.blockedTime + ' ms' }}</div>
+            </div>
+          </div>
+
+          <div class="property-group" *ngIf="selectedThread.waitedCount !== undefined || selectedThread.waitedTime !== undefined">
+            <div class="property" *ngIf="selectedThread.waitedCount !== undefined">
+              <div class="property-label">Waited Count</div>
+              <div class="property-value">{{ selectedThread.waitedCount }}</div>
+            </div>
+            <div class="property" *ngIf="selectedThread.waitedTime !== undefined">
+              <div class="property-label">Waited Time</div>
+              <div class="property-value">{{ selectedThread.waitedTime === -1 ? 'N/A' : selectedThread.waitedTime + ' ms' }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="thread-locks" *ngIf="selectedThread.lockedMonitors && selectedThread.lockedMonitors.length > 0">
+          <h4>Locked Monitors</h4>
+          <div class="locks-list">
+            <div class="lock-item" *ngFor="let monitor of selectedThread.lockedMonitors">
+              <div class="lock-class">{{ monitor.className }}</div>
+              <div class="lock-identity">{{ monitor.identityHashCode }}</div>
+              <div class="lock-frame" *ngIf="monitor.lockedStackFrame">
+                at {{ monitor.lockedStackFrame.className }}.{{ monitor.lockedStackFrame.methodName }}({{ monitor.lockedStackFrame.fileName || 'Unknown Source' }}:{{ monitor.lockedStackFrame.lineNumber > 0 ? monitor.lockedStackFrame.lineNumber : 'Native Method' }})
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="thread-locks" *ngIf="selectedThread.lockedSynchronizers && selectedThread.lockedSynchronizers.length > 0">
+          <h4>Locked Synchronizers</h4>
+          <div class="locks-list">
+            <div class="lock-item" *ngFor="let sync of selectedThread.lockedSynchronizers">
+              <div class="lock-class">{{ sync.className }}</div>
+              <div class="lock-identity">{{ sync.identityHashCode }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Thread States Tab -->
+    <div class="thread-states-view" *ngIf="activeSecondaryTab === 'state'">
+      <div class="thread-states-header">
+        <h3>Thread States Distribution</h3>
+      </div>
+
+      <div class="thread-states-chart">
+        <!-- Placeholder for chart - would be implemented with D3.js or Chart.js -->
+        <div class="chart-placeholder">
+          <div class="state-bar" *ngFor="let state of ['RUNNABLE', 'BLOCKED', 'WAITING', 'TIMED_WAITING', 'TERMINATED']">
+            <div class="state-label"
+                 [style.color]="getThreadStateColor(state)">
+              {{ state }}
+            </div>
+            <div class="state-bar-container">
+              <div class="state-bar-fill"
+                   [style.width.%]="(threadStateCounts[state] || 0) / getTotalThreadCount() * 100"
+                   [style.background-color]="getThreadStateColor(state)">
+              </div>
+              <div class="state-bar-value">{{ threadStateCounts[state] || 0 }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="thread-states-grid-container">
+        <div class="thread-states-grid">
+          <div class="state-card" *ngFor="let state of ['RUNNABLE', 'BLOCKED', 'WAITING', 'TIMED_WAITING', 'TERMINATED']">
+            <div class="state-card-header"
+                 [style.background-color]="getThreadStateBackgroundColor(state)"
+                 [style.color]="getThreadStateColor(state)">
+              <div class="state-name">{{ state }}</div>
+              <div class="state-count">{{ threadStateCounts[state] || 0 }} threads</div>
+            </div>
+            <div class="state-card-content">
+              <div class="thread-list-scrollable">
+                <div class="thread-item-compact" *ngFor="let thread of getThreadsByState(state)"
+                     (click)="selectThread(thread)"
+                     [class.selected]="selectedThread?.threadId === thread.threadId">
+                  <div class="thread-name">{{ thread.threadName }}</div>
+                  <div class="thread-id">ID: {{ thread.threadId }}</div>
+                </div>
+                <div class="no-threads-message" *ngIf="getThreadsByState(state).length === 0">
+                  No {{ state.toLowerCase() }} threads found.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stack Trace Tab -->
+    <div class="thread-stacktrace-view" *ngIf="activeSecondaryTab === 'stacktrace'">
+      <div class="no-thread-selected" *ngIf="!selectedThread">
+        <i class="fas fa-stream"></i>
+        <p>Select a thread from the overview to view its stack trace.</p>
+      </div>
+
+      <div class="stacktrace-content" *ngIf="selectedThread">
+        <div class="stacktrace-header">
+          <h3>Stack Trace: {{ selectedThread.threadName }}</h3>
+          <div class="thread-state"
+               [style.background-color]="getThreadStateBackgroundColor(selectedThread.threadState)"
+               [style.color]="getThreadStateColor(selectedThread.threadState)">
+            {{ selectedThread.threadState }}
+          </div>
+        </div>
+
+        <div class="stacktrace-frames" *ngIf="selectedThread.stackTrace && selectedThread.stackTrace.length > 0">
+          <div class="stack-frame" *ngFor="let frame of selectedThread.stackTrace; let i = index">
+            <div class="frame-number">{{ i + 1 }}</div>
+            <div class="frame-content">
+              <div class="frame-method">{{ frame.className }}.{{ frame.methodName }}()</div>
+              <div class="frame-location">{{ frame.fileName || 'Unknown Source' }}:{{ frame.lineNumber > 0 ? frame.lineNumber : 'Native Method' }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="no-stacktrace" *ngIf="!selectedThread.stackTrace || selectedThread.stackTrace.length === 0">
+          <i class="fas fa-exclamation-circle"></i>
+          <p>No stack trace available for this thread.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Analysis Tab -->
+    <div class="thread-analysis-view" *ngIf="activeSecondaryTab === 'analysis'">
+      <div class="analysis-header">
+        <h3>Thread Dump Analysis</h3>
+        <div class="analysis-controls">
+          <div class="analysis-type-selector">
+            <label for="analysisType">Analysis Type:</label>
+            <select id="analysisType" [(ngModel)]="selectedAnalysisType">
+              <option *ngFor="let type of analysisTypes" [value]="type.id">{{ type.name }}</option>
+            </select>
+          </div>
+          <button class="run-analysis-button" (click)="runAnalysis()" [disabled]="isAnalyzing">
+            <i class="fas" [ngClass]="isAnalyzing ? 'fa-spinner fa-spin' : 'fa-play'"></i>
+            {{ isAnalyzing ? 'Analyzing...' : 'Run Analysis' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="analysis-content">
+        <!-- Loading indicator -->
+        <div class="analysis-loading" *ngIf="isAnalyzing">
+          <i class="fas fa-spinner fa-spin"></i>
+          <span>Analyzing thread dump data...</span>
+        </div>
+
+        <!-- No results message -->
+        <div class="no-analysis-results" *ngIf="!isAnalyzing && !analysisResults">
+          <i class="fas fa-chart-line"></i>
+          <p>Select an analysis type and click "Run Analysis" to analyze the thread dump.</p>
+        </div>
+
+        <!-- Error message -->
+        <div class="analysis-error" *ngIf="!isAnalyzing && analysisResults && !analysisResults.success">
+          <i class="fas fa-exclamation-circle"></i>
+          <h4>Analysis Failed</h4>
+          <p>{{ analysisResults.error || 'An unknown error occurred during analysis.' }}</p>
+        </div>
+
+        <!-- Analysis results -->
+        <div class="analysis-results" *ngIf="!isAnalyzing && analysisResults && analysisResults.success">
+          <div class="results-header">
+            <div class="results-title">
+              <h4>{{ analysisResults.title }}</h4>
+              <p>{{ analysisResults.description }}</p>
+            </div>
+            <button class="download-pdf-button" (click)="downloadAnalysisAsPdf()">
+              <i class="fas fa-file-pdf"></i> Download PDF
+            </button>
+          </div>
+
+          <!-- State Distribution Analysis -->
+          <div class="state-distribution-results" *ngIf="selectedAnalysisType === 'state-distribution' && analysisResults.stateCounts">
+            <div class="distribution-chart">
+              <div class="state-bar" *ngFor="let state of Object.keys(analysisResults.stateCounts)">
+                <div class="state-label" [style.color]="getThreadStateColor(state)">
+                  {{ state }}
+                </div>
+                <div class="state-bar-container">
+                  <div class="state-bar-fill"
+                       [style.width.%]="analysisResults.statePercentages[state]"
+                       [style.background-color]="getThreadStateColor(state)">
+                  </div>
+                  <div class="state-bar-value">
+                    {{ analysisResults.stateCounts[state] }} ({{ analysisResults.statePercentages[state] }}%)
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="distribution-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Thread State</th>
+                    <th>Count</th>
+                    <th>Percentage</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let state of Object.keys(analysisResults.stateCounts)">
+                    <td>
+                      <span class="state-indicator" [style.background-color]="getThreadStateColor(state)"></span>
+                      {{ state }}
+                    </td>
+                    <td>{{ analysisResults.stateCounts[state] }}</td>
+                    <td>{{ analysisResults.statePercentages[state] }}%</td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td><strong>Total</strong></td>
+                    <td><strong>{{ analysisResults.totalThreads }}</strong></td>
+                    <td><strong>100%</strong></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <!-- Deadlock Detection Analysis -->
+          <div class="deadlock-results" *ngIf="selectedAnalysisType === 'deadlock-detection'">
+            <div class="deadlock-status" [ngClass]="analysisResults.deadlocksDetected ? 'has-deadlocks' : 'no-deadlocks'">
+              <div class="status-icon">
+                <i class="fas" [ngClass]="analysisResults.deadlocksDetected ? 'fa-exclamation-triangle' : 'fa-check-circle'"></i>
+              </div>
+              <div class="status-message">
+                <h4>{{ analysisResults.deadlocksDetected ? 'Deadlocks Detected!' : 'No Deadlocks Detected' }}</h4>
+                <p *ngIf="analysisResults.deadlocksDetected">
+                  {{ analysisResults.deadlockCount }} threads are involved in deadlocks.
+                </p>
+                <p *ngIf="!analysisResults.deadlocksDetected">
+                  No deadlocks were detected in the thread dump.
+                </p>
+              </div>
+            </div>
+
+            <div class="deadlock-details" *ngIf="analysisResults.deadlocksDetected">
+              <h5>Deadlocked Threads</h5>
+              <div class="deadlock-threads">
+                <div class="deadlock-thread" *ngFor="let thread of analysisResults.deadlockDetails">
+                  <div class="thread-header">
+                    <div class="thread-name">{{ thread.threadName }}</div>
+                    <div class="thread-id">ID: {{ thread.threadId }}</div>
+                  </div>
+                  <div class="thread-lock-info">
+                    <div class="lock-waiting" *ngIf="thread.lockName">
+                      Waiting for lock: <span class="lock-name">{{ thread.lockName }}</span>
+                    </div>
+                    <div class="lock-owner" *ngIf="thread.lockOwnerId">
+                      Lock held by: <span class="owner-name">{{ thread.lockOwnerName }}</span> (ID: {{ thread.lockOwnerId }})
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Lock Contention Analysis -->
+          <div class="lock-contention-results" *ngIf="selectedAnalysisType === 'lock-contention'">
+            <div class="contention-summary">
+              <div class="summary-card">
+                <div class="summary-value">{{ analysisResults.contentionCount }}</div>
+                <div class="summary-label">Contended Locks</div>
+              </div>
+            </div>
+
+            <div class="contention-details" *ngIf="analysisResults.contentionDetails && analysisResults.contentionDetails.length > 0">
+              <h5>Contended Locks</h5>
+              <div class="contention-list">
+                <div class="contention-item" *ngFor="let contention of analysisResults.contentionDetails">
+                  <div class="contention-header">
+                    <div class="lock-name">{{ contention.lockName }}</div>
+                    <div class="contention-count">{{ contention.contentionCount }} threads blocked</div>
+                  </div>
+                  <div class="blocked-threads">
+                    <div class="blocked-thread" *ngFor="let thread of contention.blockedThreads">
+                      <div class="thread-name">{{ thread.threadName }}</div>
+                      <div class="thread-id">ID: {{ thread.threadId }}</div>
+                      <div class="lock-owner" *ngIf="thread.lockOwnerId">
+                        Lock held by: {{ thread.lockOwnerName }} (ID: {{ thread.lockOwnerId }})
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="no-contention" *ngIf="!analysisResults.contentionDetails || analysisResults.contentionDetails.length === 0">
+              <i class="fas fa-check-circle"></i>
+              <p>No lock contention detected in the thread dump.</p>
+            </div>
+          </div>
+
+          <!-- Thread Pool Analysis -->
+          <div class="thread-pool-results" *ngIf="selectedAnalysisType === 'thread-pool'">
+            <div class="pool-summary">
+              <div class="summary-card">
+                <div class="summary-value">{{ analysisResults.poolCount }}</div>
+                <div class="summary-label">Thread Pools</div>
+              </div>
+            </div>
+
+            <div class="pool-details" *ngIf="analysisResults.pools && analysisResults.pools.length > 0">
+              <div class="pool-grid">
+                <div class="pool-card" *ngFor="let pool of analysisResults.pools">
+                  <div class="pool-header">
+                    <div class="pool-name">{{ pool.poolName }}</div>
+                    <div class="thread-count">{{ pool.threadCount }} threads</div>
+                  </div>
+                  <div class="pool-state-distribution">
+                    <div class="state-distribution-label">State Distribution:</div>
+                    <div class="state-distribution-bars">
+                      <div class="mini-state-bar" *ngFor="let state of Object.keys(pool.stateDistribution)"
+                           [style.width.%]="pool.stateDistribution[state] / pool.threadCount * 100"
+                           [style.background-color]="getThreadStateColor(state)"
+                           [title]="state + ': ' + pool.stateDistribution[state]">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="pool-threads-preview">
+                    <div class="threads-preview-label">Threads:</div>
+                    <div class="threads-preview-list">
+                      <div class="thread-preview" *ngFor="let thread of pool.threads.slice(0, 3)">
+                        {{ thread.threadName }}
+                      </div>
+                      <div class="more-threads" *ngIf="pool.threads.length > 3">
+                        + {{ pool.threads.length - 3 }} more threads
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stack Trace Pattern Analysis -->
+          <div class="stack-trace-pattern-results" *ngIf="selectedAnalysisType === 'stack-trace-patterns'">
+            <div class="pattern-summary">
+              <div class="summary-card">
+                <div class="summary-value">{{ analysisResults.uniqueMethodsCount }}</div>
+                <div class="summary-label">Unique Methods</div>
+              </div>
+            </div>
+
+            <div class="hot-methods" *ngIf="analysisResults.topMethods && analysisResults.topMethods.length > 0">
+              <h5>Top Methods</h5>
+              <table class="hot-methods-table">
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Method</th>
+                    <th>Occurrences</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let method of analysisResults.topMethods; let i = index">
+                    <td>{{ i + 1 }}</td>
+                    <td class="method-name">{{ method.method }}</td>
+                    <td>{{ method.occurrences }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Thread Grouping Analysis -->
+          <div class="thread-grouping-results" *ngIf="selectedAnalysisType === 'thread-groups'">
+            <div class="group-summary">
+              <div class="summary-card">
+                <div class="summary-value">{{ analysisResults.groupCount }}</div>
+                <div class="summary-label">Thread Groups</div>
+              </div>
+            </div>
+
+            <div class="group-details" *ngIf="analysisResults.groups && analysisResults.groups.length > 0">
+              <div class="group-grid">
+                <div class="group-card" *ngFor="let group of analysisResults.groups">
+                  <div class="group-header">
+                    <div class="group-name">{{ group.groupName }}</div>
+                    <div class="thread-count">{{ group.threadCount }} threads</div>
+                  </div>
+                  <div class="group-state-distribution">
+                    <div class="state-distribution-label">State Distribution:</div>
+                    <div class="state-distribution-bars">
+                      <div class="mini-state-bar" *ngFor="let state of Object.keys(group.stateDistribution)"
+                           [style.width.%]="group.stateDistribution[state] / group.threadCount * 100"
+                           [style.background-color]="getThreadStateColor(state)"
+                           [title]="state + ': ' + group.stateDistribution[state]">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="group-threads-preview">
+                    <div class="threads-preview-label">Threads:</div>
+                    <div class="threads-preview-list">
+                      <div class="thread-preview" *ngFor="let thread of group.threads.slice(0, 3)">
+                        {{ thread.threadName }}
+                      </div>
+                      <div class="more-threads" *ngIf="group.threads.length > 3">
+                        + {{ group.threads.length - 3 }} more threads
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CPU-Intensive Thread Analysis -->
+          <div class="cpu-intensive-results" *ngIf="selectedAnalysisType === 'cpu-intensive'">
+            <div class="cpu-summary">
+              <div class="summary-card">
+                <div class="summary-value">{{ analysisResults.cpuIntensiveThreadCount }}</div>
+                <div class="summary-label">CPU-Intensive Threads</div>
+              </div>
+            </div>
+
+            <div class="cpu-threads" *ngIf="analysisResults.cpuIntensiveThreads && analysisResults.cpuIntensiveThreads.length > 0">
+              <h5>CPU-Intensive Threads</h5>
+              <div class="cpu-thread-list">
+                <div class="cpu-thread-item" *ngFor="let thread of analysisResults.cpuIntensiveThreads">
+                  <div class="thread-header">
+                    <div class="thread-name">{{ thread.threadName }}</div>
+                    <div class="thread-id">ID: {{ thread.threadId }}</div>
+                  </div>
+                  <div class="thread-stack-preview" *ngIf="thread.topFrames && thread.topFrames.length > 0">
+                    <div class="stack-preview-label">Top Stack Frames:</div>
+                    <div class="stack-frames">
+                      <div class="stack-frame" *ngFor="let frame of thread.topFrames; let i = index">
+                        {{ i + 1 }}. {{ frame }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="no-cpu-threads" *ngIf="!analysisResults.cpuIntensiveThreads || analysisResults.cpuIntensiveThreads.length === 0">
+              <i class="fas fa-check-circle"></i>
+              <p>No CPU-intensive threads detected in the thread dump.</p>
+            </div>
+          </div>
+
+          <!-- Memory Leak Indicators Analysis -->
+          <div class="memory-leak-results" *ngIf="selectedAnalysisType === 'memory-leak'">
+            <div class="leak-summary">
+              <div class="summary-card">
+                <div class="summary-value">{{ analysisResults.indicatorCount }}</div>
+                <div class="summary-label">Potential Leak Indicators</div>
+              </div>
+            </div>
+
+            <div class="leak-indicators" *ngIf="analysisResults.indicators && analysisResults.indicators.length > 0">
+              <div class="indicator-item" *ngFor="let indicator of analysisResults.indicators">
+                <div class="indicator-header">
+                  <div class="indicator-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                  </div>
+                  <div class="indicator-title">
+                    <h5>{{ indicator.type }}</h5>
+                    <p>{{ indicator.description }}</p>
+                  </div>
+                </div>
+                <div class="indicator-details" *ngIf="indicator.threads">
+                  <div class="affected-threads">
+                    <div class="affected-thread" *ngFor="let thread of indicator.threads.slice(0, 5)">
+                      <div class="thread-name">{{ thread.threadName }}</div>
+                      <div class="thread-details">
+                        <span class="thread-id">ID: {{ thread.threadId }}</span>
+                        <span class="stack-depth" *ngIf="thread.stackDepth">Stack Depth: {{ thread.stackDepth }}</span>
+                      </div>
+                    </div>
+                    <div class="more-threads" *ngIf="indicator.threads.length > 5">
+                      + {{ indicator.threads.length - 5 }} more threads
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="no-leak-indicators" *ngIf="!analysisResults.indicators || analysisResults.indicators.length === 0">
+              <i class="fas fa-check-circle"></i>
+              <p>No memory leak indicators detected in the thread dump.</p>
+            </div>
+          </div>
+
+          <!-- Comprehensive Analysis -->
+          <div class="comprehensive-results" *ngIf="selectedAnalysisType === 'comprehensive'">
+            <div class="analysis-sections">
+              <div class="analysis-section" *ngFor="let analysis of analysisResults.analyses; let i = index">
+                <div class="section-header" (click)="toggleAnalysisSection(i)">
+                  <div class="section-title">
+                    <h5>{{ analysis.title }}</h5>
+                    <p>{{ analysis.description }}</p>
+                  </div>
+                  <div class="section-toggle">
+                    <i class="fas" [ngClass]="expandedSections[i] ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                  </div>
+                </div>
+
+                <!-- Section Summary (Always Visible) -->
+                <div class="section-summary">
+                  <!-- State Distribution Summary -->
+                  <div class="state-summary" *ngIf="analysis.stateCounts">
+                    <div class="mini-chart">
+                      <div class="mini-bar" *ngFor="let state of Object.keys(analysis.stateCounts)"
+                           [style.height.%]="analysis.statePercentages[state]"
+                           [style.background-color]="getThreadStateColor(state)"
+                           [title]="state + ': ' + analysis.stateCounts[state] + ' (' + analysis.statePercentages[state] + '%)'">
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Deadlock Summary -->
+                  <div class="deadlock-summary" *ngIf="analysis.deadlocksDetected !== undefined">
+                    <div class="status-indicator" [ngClass]="analysis.deadlocksDetected ? 'warning' : 'success'">
+                      <i class="fas" [ngClass]="analysis.deadlocksDetected ? 'fa-exclamation-triangle' : 'fa-check-circle'"></i>
+                      {{ analysis.deadlocksDetected ? analysis.deadlockCount + ' deadlocks detected' : 'No deadlocks' }}
+                    </div>
+                  </div>
+
+                  <!-- Lock Contention Summary -->
+                  <div class="contention-summary" *ngIf="analysis.contentionCount !== undefined">
+                    <div class="status-indicator" [ngClass]="analysis.contentionCount > 0 ? 'warning' : 'success'">
+                      <i class="fas" [ngClass]="analysis.contentionCount > 0 ? 'fa-exclamation-circle' : 'fa-check-circle'"></i>
+                      {{ analysis.contentionCount }} contended locks
+                    </div>
+                  </div>
+
+                  <!-- Thread Pool Summary -->
+                  <div class="pool-summary-indicator" *ngIf="analysis.poolCount !== undefined">
+                    <div class="status-indicator info">
+                      <i class="fas fa-layer-group"></i>
+                      {{ analysis.poolCount }} thread pools identified
+                    </div>
+                  </div>
+
+                  <!-- Stack Trace Pattern Summary -->
+                  <div class="pattern-summary-indicator" *ngIf="analysis.uniqueMethodsCount !== undefined">
+                    <div class="status-indicator info">
+                      <i class="fas fa-code"></i>
+                      {{ analysis.uniqueMethodsCount }} unique methods in stack traces
+                    </div>
+                  </div>
+
+                  <!-- Thread Group Summary -->
+                  <div class="group-summary-indicator" *ngIf="analysis.groupCount !== undefined">
+                    <div class="status-indicator info">
+                      <i class="fas fa-object-group"></i>
+                      {{ analysis.groupCount }} thread groups identified
+                    </div>
+                  </div>
+
+                  <!-- CPU-Intensive Thread Summary -->
+                  <div class="cpu-summary-indicator" *ngIf="analysis.cpuIntensiveThreadCount !== undefined">
+                    <div class="status-indicator" [ngClass]="analysis.cpuIntensiveThreadCount > 0 ? 'warning' : 'success'">
+                      <i class="fas fa-microchip"></i>
+                      {{ analysis.cpuIntensiveThreadCount }} CPU-intensive threads
+                    </div>
+                  </div>
+
+                  <!-- Memory Leak Indicator Summary -->
+                  <div class="leak-summary-indicator" *ngIf="analysis.indicatorCount !== undefined">
+                    <div class="status-indicator" [ngClass]="analysis.indicatorCount > 0 ? 'warning' : 'success'">
+                      <i class="fas fa-memory"></i>
+                      {{ analysis.indicatorCount }} potential memory leak indicators
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Detailed Section Content (Expandable) -->
+                <div class="section-details" *ngIf="expandedSections[i]">
+                  <!-- State Distribution Details -->
+                  <div class="state-distribution-details" *ngIf="analysis.stateCounts">
+                    <h6>Thread State Distribution</h6>
+                    <div class="distribution-chart">
+                      <div class="state-bar" *ngFor="let state of Object.keys(analysis.stateCounts)">
+                        <div class="state-label" [style.color]="getThreadStateColor(state)">
+                          {{ state }}
+                        </div>
+                        <div class="state-bar-container">
+                          <div class="state-bar-fill"
+                               [style.width.%]="analysis.statePercentages[state]"
+                               [style.background-color]="getThreadStateColor(state)">
+                          </div>
+                          <div class="state-bar-value">
+                            {{ analysis.stateCounts[state] }} ({{ analysis.statePercentages[state] }}%)
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Deadlock Details -->
+                  <div class="deadlock-details" *ngIf="analysis.deadlocksDetected && analysis.deadlockDetails && analysis.deadlockDetails.length > 0">
+                    <h6>Deadlocked Threads</h6>
+                    <div class="deadlock-threads">
+                      <div class="deadlock-thread" *ngFor="let thread of analysis.deadlockDetails">
+                        <div class="thread-header">
+                          <div class="thread-name">{{ thread.threadName }}</div>
+                          <div class="thread-id">ID: {{ thread.threadId }}</div>
+                        </div>
+                        <div class="thread-lock-info">
+                          <div class="lock-waiting" *ngIf="thread.lockName">
+                            Waiting for lock: <span class="lock-name">{{ thread.lockName }}</span>
+                          </div>
+                          <div class="lock-owner" *ngIf="thread.lockOwnerId">
+                            Lock held by: <span class="owner-name">{{ thread.lockOwnerName }}</span> (ID: {{ thread.lockOwnerId }})
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Lock Contention Details -->
+                  <div class="contention-details" *ngIf="analysis.contentionDetails && analysis.contentionDetails.length > 0">
+                    <h6>Contended Locks</h6>
+                    <div class="contention-list">
+                      <div class="contention-item" *ngFor="let contention of analysis.contentionDetails">
+                        <div class="contention-header">
+                          <div class="lock-name">{{ contention.lockName }}</div>
+                          <div class="contention-count">{{ contention.contentionCount }} threads blocked</div>
+                        </div>
+                        <div class="blocked-threads">
+                          <div class="blocked-thread" *ngFor="let thread of contention.blockedThreads">
+                            <div class="thread-name">{{ thread.threadName }}</div>
+                            <div class="thread-id">ID: {{ thread.threadId }}</div>
+                            <div class="lock-owner" *ngIf="thread.lockOwnerId">
+                              Lock held by: {{ thread.lockOwnerName }} (ID: {{ thread.lockOwnerId }})
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Thread Pool Details -->
+                  <div class="pool-details" *ngIf="analysis.pools && analysis.pools.length > 0">
+                    <h6>Thread Pools</h6>
+                    <div class="pool-grid">
+                      <div class="pool-card" *ngFor="let pool of analysis.pools.slice(0, 4)">
+                        <div class="pool-header">
+                          <div class="pool-name">{{ pool.poolName }}</div>
+                          <div class="thread-count">{{ pool.threadCount }} threads</div>
+                        </div>
+                        <div class="pool-state-distribution">
+                          <div class="state-distribution-label">State Distribution:</div>
+                          <div class="state-distribution-bars">
+                            <div class="mini-state-bar" *ngFor="let state of Object.keys(pool.stateDistribution)"
+                                 [style.width.%]="pool.stateDistribution[state] / pool.threadCount * 100"
+                                 [style.background-color]="getThreadStateColor(state)"
+                                 [title]="state + ': ' + pool.stateDistribution[state]">
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="more-pools" *ngIf="analysis.pools.length > 4">
+                      <button class="view-all-button" (click)="selectAnalysisType('thread-pool')">
+                        View all {{ analysis.pools.length }} thread pools
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Stack Trace Pattern Details -->
+                  <div class="hot-methods" *ngIf="analysis.topMethods && analysis.topMethods.length > 0">
+                    <h6>Top Methods in Stack Traces</h6>
+                    <table class="hot-methods-table">
+                      <thead>
+                        <tr>
+                          <th>Rank</th>
+                          <th>Method</th>
+                          <th>Occurrences</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let method of analysis.topMethods.slice(0, 5); let i = index">
+                          <td>{{ i + 1 }}</td>
+                          <td class="method-name">{{ method.method }}</td>
+                          <td>{{ method.occurrences }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    <div class="more-methods" *ngIf="analysis.topMethods.length > 5">
+                      <button class="view-all-button" (click)="selectAnalysisType('stack-trace-patterns')">
+                        View all {{ analysis.topMethods.length }} methods
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Thread Grouping Details -->
+                  <div class="group-details" *ngIf="analysis.groups && analysis.groups.length > 0">
+                    <h6>Thread Groups</h6>
+                    <div class="group-grid">
+                      <div class="group-card" *ngFor="let group of analysis.groups.slice(0, 4)">
+                        <div class="group-header">
+                          <div class="group-name">{{ group.groupName }}</div>
+                          <div class="thread-count">{{ group.threadCount }} threads</div>
+                        </div>
+                        <div class="group-state-distribution">
+                          <div class="state-distribution-label">State Distribution:</div>
+                          <div class="state-distribution-bars">
+                            <div class="mini-state-bar" *ngFor="let state of Object.keys(group.stateDistribution)"
+                                 [style.width.%]="group.stateDistribution[state] / group.threadCount * 100"
+                                 [style.background-color]="getThreadStateColor(state)"
+                                 [title]="state + ': ' + group.stateDistribution[state]">
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="more-groups" *ngIf="analysis.groups.length > 4">
+                      <button class="view-all-button" (click)="selectAnalysisType('thread-groups')">
+                        View all {{ analysis.groups.length }} thread groups
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- CPU-Intensive Thread Details -->
+                  <div class="cpu-threads" *ngIf="analysis.cpuIntensiveThreads && analysis.cpuIntensiveThreads.length > 0">
+                    <h6>CPU-Intensive Threads</h6>
+                    <div class="cpu-thread-list">
+                      <div class="cpu-thread-item" *ngFor="let thread of analysis.cpuIntensiveThreads.slice(0, 4)">
+                        <div class="thread-header">
+                          <div class="thread-name">{{ thread.threadName }}</div>
+                          <div class="thread-id">ID: {{ thread.threadId }}</div>
+                        </div>
+                        <div class="thread-stack-preview" *ngIf="thread.topFrames && thread.topFrames.length > 0">
+                          <div class="stack-preview-label">Top Stack Frames:</div>
+                          <div class="stack-frames">
+                            <div class="stack-frame" *ngFor="let frame of thread.topFrames; let i = index">
+                              {{ i + 1 }}. {{ frame }}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="more-cpu-threads" *ngIf="analysis.cpuIntensiveThreads.length > 4">
+                      <button class="view-all-button" (click)="selectAnalysisType('cpu-intensive')">
+                        View all {{ analysis.cpuIntensiveThreads.length }} CPU-intensive threads
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Memory Leak Indicator Details -->
+                  <div class="leak-indicators" *ngIf="analysis.indicators && analysis.indicators.length > 0">
+                    <h6>Memory Leak Indicators</h6>
+                    <div class="indicator-item" *ngFor="let indicator of analysis.indicators">
+                      <div class="indicator-header">
+                        <div class="indicator-icon">
+                          <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="indicator-title">
+                          <h5>{{ indicator.type }}</h5>
+                          <p>{{ indicator.description }}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="more-indicators" *ngIf="analysis.indicators.length > 2">
+                      <button class="view-all-button" (click)="selectAnalysisType('memory-leak')">
+                        View all memory leak indicators in detail
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- No data message -->
+  <div class="no-data-message" *ngIf="!isLoading && !threadDumpData">
+    <i class="fas fa-exclamation-circle"></i>
+    <h3>No Thread Dump Data Available</h3>
+    <p>Unable to retrieve thread dump information from the actuator endpoint.</p>
+    <p>Make sure the threaddump endpoint is enabled in your Spring Boot application.</p>
   </div>
 </div>
