@@ -8,6 +8,7 @@ import io.github.rohitect.kraven.plugins.actuatorinsights.config.ActuatorInsight
 import io.github.rohitect.kraven.plugins.actuatorinsights.controller.ActuatorInsightsController;
 import io.github.rohitect.kraven.plugins.actuatorinsights.service.ActuatorDetectionService;
 import io.github.rohitect.kraven.plugins.actuatorinsights.service.ActuatorDataCollectionService;
+import io.github.rohitect.kraven.plugins.actuatorinsights.service.MemoryDumpAnalysisService;
 import io.github.rohitect.kraven.plugins.actuatorinsights.service.ThreadDumpAnalysisService;
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,6 +30,7 @@ public class ActuatorInsightsPlugin implements KravenUIPlugin {
     private ActuatorDetectionService detectionService;
     private ActuatorDataCollectionService dataCollectionService;
     private ThreadDumpAnalysisService threadDumpAnalysisService;
+    private MemoryDumpAnalysisService memoryDumpAnalysisService;
     private boolean actuatorDetected = false;
 
     @Override
@@ -72,8 +74,15 @@ public class ActuatorInsightsPlugin implements KravenUIPlugin {
         threadDumpAnalysisService = new ThreadDumpAnalysisService();
         context.registerService(threadDumpAnalysisService);
 
+        memoryDumpAnalysisService = new MemoryDumpAnalysisService();
+        context.registerService(memoryDumpAnalysisService);
+
         // Register controllers
-        context.registerController(new ActuatorInsightsController(detectionService, dataCollectionService, threadDumpAnalysisService));
+        context.registerController(new ActuatorInsightsController(
+                detectionService,
+                dataCollectionService,
+                threadDumpAnalysisService,
+                memoryDumpAnalysisService));
 
         // Register navigation item
         context.registerNavigationItem(
