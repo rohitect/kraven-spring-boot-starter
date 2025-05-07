@@ -53,9 +53,8 @@ Actuator Insights aims to be the definitive tool for Spring Boot application mon
 
 ### 6. Memory Analysis
 - Memory usage graphs with GC event indicators
-- Heap dump analysis visualization
-- Memory leak detection indicators
-- Object instance count visualization
+- Memory metrics visualization
+- JVM memory pool monitoring
 
 ### 7. HTTP Request Monitoring
 - Request rate visualization
@@ -186,7 +185,7 @@ The tab system will be implemented using the following architecture:
 - Implement thread dump visualization with filtering options
 - Create memory usage monitoring components with real-time graphs
 - Develop thread state analysis features with secondary tabs for different views
-- Add heap dump request and analysis capabilities
+- Implement JVM memory metrics visualization
 - Implement tab-specific controls and filters
 - Ensure consistent UI patterns across all tabs
 
@@ -282,7 +281,7 @@ kraven:
         retention-period: 1h
       endpoints:
         include: "*"
-        exclude: "heapdump,shutdown"
+        exclude: "shutdown"
       alerts:
         enabled: true
         thresholds:

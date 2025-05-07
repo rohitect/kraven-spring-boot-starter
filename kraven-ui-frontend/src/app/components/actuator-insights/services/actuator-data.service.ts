@@ -18,7 +18,6 @@ export class ActuatorDataService {
   // In-memory storage for history data
   private metricHistory: { [key: string]: any[] } = {};
   private healthHistory: any[] = [];
-  private memoryHistory: any[] = [];
   private threadHistory: any[] = [];
 
   // Maximum number of history entries to keep
@@ -400,13 +399,6 @@ export class ActuatorDataService {
   }
 
   /**
-   * Get memory history data
-   */
-  getMemoryHistory(): Observable<any[]> {
-    return of(this.memoryHistory);
-  }
-
-  /**
    * Get available thread dump analysis types
    */
   getThreadDumpAnalysisTypes(): Observable<any[]> {
@@ -437,218 +429,7 @@ export class ActuatorDataService {
     );
   }
 
-  /**
-   * Get memory analysis types
-   */
-  getMemoryAnalysisTypes(): Observable<any[]> {
-    const url = `${this.baseUrl}${this.apiPath}/plugins/actuator-insights/memory/analysis-types`;
 
-    return this.http.get<any[]>(url).pipe(
-      catchError(error => {
-        console.error('Error getting memory analysis types:', error);
-        // Return mock data for now
-        return of([
-          { id: 'objectDistribution', name: 'Object Distribution Analysis' },
-          { id: 'memoryLeak', name: 'Memory Leak Detection' },
-          { id: 'collectionUsage', name: 'Collection Usage Analysis' },
-          { id: 'stringDuplication', name: 'String Duplication Analysis' },
-          { id: 'classLoader', name: 'Class Loader Analysis' },
-          { id: 'comprehensive', name: 'Comprehensive Analysis' }
-        ]);
-      })
-    );
-  }
-
-  /**
-   * Request a heap dump from the server
-   */
-  requestHeapDump(): Observable<any> {
-    const url = `${this.baseUrl}${this.apiPath}/plugins/actuator-insights/memory/heapdump`;
-
-    return this.http.post<any>(url, {}).pipe(
-      catchError(error => {
-        console.error('Error requesting heap dump:', error);
-        // For demo purposes, we'll return a success response
-        return of({ success: true, message: 'Heap dump created successfully' });
-      })
-    );
-  }
-
-  /**
-   * Check if a heap dump exists on the server
-   */
-  checkHeapDumpExists(): Observable<any> {
-    const url = `${this.baseUrl}${this.apiPath}/plugins/actuator-insights/memory/heapdump/exists`;
-
-    return this.http.get<any>(url).pipe(
-      catchError(error => {
-        console.error('Error checking if heap dump exists:', error);
-        return of({ exists: false });
-      })
-    );
-  }
-
-  /**
-   * Analyze memory dump
-   */
-  analyzeMemoryDump(analysisType: string): Observable<any> {
-    const url = `${this.baseUrl}${this.apiPath}/plugins/actuator-insights/memory/analyze`;
-
-    return this.http.post<any>(url, { analysisType }).pipe(
-      catchError(error => {
-        console.error('Error analyzing memory dump:', error);
-        // Return mock data for now based on analysis type
-        if (analysisType === 'objectDistribution') {
-          return of(this.getMockObjectDistributionData());
-        } else if (analysisType === 'memoryLeak') {
-          return of(this.getMockMemoryLeakData());
-        } else if (analysisType === 'comprehensive') {
-          return of(this.getMockComprehensiveAnalysisData());
-        }
-        return of(null);
-      })
-    );
-  }
-
-  /**
-   * Get mock object distribution data
-   */
-  private getMockObjectDistributionData(): any {
-    return {
-      summary: 'Analysis of object distribution across the heap shows several classes consuming significant memory. The top memory consumers are highlighted below.',
-      totalHeapSize: 512 * 1024 * 1024,
-      usedHeapSize: 384 * 1024 * 1024,
-      objectCount: 1250000,
-      topClasses: [
-        { className: 'java.lang.String', objectCount: 450000, totalSize: 48 * 1024 * 1024, avgSize: 112 },
-        { className: 'java.util.HashMap$Node', objectCount: 320000, totalSize: 38 * 1024 * 1024, avgSize: 124 },
-        { className: 'java.util.ArrayList', objectCount: 85000, totalSize: 28 * 1024 * 1024, avgSize: 344 },
-        { className: 'com.example.model.User', objectCount: 25000, totalSize: 22 * 1024 * 1024, avgSize: 920 },
-        { className: 'java.util.concurrent.ConcurrentHashMap$Node', objectCount: 78000, totalSize: 18 * 1024 * 1024, avgSize: 241 },
-        { className: 'byte[]', objectCount: 42000, totalSize: 16 * 1024 * 1024, avgSize: 398 },
-        { className: 'java.lang.reflect.Method', objectCount: 24000, totalSize: 14 * 1024 * 1024, avgSize: 610 },
-        { className: 'java.util.LinkedHashMap$Entry', objectCount: 56000, totalSize: 12 * 1024 * 1024, avgSize: 224 },
-        { className: 'java.util.HashMap', objectCount: 32000, totalSize: 10 * 1024 * 1024, avgSize: 327 },
-        { className: 'java.lang.Class', objectCount: 12000, totalSize: 9 * 1024 * 1024, avgSize: 786 }
-      ],
-      memoryRegions: [
-        { name: 'Eden Space', used: 124 * 1024 * 1024, total: 128 * 1024 * 1024 },
-        { name: 'Survivor Space', used: 14 * 1024 * 1024, total: 16 * 1024 * 1024 },
-        { name: 'Old Gen', used: 246 * 1024 * 1024, total: 368 * 1024 * 1024 }
-      ]
-    };
-  }
-
-  /**
-   * Get mock memory leak data
-   */
-  private getMockMemoryLeakData(): any {
-    return {
-      summary: 'Memory leak analysis has identified several potential memory leaks based on unusual growth patterns and retention characteristics.',
-      suspectedLeaks: [
-        {
-          className: 'com.example.cache.UserCache',
-          instanceCount: 1,
-          totalSize: 86 * 1024 * 1024,
-          suspicionReason: 'Contains a growing HashMap that is never cleared',
-          retentionPath: 'ApplicationContext -> UserService -> UserCache -> HashMap'
-        },
-        {
-          className: 'java.util.ArrayList',
-          instanceCount: 24500,
-          totalSize: 12 * 1024 * 1024,
-          suspicionReason: 'Multiple collections with continuously growing size',
-          retentionPath: 'Various paths, primarily through EventListeners'
-        },
-        {
-          className: 'com.example.listeners.MessageListener',
-          instanceCount: 4280,
-          totalSize: 8 * 1024 * 1024,
-          suspicionReason: 'Listeners are created but never removed from event source',
-          retentionPath: 'EventManager -> MessageDispatcher -> MessageListeners[]'
-        },
-        {
-          className: 'java.lang.String',
-          instanceCount: 124000,
-          totalSize: 7 * 1024 * 1024,
-          suspicionReason: 'Duplicate strings not using String.intern()',
-          retentionPath: 'Various paths'
-        }
-      ],
-      growthPatterns: [
-        { className: 'com.example.cache.UserCache$Entry', growthRate: '15% per hour', timeToOOM: '~18 hours' },
-        { className: 'com.example.listeners.MessageListener', growthRate: '8% per hour', timeToOOM: '~36 hours' }
-      ]
-    };
-  }
-
-  /**
-   * Get mock comprehensive analysis data
-   */
-  private getMockComprehensiveAnalysisData(): any {
-    return {
-      summary: 'Comprehensive analysis of the heap dump has identified several areas of interest including potential memory leaks, inefficient collection usage, and opportunities for optimization.',
-      analyses: [
-        {
-          title: 'Memory Usage Overview',
-          description: 'Overview of memory usage across different regions of the heap.',
-          findings: [
-            { key: 'Total Heap Size', value: '512 MB', impact: 'N/A' },
-            { key: 'Used Heap', value: '384 MB (75%)', impact: 'Moderate pressure' },
-            { key: 'Old Gen Usage', value: '246 MB / 368 MB (67%)', impact: 'Moderate pressure' },
-            { key: 'Eden Space Usage', value: '124 MB / 128 MB (97%)', impact: 'High allocation rate' },
-            { key: 'Object Count', value: '1,250,000', impact: 'Normal for application size' }
-          ]
-        },
-        {
-          title: 'Top Memory Consumers',
-          description: 'Classes consuming the most heap memory.',
-          findings: [
-            { key: 'java.lang.String', value: '48 MB (450,000 instances)', impact: 'High - Consider string deduplication' },
-            { key: 'java.util.HashMap$Node', value: '38 MB (320,000 instances)', impact: 'Normal for application with many maps' },
-            { key: 'java.util.ArrayList', value: '28 MB (85,000 instances)', impact: 'Normal' },
-            { key: 'com.example.model.User', value: '22 MB (25,000 instances)', impact: 'High - Consider caching strategy' }
-          ]
-        },
-        {
-          title: 'Potential Memory Leaks',
-          description: 'Objects and patterns that may indicate memory leaks.',
-          findings: [
-            { key: 'com.example.cache.UserCache', value: '86 MB (growing HashMap)', impact: 'Critical - Implement cache eviction' },
-            { key: 'MessageListener instances', value: '4,280 instances never garbage collected', impact: 'High - Fix listener registration' },
-            { key: 'Duplicate Strings', value: '~18 MB wasted on duplicates', impact: 'Medium - Use String.intern() for common strings' }
-          ]
-        },
-        {
-          title: 'Collection Usage Analysis',
-          description: 'Analysis of Java collection usage efficiency.',
-          findings: [
-            { key: 'HashMap with low fill ratio', value: '4,250 instances with <25% fill ratio', impact: 'Medium - Memory waste' },
-            { key: 'ArrayList with excess capacity', value: '12,800 instances with >50% unused capacity', impact: 'Medium - Use initial capacity or trimToSize()' },
-            { key: 'Empty collections', value: '8,400 instances', impact: 'Low - Consider lazy initialization' }
-          ]
-        },
-        {
-          title: 'Class Loader Analysis',
-          description: 'Analysis of class loaders and loaded classes.',
-          findings: [
-            { key: 'Total Class Loaders', value: '24', impact: 'Normal' },
-            { key: 'Classes per Loader (avg)', value: '580', impact: 'Normal' },
-            { key: 'Duplicate Classes', value: '45 classes loaded by multiple loaders', impact: 'Medium - Potential classloader leaks' }
-          ]
-        },
-        {
-          title: 'Garbage Collection Impact',
-          description: 'Analysis of garbage collection efficiency and impact.',
-          findings: [
-            { key: 'Unreachable but Uncollected', value: '~42 MB', impact: 'Medium - GC tuning opportunity' },
-            { key: 'Objects Surviving Multiple GCs', value: '156 MB', impact: 'Medium - Consider object lifecycle review' },
-            { key: 'Fragmentation Level', value: '18%', impact: 'Low - Normal fragmentation' }
-          ]
-        }
-      ]
-    };
-  }
 
   /**
    * Clear all history data
@@ -656,7 +437,6 @@ export class ActuatorDataService {
   clearHistory(): void {
     this.metricHistory = {};
     this.healthHistory = [];
-    this.memoryHistory = [];
     this.threadHistory = [];
   }
 

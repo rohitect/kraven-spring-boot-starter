@@ -9,15 +9,11 @@ import io.github.rohitect.kraven.plugins.actuatorinsights.model.HealthStatus;
 import io.github.rohitect.kraven.plugins.actuatorinsights.model.MetricData;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -722,60 +718,7 @@ public class ActuatorDataCollectionService {
         }
     }
 
-    /**
-     * Request a heap dump from the actuator endpoint.
-     * This will download the heap dump file and save it locally with a constant name.
-     *
-     * @return a response indicating success or failure
-     */
-    public Map<String, Object> requestHeapDump() {
-        Map<String, Object> response = new HashMap<>();
 
-        try {
-            String heapDumpUrl = getEndpointPath("heapdump");
-            log.info("Requesting heap dump from: {}", heapDumpUrl);
-
-            // Create a constant file name for the heap dump
-            String heapDumpFileName = "server-heap-dump.hprof";
-            File heapDumpFile = new File(heapDumpFileName);
-
-            // Get the heap dump data using a GET request
-            ResponseEntity<byte[]> responseEntity = restTemplate.exchange(
-                heapDumpUrl,
-                HttpMethod.GET,
-                null,
-                byte[].class
-            );
-
-            // Save the heap dump to a file
-            if (responseEntity.getBody() != null) {
-                try (FileOutputStream fos = new FileOutputStream(heapDumpFile)) {
-                    fos.write(responseEntity.getBody());
-                }
-
-                log.info("Heap dump saved to: {}", heapDumpFile.getAbsolutePath());
-                response.put("success", true);
-                response.put("message", "Heap dump created and saved to " + heapDumpFile.getAbsolutePath());
-                response.put("filePath", heapDumpFile.getAbsolutePath());
-            } else {
-                log.error("Received empty heap dump data");
-                response.put("success", false);
-                response.put("message", "Received empty heap dump data");
-            }
-
-            return response;
-        } catch (RestClientException e) {
-            log.error("Failed to request heap dump: {}", e.getMessage());
-            response.put("success", false);
-            response.put("message", "Failed to create heap dump: " + e.getMessage());
-            return response;
-        } catch (IOException e) {
-            log.error("Failed to save heap dump file: {}", e.getMessage());
-            response.put("success", false);
-            response.put("message", "Failed to save heap dump file: " + e.getMessage());
-            return response;
-        }
-    }
 
     /**
      * Parse a duration string into a Duration object.

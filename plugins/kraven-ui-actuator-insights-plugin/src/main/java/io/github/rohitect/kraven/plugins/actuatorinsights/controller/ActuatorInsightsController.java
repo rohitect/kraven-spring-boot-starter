@@ -6,14 +6,11 @@ import io.github.rohitect.kraven.plugins.actuatorinsights.model.HealthStatus;
 import io.github.rohitect.kraven.plugins.actuatorinsights.model.MetricData;
 import io.github.rohitect.kraven.plugins.actuatorinsights.service.ActuatorDataCollectionService;
 import io.github.rohitect.kraven.plugins.actuatorinsights.service.ActuatorDetectionService;
-import io.github.rohitect.kraven.plugins.actuatorinsights.service.MemoryDumpAnalysisService;
 import io.github.rohitect.kraven.plugins.actuatorinsights.service.ThreadDumpAnalysisService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.File;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,17 +26,14 @@ public class ActuatorInsightsController {
     private final ActuatorDetectionService detectionService;
     private final ActuatorDataCollectionService dataCollectionService;
     private final ThreadDumpAnalysisService threadDumpAnalysisService;
-    private final MemoryDumpAnalysisService memoryDumpAnalysisService;
 
     public ActuatorInsightsController(
             ActuatorDetectionService detectionService,
             ActuatorDataCollectionService dataCollectionService,
-            ThreadDumpAnalysisService threadDumpAnalysisService,
-            MemoryDumpAnalysisService memoryDumpAnalysisService) {
+            ThreadDumpAnalysisService threadDumpAnalysisService) {
         this.detectionService = detectionService;
         this.dataCollectionService = dataCollectionService;
         this.threadDumpAnalysisService = threadDumpAnalysisService;
-        this.memoryDumpAnalysisService = memoryDumpAnalysisService;
     }
 
     /**
@@ -287,65 +281,5 @@ public class ActuatorInsightsController {
         return ResponseEntity.ok(analysisTypes);
     }
 
-    /**
-     * Request a heap dump from the actuator endpoint.
-     *
-     * @return a response indicating success or failure
-     */
-    @PostMapping("/memory/heapdump")
-    public ResponseEntity<Map<String, Object>> requestHeapDump() {
-        Map<String, Object> response = dataCollectionService.requestHeapDump();
-        return ResponseEntity.ok(response);
-    }
 
-    /**
-     * Get available memory analysis types.
-     *
-     * @return the available analysis types
-     */
-    @GetMapping("/memory/analysis-types")
-    public ResponseEntity<List<Map<String, Object>>> getMemoryAnalysisTypes() {
-        return ResponseEntity.ok(memoryDumpAnalysisService.getMemoryAnalysisTypes());
-    }
-
-    /**
-     * Analyze memory dump.
-     *
-     * @param request the analysis request containing the analysis type
-     * @return the analysis results
-     */
-    @PostMapping("/memory/analyze")
-    public ResponseEntity<Map<String, Object>> analyzeMemoryDump(@RequestBody Map<String, String> request) {
-        String analysisType = request.get("analysisType");
-        if (analysisType == null || analysisType.isEmpty()) {
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("success", false);
-            errorResponse.put("error", "Analysis type is required");
-            return ResponseEntity.badRequest().body(errorResponse);
-        }
-
-        Map<String, Object> analysisResults = memoryDumpAnalysisService.analyzeMemoryDump(analysisType);
-        return ResponseEntity.ok(analysisResults);
-    }
-
-    /**
-     * Check if a heap dump exists on the server.
-     *
-     * @return a response indicating if a heap dump exists
-     */
-    @GetMapping("/memory/heapdump/exists")
-    public ResponseEntity<Map<String, Object>> checkHeapDumpExists() {
-        Map<String, Object> response = new HashMap<>();
-        File heapDumpFile = new File("server-heap-dump.hprof");
-        boolean exists = heapDumpFile.exists() && heapDumpFile.isFile() && heapDumpFile.length() > 0;
-
-        response.put("exists", exists);
-        if (exists) {
-            response.put("filePath", heapDumpFile.getAbsolutePath());
-            response.put("fileSize", heapDumpFile.length());
-            response.put("lastModified", new Date(heapDumpFile.lastModified()));
-        }
-
-        return ResponseEntity.ok(response);
-    }
 }
