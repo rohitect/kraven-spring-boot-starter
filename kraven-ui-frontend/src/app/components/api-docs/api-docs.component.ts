@@ -20,6 +20,9 @@ import { ApiTabService } from '../../services/api-tab.service';
 import { ApiTab } from '../../models/api-tab.model';
 import { ApiTabBarComponent } from '../api-tab-bar/api-tab-bar.component';
 import { TabLimitPopupComponent } from '../tab-limit-popup/tab-limit-popup.component';
+import { ApiFavoritesService } from '../../services/api-favorites.service';
+import { ApiFavoritesListComponent } from '../api-favorites-list/api-favorites-list.component';
+import { FavoriteButtonComponent } from '../favorite-button/favorite-button.component';
 
 @Component({
   selector: 'app-api-docs',
@@ -35,7 +38,9 @@ import { TabLimitPopupComponent } from '../tab-limit-popup/tab-limit-popup.compo
     ApiHistoryListComponent,
     ApiHistoryDetailComponent,
     ApiTabBarComponent,
-    TabLimitPopupComponent
+    TabLimitPopupComponent,
+    ApiFavoritesListComponent,
+    FavoriteButtonComponent
   ],
   templateUrl: './api-docs.component.html',
   styleUrls: ['./api-docs.component.scss'],
@@ -131,7 +136,7 @@ export class ApiDocsComponent implements OnInit {
   secondaryTabActiveTab: 'playground' | 'documentation' = 'documentation'; // Default to documentation tab
 
   // Left sidebar state
-  leftSidebarActiveTab: 'endpoints' | 'history' = 'endpoints'; // Default to endpoints tab
+  leftSidebarActiveTab: 'endpoints' | 'history' | 'favorites' = 'endpoints'; // Default to endpoints tab
 
   // Documentation search state
   docSearchTags: Array<{text: string, color: string}> = [];
@@ -180,6 +185,7 @@ export class ApiDocsComponent implements OnInit {
     private apiHistoryService: ApiHistoryService,
     private metricsService: MetricsService,
     private apiTabService: ApiTabService,
+    private favoritesService: ApiFavoritesService,
     private router: Router,
     private route: ActivatedRoute
   ) {
@@ -208,7 +214,7 @@ export class ApiDocsComponent implements OnInit {
       this.isDarkTheme = theme === 'dark';
     });
 
-    // Check for query parameters (secondary tab, search tags, and search query)
+    // Check for query parameters (secondary tab, left sidebar tab, search tags, and search query)
     this.route.queryParams.subscribe(params => {
       // Check for secondary tab
       if (params['secondaryTab']) {
@@ -216,6 +222,15 @@ export class ApiDocsComponent implements OnInit {
         // Only set if it's a valid tab value
         if (tabParam === 'playground' || tabParam === 'documentation') {
           this.secondaryTabActiveTab = tabParam as 'playground' | 'documentation';
+        }
+      }
+
+      // Check for left sidebar tab
+      if (params['leftSidebarTab']) {
+        const sidebarTabParam = params['leftSidebarTab'];
+        // Only set if it's a valid tab value
+        if (sidebarTabParam === 'endpoints' || sidebarTabParam === 'history' || sidebarTabParam === 'favorites') {
+          this.leftSidebarActiveTab = sidebarTabParam as 'endpoints' | 'history' | 'favorites';
         }
       }
 
@@ -250,6 +265,9 @@ export class ApiDocsComponent implements OnInit {
         // Set the application name in the API Tab Service
         this.apiTabService.setApplicationName(this.applicationName);
 
+        // Set the application name in the API Favorites Service
+        this.favoritesService.setApplicationName(this.applicationName);
+
         // Load tabs
         this.loadTabs();
       },
@@ -264,6 +282,9 @@ export class ApiDocsComponent implements OnInit {
         // Set the default application name in the API Tab Service
         this.apiTabService.setApplicationName(this.applicationName);
 
+        // Set the default application name in the API Favorites Service
+        this.favoritesService.setApplicationName(this.applicationName);
+
         // Load tabs
         this.loadTabs();
       }
@@ -272,6 +293,9 @@ export class ApiDocsComponent implements OnInit {
     // Load API docs and then handle URL parameters
     this.loadApiDocs().then(() => {
       this.handleUrlParameters();
+
+      // Clean up favorites that no longer exist in the API endpoints
+      this.cleanupFavorites();
     });
   }
 
@@ -769,6 +793,45 @@ export class ApiDocsComponent implements OnInit {
         this.rightPaneActiveTab
       ).subscribe();
     }
+  }
+
+  /**
+   * Clean up favorites that no longer exist in the API endpoints
+   */
+  cleanupFavorites(): void {
+    if (!this.apiDocs || !this.apiDocs.paths) {
+      return;
+    }
+
+    // Collect all endpoints from the API docs
+    const allEndpoints: any[] = [];
+
+    // Process all paths and methods to collect endpoints
+    Object.entries(this.apiDocs.paths).forEach(([path, pathItem]: [string, any]) => {
+      const methods = ['get', 'post', 'put', 'delete', 'patch', 'options', 'head'];
+
+      methods.forEach(method => {
+        if (pathItem[method]) {
+          allEndpoints.push({
+            path,
+            method: {
+              type: method.toUpperCase(),
+              operation: pathItem[method]
+            }
+          });
+        }
+      });
+    });
+
+    // Clean up favorites that no longer exist
+    this.favoritesService.cleanupFavorites(allEndpoints).subscribe({
+      next: () => {
+        console.log('Favorites cleanup completed');
+      },
+      error: (err) => {
+        console.error('Error cleaning up favorites:', err);
+      }
+    });
   }
 
   /**
@@ -1342,6 +1405,23 @@ export class ApiDocsComponent implements OnInit {
   }
 
   /**
+   * Set the active tab in the left sidebar
+   */
+  setLeftSidebarTab(tab: 'endpoints' | 'history' | 'favorites'): void {
+    this.leftSidebarActiveTab = tab;
+
+    // Update URL query parameters to persist the tab selection
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        ...this.route.snapshot.queryParams,
+        leftSidebarTab: tab
+      },
+      queryParamsHandling: 'merge'
+    });
+  }
+
+  /**
    * Check if an endpoint is active
    */
   isEndpointActive(endpoint: any): boolean {
@@ -1420,7 +1500,7 @@ export class ApiDocsComponent implements OnInit {
   /**
    * Find the tag that contains an endpoint
    */
-  private findTagForEndpoint(endpoint: any): any {
+  findTagForEndpoint(endpoint: any): any {
     return this.tags.find(tag =>
       tag.endpoints.some(e =>
         e.path === endpoint.path && e.method.type === endpoint.method.type
@@ -2143,12 +2223,7 @@ export class ApiDocsComponent implements OnInit {
     return result;
   }
 
-  /**
-   * Set the active tab in the left sidebar
-   */
-  setLeftSidebarTab(tab: 'endpoints' | 'history'): void {
-    this.leftSidebarActiveTab = tab;
-  }
+  // This function is now defined above with updated signature
 
   /**
    * Set the active secondary tab in the API Playground

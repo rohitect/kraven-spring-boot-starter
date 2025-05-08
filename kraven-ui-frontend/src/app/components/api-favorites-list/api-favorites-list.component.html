@@ -1,0 +1,66 @@
+<div class="favorites-container">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="loading-spinner">
+      <svg class="spinner-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor"
+          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+        </path>
+      </svg>
+      <span>Loading favorites...</span>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-state">
+    <div class="error-message">{{ error }}</div>
+    <button class="retry-button" (click)="loadFavorites()">Retry</button>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && !error && favorites.length === 0" class="empty-state">
+    <div class="empty-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
+      </svg>
+    </div>
+    <div class="empty-text">No favorite endpoints yet</div>
+    <div class="empty-subtext">Mark endpoints as favorites to see them here</div>
+  </div>
+
+  <!-- Favorites List -->
+  <div *ngIf="!loading && !error && favorites.length > 0" class="favorites-list">
+    <div class="favorites-header">
+      <h3 class="favorites-title">Favorite Endpoints</h3>
+    </div>
+    <div class="favorites-items">
+      <div *ngFor="let favorite of favorites" class="favorite-item" (click)="onSelectEndpoint(favorite)">
+        <div class="favorite-item-content">
+          <span class="method-badge" [ngStyle]="{
+            'background-color': favorite.methodType === 'get' ? '#dbeafe' :
+                             favorite.methodType === 'post' ? '#dcfce7' :
+                             favorite.methodType === 'put' ? '#fef9c3' :
+                             favorite.methodType === 'delete' ? '#fee2e2' :
+                             '#cffafe',
+            'color': favorite.methodType === 'get' ? '#1e40af' :
+                     favorite.methodType === 'post' ? '#166534' :
+                     favorite.methodType === 'put' ? '#854d0e' :
+                     favorite.methodType === 'delete' ? '#991b1b' :
+                     '#155e75'
+          }">
+            {{ favorite.method }}
+          </span>
+          <span class="favorite-title">{{ favorite.title }}</span>
+        </div>
+        <button class="remove-button" (click)="removeFavorite($event, favorite)" title="Remove from favorites">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

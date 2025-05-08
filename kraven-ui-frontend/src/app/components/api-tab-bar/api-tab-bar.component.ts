@@ -37,16 +37,27 @@ export class ApiTabBarComponent implements AfterViewInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if ((changes['tabs'] || changes['activeTabId']) && this.tabsContainer) {
+      // Use a slightly longer timeout to ensure DOM is fully updated
       setTimeout(() => {
         this.checkScroll();
-        this.scrollToActiveTab();
-      });
+
+        // If activeTabId changed, scroll to the active tab
+        if (changes['activeTabId'] && this.activeTabId) {
+          this.scrollToActiveTab();
+        }
+      }, 100);
     }
   }
 
   selectTab(id: string, event: Event): void {
     event.preventDefault();
     this.tabSelected.emit(id);
+
+    // Set a timeout to scroll to the tab after it's been selected
+    setTimeout(() => {
+      this.activeTabId = id;
+      this.scrollToActiveTab();
+    }, 50);
   }
 
   closeTab(id: string, event: Event): void {
@@ -73,25 +84,135 @@ export class ApiTabBarComponent implements AfterViewInit, OnChanges {
   }
 
   scrollLeft(): void {
-    if (this.tabsContainer) {
-      this.tabsContainer.nativeElement.scrollBy({ left: -200, behavior: 'smooth' });
+    if (this.tabsContainer && this.showScrollLeft) {
+      const container = this.tabsContainer.nativeElement;
+
+      // Find the tabs that are partially or fully visible
+      const visibleTabs = this.findVisibleTabs();
+
+      // If we have visible tabs, scroll to the previous tab that's not fully visible
+      if (visibleTabs.firstFullyVisible > 0) {
+        // Scroll to the previous tab
+        const targetTab = container.querySelectorAll('.tab, .api-info-tab')[visibleTabs.firstFullyVisible - 1];
+        if (targetTab) {
+          // Scroll to center the tab
+          const tabCenter = targetTab.offsetLeft + (targetTab.offsetWidth / 2);
+          const containerCenter = container.clientWidth / 2;
+          container.scrollTo({
+            left: Math.max(0, tabCenter - containerCenter),
+            behavior: 'smooth'
+          });
+        }
+      } else {
+        // If the first visible tab is already the first tab, just scroll a fixed amount
+        const scrollAmount = Math.max(150, Math.floor(container.clientWidth / 2));
+        container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+      }
+
       setTimeout(() => this.checkScroll(), 300);
     }
   }
 
   scrollRight(): void {
-    if (this.tabsContainer) {
-      this.tabsContainer.nativeElement.scrollBy({ left: 200, behavior: 'smooth' });
+    if (this.tabsContainer && this.showScrollRight) {
+      const container = this.tabsContainer.nativeElement;
+
+      // Find the tabs that are partially or fully visible
+      const visibleTabs = this.findVisibleTabs();
+
+      // If we have visible tabs, scroll to the next tab that's not fully visible
+      if (visibleTabs.lastFullyVisible < container.querySelectorAll('.tab, .api-info-tab').length - 1) {
+        // Scroll to the next tab
+        const targetTab = container.querySelectorAll('.tab, .api-info-tab')[visibleTabs.lastFullyVisible + 1];
+        if (targetTab) {
+          // Scroll to center the tab
+          const tabCenter = targetTab.offsetLeft + (targetTab.offsetWidth / 2);
+          const containerCenter = container.clientWidth / 2;
+          container.scrollTo({
+            left: Math.max(0, tabCenter - containerCenter),
+            behavior: 'smooth'
+          });
+        }
+      } else {
+        // If the last visible tab is already the last tab, just scroll a fixed amount
+        const scrollAmount = Math.max(150, Math.floor(container.clientWidth / 2));
+        container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+      }
+
       setTimeout(() => this.checkScroll(), 300);
     }
+  }
+
+  /**
+   * Find which tabs are visible in the container
+   */
+  private findVisibleTabs(): { firstPartiallyVisible: number, firstFullyVisible: number, lastFullyVisible: number, lastPartiallyVisible: number } {
+    if (!this.tabsContainer) {
+      return { firstPartiallyVisible: 0, firstFullyVisible: 0, lastFullyVisible: 0, lastPartiallyVisible: 0 };
+    }
+
+    const container = this.tabsContainer.nativeElement;
+    const containerRect = container.getBoundingClientRect();
+    const tabs = container.querySelectorAll('.tab, .api-info-tab');
+
+    let firstPartiallyVisible = -1;
+    let firstFullyVisible = -1;
+    let lastFullyVisible = -1;
+    let lastPartiallyVisible = -1;
+
+    for (let i = 0; i < tabs.length; i++) {
+      const tabRect = tabs[i].getBoundingClientRect();
+
+      // Check if the tab is partially visible
+      const isPartiallyVisible =
+        (tabRect.left < containerRect.right && tabRect.right > containerRect.left);
+
+      // Check if the tab is fully visible
+      const isFullyVisible =
+        (tabRect.left >= containerRect.left && tabRect.right <= containerRect.right);
+
+      if (isPartiallyVisible) {
+        if (firstPartiallyVisible === -1) firstPartiallyVisible = i;
+        lastPartiallyVisible = i;
+      }
+
+      if (isFullyVisible) {
+        if (firstFullyVisible === -1) firstFullyVisible = i;
+        lastFullyVisible = i;
+      }
+    }
+
+    // If no tabs are fully visible, use partially visible ones
+    if (firstFullyVisible === -1) firstFullyVisible = firstPartiallyVisible;
+    if (lastFullyVisible === -1) lastFullyVisible = lastPartiallyVisible;
+
+    return {
+      firstPartiallyVisible,
+      firstFullyVisible,
+      lastFullyVisible,
+      lastPartiallyVisible
+    };
   }
 
   private checkScroll(): void {
     if (!this.tabsContainer) return;
 
     const container = this.tabsContainer.nativeElement;
-    this.showScrollLeft = container.scrollLeft > 0;
-    this.showScrollRight = container.scrollLeft < (container.scrollWidth - container.clientWidth);
+
+    // Add a small buffer (1px) to account for rounding errors
+    this.showScrollLeft = container.scrollLeft > 1;
+
+    // Check if there's more content to scroll to (with a small buffer)
+    const maxScroll = container.scrollWidth - container.clientWidth;
+    this.showScrollRight = container.scrollLeft < (maxScroll - 1);
+
+    // Force a check after a short delay to handle edge cases
+    if (!this.showScrollRight && container.scrollLeft >= maxScroll - 5) {
+      setTimeout(() => {
+        const updatedMaxScroll = container.scrollWidth - container.clientWidth;
+        this.showScrollRight = container.scrollLeft < (updatedMaxScroll - 1);
+      }, 100);
+    }
   }
 
   private scrollToActiveTab(): void {
@@ -101,13 +222,29 @@ export class ApiTabBarComponent implements AfterViewInit, OnChanges {
     const activeTab = container.querySelector(`[data-tab-id="${this.activeTabId}"]`);
 
     if (activeTab) {
-      // Check if the active tab is fully visible
+      // Get the positions and dimensions
       const tabRect = activeTab.getBoundingClientRect();
       const containerRect = container.getBoundingClientRect();
 
-      if (tabRect.left < containerRect.left || tabRect.right > containerRect.right) {
-        // Scroll to make the active tab visible
-        activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+      // Calculate if the tab is fully visible
+      const isTabFullyVisible =
+        tabRect.left >= containerRect.left &&
+        tabRect.right <= containerRect.right;
+
+      if (!isTabFullyVisible) {
+        // Calculate the scroll position to center the tab
+        const tabCenter = activeTab.offsetLeft + (activeTab.offsetWidth / 2);
+        const containerCenter = container.clientWidth / 2;
+        const scrollPosition = tabCenter - containerCenter;
+
+        // Scroll with animation
+        container.scrollTo({
+          left: Math.max(0, scrollPosition),
+          behavior: 'smooth'
+        });
+
+        // Update scroll buttons after scrolling
+        setTimeout(() => this.checkScroll(), 300);
       }
     }
   }

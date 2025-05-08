@@ -1,0 +1,62 @@
+.favorite-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.375rem;
+  border-radius: 0.25rem;
+  transition: background-color 0.2s, color 0.2s;
+  color: var(--text-tertiary);
+}
+
+.favorite-button:hover {
+  background-color: var(--hover);
+  color: var(--text-secondary);
+}
+
+.favorite-button.is-favorite {
+  color: var(--favorite);
+}
+
+.favorite-button.is-favorite:hover {
+  background-color: var(--favorite-light);
+}
+
+.favorite-button.is-loading {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.loading-icon {
+  width: 1rem;
+  height: 1rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.favorite-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.favorite-icon.filled {
+  fill: currentColor;
+  stroke: currentColor;
+  stroke-width: 1;
+}
+
+.favorite-icon.outline {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+}

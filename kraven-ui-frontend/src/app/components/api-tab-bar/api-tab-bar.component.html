@@ -1,5 +1,5 @@
 <div class="tab-bar-container">
-  <button class="scroll-button scroll-left" *ngIf="showScrollLeft" (click)="scrollLeft()">
+  <button class="scroll-button scroll-left" [class.disabled]="!showScrollLeft" (click)="scrollLeft()">
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <polyline points="15 18 9 12 15 6"></polyline>
     </svg>
@@ -49,7 +49,7 @@
     </div>
   </div>
 
-  <button class="scroll-button scroll-right" *ngIf="showScrollRight" (click)="scrollRight()">
+  <button class="scroll-button scroll-right" [class.disabled]="!showScrollRight" (click)="scrollRight()">
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <polyline points="9 18 15 12 9 6"></polyline>
     </svg>

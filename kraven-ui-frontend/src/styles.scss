@@ -68,6 +68,9 @@
   --success-color: #2ecc71; /* Green */
   --success-color-rgb: 46, 204, 113; /* Green in RGB format */
   --code-bg-color: #2a2d45; /* Code background for dark theme */
+  --favorite: #e74c3c; /* Heart red */
+  --favorite-light: rgba(231, 76, 60, 0.1); /* Light red for hover */
+  --error-light: rgba(231, 76, 60, 0.1); /* Light red for error hover */
 }
 
 :root.light-theme, html.light-theme {
@@ -97,6 +100,9 @@
   --success-color: #38a169; /* Green */
   --success-color-rgb: 56, 161, 105; /* Green in RGB format */
   --code-bg-color: #f0f4f8; /* Code background for light theme */
+  --favorite: #e53e3e; /* Heart red */
+  --favorite-light: rgba(229, 62, 62, 0.1); /* Light red for hover */
+  --error-light: rgba(229, 62, 62, 0.1); /* Light red for error hover */
 }
 
 * {

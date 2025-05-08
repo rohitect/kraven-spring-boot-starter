@@ -6,8 +6,10 @@
   background-color: var(--background-color);
   border-bottom: 1px solid var(--border-color);
   position: relative;
-  overflow: hidden; /* Ensure no overflow */
+  overflow: visible; /* Allow scroll buttons to be visible */
   max-width: 100%; /* Ensure it doesn't expand beyond its container */
+  padding: 0; /* Remove padding */
+  box-sizing: border-box; /* Include padding and border in element's width and height */
 }
 
 .tabs-container {
@@ -18,6 +20,9 @@
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
   scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch; /* Momentum-based scrolling on iOS */
+  position: relative;
+  margin: 0 4px; /* Add small margin for visual separation from scroll buttons */
 
   /* Hide scrollbar for Chrome, Safari and Opera */
   &::-webkit-scrollbar {
@@ -27,8 +32,9 @@
 
 .tabs-list {
   display: flex;
-  flex: 1;
+  flex: 0 0 auto; /* Don't grow or shrink */
   height: 100%;
+  width: max-content; /* Allow the container to grow based on content */
 }
 
 .tab {
@@ -39,6 +45,7 @@
   height: 100%;
   min-width: 120px;
   max-width: 200px;
+  flex: 0 0 auto; /* Don't grow or shrink */
   border-right: 1px solid var(--border-color);
   background-color: var(--background-color);
   cursor: pointer;
@@ -153,10 +160,13 @@
   gap: 8px;
   padding: 0 12px;
   height: 100%;
+  min-width: 100px;
+  flex: 0 0 auto; /* Don't grow or shrink */
   border-right: 1px solid var(--border-color);
   background-color: var(--background-color);
   cursor: pointer;
   transition: all 0.2s;
+  white-space: nowrap;
 
   .info-icon {
     color: var(--muted-foreground-color);
@@ -181,27 +191,53 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
+  width: 32px;
   height: 100%;
   background-color: var(--background-color);
   border: none;
-  border-right: 1px solid var(--border-color);
-  color: var(--muted-foreground-color);
+  color: var(--primary-color);
   cursor: pointer;
   transition: all 0.2s;
-  z-index: 1;
+  z-index: 5; /* Ensure buttons are above tabs */
+  position: sticky; /* Make buttons sticky */
+  flex-shrink: 0; /* Prevent shrinking */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); /* Add stronger shadow for depth */
 
-  &:hover {
+  &:hover:not(.disabled) {
     background-color: var(--muted-color);
-    color: var(--foreground-color);
+    color: var(--primary-color);
+    transform: translateY(-1px);
+  }
+
+  &:active:not(.disabled) {
+    transform: translateY(0);
+  }
+
+  &.disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    color: var(--muted-foreground-color);
+    box-shadow: none;
   }
 
   &.scroll-left {
     border-right: 1px solid var(--border-color);
+    left: 0; /* Stick to the left */
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
   }
 
   &.scroll-right {
     border-left: 1px solid var(--border-color);
+    right: 0; /* Stick to the right */
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+  }
+
+  svg {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2.5;
   }
 }
 

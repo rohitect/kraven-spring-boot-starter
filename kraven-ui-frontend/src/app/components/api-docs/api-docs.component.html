@@ -94,6 +94,14 @@
             </svg>
             Endpoints
           </button>
+          <button class="sidebar-tab" [class.active]="leftSidebarActiveTab === 'favorites'"
+            (click)="setLeftSidebarTab('favorites')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tab-icon">
+              <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
+            </svg>
+            Favorites
+          </button>
           <button class="sidebar-tab" [class.active]="leftSidebarActiveTab === 'history'"
             (click)="setLeftSidebarTab('history')">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -169,6 +177,12 @@
               </div>
             </div>
           </div>
+        </div>
+
+        <!-- Favorites Tab Content -->
+        <div *ngIf="leftSidebarActiveTab === 'favorites'" class="sidebar-tab-content">
+          <app-api-favorites-list [applicationName]="applicationName"
+            (selectEndpoint)="selectEndpoint($event)"></app-api-favorites-list>
         </div>
 
         <!-- History Tab Content -->
@@ -284,6 +298,12 @@
                 </h2>
               </div>
               <div class="endpoint-actions">
+                <!-- Favorite Button -->
+                <app-favorite-button
+                  [endpoint]="selectedEndpoint"
+                  [tagName]="findTagForEndpoint(selectedEndpoint)?.name || ''"
+                ></app-favorite-button>
+
                 <div class="dropdown-container">
                   <button class="three-dot-menu" (click)="toggleDropdown($event, selectedEndpoint.method)">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -843,6 +863,7 @@
                       <span class="result-path" [innerHTML]="result.endpoint.path | highlightSearch: docSearchTags"></span>
                     </div>
                     <div class="result-header-right">
+                      <app-favorite-button [endpoint]="result.endpoint" [tagName]="result.tagName" (click)="$event.stopPropagation()"></app-favorite-button>
                       <span class="deprecated-badge" *ngIf="result.endpoint.method.operation.deprecated">DEPRECATED</span>
                       <span class="security-badge" *ngIf="result.endpoint.method.operation.security && result.endpoint.method.operation.security.length > 0">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
