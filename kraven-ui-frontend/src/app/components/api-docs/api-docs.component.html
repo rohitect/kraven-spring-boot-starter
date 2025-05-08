@@ -23,8 +23,41 @@
       </div>
     </div>
 
-    <!-- API Documentation Three-Pane Layout -->
-    <div *ngIf="apiDocs && !loading" class="three-pane-layout">
+    <!-- Secondary Tabs for API Playground -->
+    <div *ngIf="apiDocs && !loading" class="secondary-tabs-container">
+      <div class="actuator-tabs-container">
+        <button class="scroll-button scroll-left" *ngIf="false">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+
+        <div class="tabs-container">
+          <div
+            class="tab"
+            [class.active]="secondaryTabActiveTab === 'documentation'"
+            (click)="setSecondaryTab('documentation')"
+          >
+            <i class="fas fa-book"></i>
+            <span class="tab-label">Documentation</span>
+          </div>
+          <div
+            class="tab"
+            [class.active]="secondaryTabActiveTab === 'playground'"
+            (click)="setSecondaryTab('playground')"
+          >
+            <i class="fas fa-code"></i>
+            <span class="tab-label">Playground</span>
+          </div>
+        </div>
+
+        <button class="scroll-button scroll-right" *ngIf="false">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+
+      <!-- Playground Tab Content -->
+      <div class="secondary-tab-content" [hidden]="secondaryTabActiveTab !== 'playground'">
+        <!-- API Documentation Three-Pane Layout -->
+        <div class="three-pane-layout">
 
       <!-- Left Sidebar: API Endpoints List and History -->
       <div class="left-sidebar">
@@ -420,10 +453,10 @@
               <button class="try-it-button" (click)="toggleRightPane()">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                  class="button-icon">
+                  class="button-icon" style="vertical-align: middle;">
                   <polyline points="17 10 12 15 7 10"></polyline>
                 </svg>
-                Try It Out
+                <span style="vertical-align: middle;">Try It Out</span>
               </button>
             </div>
           </div>
@@ -435,19 +468,19 @@
             <button *ngIf="apiDocsConfig.tryItOutEnabled" class="right-pane-tab"
               [class.active]="rightPaneActiveTab === 'try-it-out'" (click)="setRightPaneTab('try-it-out')">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tab-icon">
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tab-icon" style="vertical-align: middle;">
                 <polyline points="17 10 12 15 7 10"></polyline>
               </svg>
-              Try It Out
+              <span style="vertical-align: middle;">Try It Out</span>
             </button>
             <button class="right-pane-tab" [class.active]="rightPaneActiveTab === 'response-samples'"
               [class.disabled]="!selectedResponseCode" (click)="setRightPaneTab('response-samples')">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tab-icon">
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tab-icon" style="vertical-align: middle;">
                 <polyline points="16 18 22 12 16 6"></polyline>
                 <polyline points="8 6 2 12 8 18"></polyline>
               </svg>
-              Response Samples
+              <span style="vertical-align: middle;">Response Samples</span>
             </button>
 
             <!-- Toggle Button -->
@@ -711,3 +744,229 @@
 <!-- Tab Limit Popup -->
 <app-tab-limit-popup [isVisible]="showTabLimitPopup" [tabs]="tabs" (close)="closeTabLimitPopup()"
   (closeTab)="onTabClosed($event)" (closeAllTabs)="closeAllTabs()"></app-tab-limit-popup>
+
+      </div> <!-- End of three-pane-layout -->
+      </div> <!-- End of Playground Tab Content -->
+
+      <!-- Documentation Tab Content -->
+      <div class="secondary-tab-content" [hidden]="secondaryTabActiveTab !== 'documentation'">
+        <div class="documentation-content">
+          <!-- Search Bar -->
+          <div class="documentation-search-container">
+            <div class="search-header">
+              <h3 class="search-title">Search API Documentation</h3>
+              <p class="search-description">
+                Enter keywords to search through API endpoints and their descriptions
+              </p>
+            </div>
+            <div class="search-input-container">
+              <div class="tag-input-container">
+                <!-- Input field and icons in one row -->
+                <div class="input-row">
+                  <div class="input-with-icon">
+                    <input
+                      #tagInput
+                      type="text"
+                      class="tag-input"
+                      placeholder="Search for endpoints, descriptions, or functionality..."
+                      (keydown)="handleTagInputKeydown($event, tagInput.value)"
+                      [class.has-results]="docSearchResults.length > 0"
+                    >
+
+                    <!-- Search Icon -->
+                    <div class="search-icon-wrapper">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="search-icon">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                      </svg>
+                    </div>
+                  </div>
+
+                  <!-- Icons -->
+                  <div class="tag-input-icons">
+                    <button *ngIf="docSearchTags.length > 0" class="clear-search-button" (click)="clearDocSearch()">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Tags below input -->
+                <div *ngIf="docSearchTags.length > 0" class="tags-container">
+                  <div *ngFor="let tag of docSearchTags; let i = index" class="search-tag">
+                    <span class="tag-text">{{ tag.text }}</span>
+                    <button class="tag-remove-button" (click)="removeSearchTag(i)">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="tag-input-hint">
+                Separate keywords with a comma or enter key
+              </div>
+            </div>
+          </div>
+
+          <!-- Search Results -->
+          <div class="documentation-search-results" *ngIf="docSearchTags.length > 0">
+            <div *ngIf="docSearchResults.length > 0" class="search-results-container">
+              <div class="search-results-header">
+                <h4 class="results-title">Found {{ docSearchResults.length }} matching endpoints</h4>
+              </div>
+              <div class="search-results-list">
+                <div *ngFor="let result of docSearchResults" class="search-result-item" (click)="navigateToEndpoint(result.endpoint)" [class.deprecated]="result.endpoint.method.operation.deprecated">
+                  <div class="result-header">
+                    <div class="result-header-left">
+                      <span class="method-badge" [ngStyle]="{
+                        'background-color': result.endpoint.method.type === 'GET' ? '#dbeafe' :
+                                         result.endpoint.method.type === 'POST' ? '#dcfce7' :
+                                         result.endpoint.method.type === 'PUT' ? '#fef9c3' :
+                                         result.endpoint.method.type === 'DELETE' ? '#fee2e2' :
+                                         '#cffafe',
+                        'color': result.endpoint.method.type === 'GET' ? '#1e40af' :
+                                 result.endpoint.method.type === 'POST' ? '#166534' :
+                                 result.endpoint.method.type === 'PUT' ? '#854d0e' :
+                                 result.endpoint.method.type === 'DELETE' ? '#991b1b' :
+                                 '#155e75'
+                      }">
+                        {{ result.endpoint.method.type }}
+                      </span>
+                      <span class="result-path" [innerHTML]="result.endpoint.path | highlightSearch: docSearchTags"></span>
+                    </div>
+                    <div class="result-header-right">
+                      <span class="deprecated-badge" *ngIf="result.endpoint.method.operation.deprecated">DEPRECATED</span>
+                      <span class="security-badge" *ngIf="result.endpoint.method.operation.security && result.endpoint.method.operation.security.length > 0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="result-metadata">
+                    <div class="metadata-section">
+                      <div class="metadata-item" *ngIf="result.endpoint.method.operation.operationId">
+                        <span class="metadata-label">Operation ID:</span>
+                        <span class="metadata-value" [innerHTML]="result.endpoint.method.operation.operationId | highlightSearch: docSearchTags"></span>
+                      </div>
+                      <div class="metadata-item" *ngIf="result.endpoint.method.operation.parameters && result.endpoint.method.operation.parameters.length > 0">
+                        <span class="metadata-label">Parameters:</span>
+                        <span class="metadata-value">{{ result.endpoint.method.operation.parameters.length }} parameter(s)</span>
+                      </div>
+                      <div class="metadata-item" *ngIf="result.endpoint.method.operation.requestBody">
+                        <span class="metadata-label">Request Body:</span>
+                        <span class="metadata-value">
+                          <span class="required-badge" *ngIf="result.endpoint.method.operation.requestBody.required">Required</span>
+                          <span class="optional-badge" *ngIf="!result.endpoint.method.operation.requestBody.required">Optional</span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="result-content">
+                    <div class="result-section" *ngIf="result.endpoint.method.operation.summary">
+                      <div class="section-label">Summary:</div>
+                      <div class="section-content summary" [innerHTML]="result.endpoint.method.operation.summary | highlightSearch: docSearchTags"></div>
+                    </div>
+
+                    <div class="result-section" *ngIf="result.endpoint.method.operation.description">
+                      <div class="section-label">Description:</div>
+                      <div class="section-content description" [innerHTML]="result.endpoint.method.operation.description | highlightSearch: docSearchTags"></div>
+                    </div>
+                  </div>
+
+                  <div class="result-footer">
+                    <div class="result-tags">
+                      <span class="tag-label">Tags:</span>
+                      <div class="tags-container">
+                        <span class="tag-badge" [innerHTML]="result.tagName | highlightSearch: docSearchTags"></span>
+                        <span class="tag-badge" *ngFor="let tag of result.endpoint.method.operation.tags | slice:1" [innerHTML]="tag | highlightSearch: docSearchTags"></span>
+                      </div>
+                    </div>
+
+                    <div class="result-responses" *ngIf="result.endpoint.method.operation.responses">
+                      <span class="responses-label">Responses:</span>
+                      <div class="responses-container">
+                        <span class="response-badge" *ngFor="let response of getResponseCodes(result.endpoint.method.operation.responses)"
+                          [ngClass]="{
+                            'success': getResponseCodeNumber(response) >= 200 && getResponseCodeNumber(response) < 300,
+                            'redirect': getResponseCodeNumber(response) >= 300 && getResponseCodeNumber(response) < 400,
+                            'client-error': getResponseCodeNumber(response) >= 400 && getResponseCodeNumber(response) < 500,
+                            'server-error': getResponseCodeNumber(response) >= 500
+                          }">
+                          {{ response }}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div class="result-action">
+                      <button class="try-it-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                          class="button-icon" style="vertical-align: middle;">
+                          <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                        <span style="vertical-align: middle;">Try It Out</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div *ngIf="docSearchResults.length === 0 && !docSearchLoading" class="no-results-container">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+                class="no-results-icon">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                <line x1="8" y1="11" x2="14" y2="11"></line>
+              </svg>
+              <h4 class="no-results-title">No matching endpoints found</h4>
+              <p class="no-results-text">Try adjusting your search terms or browse the API in the Playground tab</p>
+            </div>
+            <div *ngIf="docSearchLoading" class="search-loading-container">
+              <div class="search-spinner">
+                <svg class="spinner-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                  </path>
+                </svg>
+                <span>Searching...</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Initial State (when no search is performed) -->
+          <div *ngIf="docSearchTags.length === 0" class="documentation-initial-state">
+            <div class="initial-state-content">
+              <i class="fas fa-search initial-state-icon fa-3x"></i>
+              <h3 class="initial-state-title">Search API Documentation</h3>
+              <p class="initial-state-text">
+                Enter keywords in the search bar above to find API endpoints that match your needs.
+                Search will look through endpoint paths, summaries, and descriptions.
+              </p>
+              <div class="search-examples">
+                <h4 class="examples-title">Try searching for:</h4>
+                <div class="example-tags">
+                  <span class="example-tag" *ngFor="let example of searchExamples" (click)="setExampleSearch(example)">
+                    {{ example }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div> <!-- End of secondary-tabs-container -->

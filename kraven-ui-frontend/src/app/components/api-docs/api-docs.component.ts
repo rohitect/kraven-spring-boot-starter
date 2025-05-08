@@ -10,6 +10,7 @@ import { AndypfJsonViewerComponent } from '../andypf-json-viewer/andypf-json-vie
 import { TryItOutComponent } from '../try-it-out-new/try-it-out.component';
 import { GlobalAuthenticationComponent } from '../global-authentication/global-authentication.component';
 import { MarkdownPipe } from '../../pipes/markdown.pipe';
+import { HighlightSearchPipe } from '../../pipes/highlight-search.pipe';
 import { ApiHistoryListComponent } from '../api-history-list/api-history-list.component';
 import { ApiHistoryDetailComponent } from '../api-history-detail/api-history-detail.component';
 import { ApiHistoryService } from '../../services/api-history.service';
@@ -29,6 +30,7 @@ import { TabLimitPopupComponent } from '../tab-limit-popup/tab-limit-popup.compo
     TryItOutComponent,
     GlobalAuthenticationComponent,
     MarkdownPipe,
+    HighlightSearchPipe,
     AndypfJsonViewerComponent,
     ApiHistoryListComponent,
     ApiHistoryDetailComponent,
@@ -125,8 +127,24 @@ export class ApiDocsComponent implements OnInit {
   rightPaneActiveTab: 'try-it-out' | 'response-samples' = 'try-it-out'; // Default to try-it-out tab
   rightPaneCollapsed = false; // Default to expanded
 
+  // Secondary tabs state for API Playground
+  secondaryTabActiveTab: 'playground' | 'documentation' = 'documentation'; // Default to documentation tab
+
   // Left sidebar state
   leftSidebarActiveTab: 'endpoints' | 'history' = 'endpoints'; // Default to endpoints tab
+
+  // Documentation search state
+  docSearchTags: Array<{text: string, color: string}> = [];
+  docSearchResults: Array<{
+    tagName: string,
+    endpoint: any,
+    score: number,
+    matchedTags: number
+  }> = [];
+  docSearchLoading: boolean = false;
+  searchExamples: string[] = ['user', 'create', 'update', 'delete', 'list', 'auth'];
+  // Map to store tag colors to ensure consistency
+  private tagColorMap: Map<string, string> = new Map();
 
   // API history state
   selectedHistoryEntry: ApiHistoryEntry | null = null;
@@ -188,6 +206,35 @@ export class ApiDocsComponent implements OnInit {
     // Subscribe to theme changes
     this.themeService.theme$.subscribe(theme => {
       this.isDarkTheme = theme === 'dark';
+    });
+
+    // Check for query parameters (secondary tab, search tags, and search query)
+    this.route.queryParams.subscribe(params => {
+      // Check for secondary tab
+      if (params['secondaryTab']) {
+        const tabParam = params['secondaryTab'];
+        // Only set if it's a valid tab value
+        if (tabParam === 'playground' || tabParam === 'documentation') {
+          this.secondaryTabActiveTab = tabParam as 'playground' | 'documentation';
+        }
+      }
+
+      // Check for search tags
+      if (params['tags'] && this.secondaryTabActiveTab === 'documentation') {
+        const tagsParam = params['tags'];
+        // Split the tags by comma and create tag objects
+        this.docSearchTags = tagsParam.split(',')
+          .filter((tag: string) => tag.trim().length > 0)
+          .map((tag: string) => {
+            const tagText = tag.trim();
+            return {
+              text: tagText,
+              color: '' // Empty string as we're using CSS for color
+            };
+          });
+      }
+
+      // We'll trigger the search after API docs are loaded if we have tags or search query
     });
 
     // Get the application name from the metrics service
@@ -326,7 +373,8 @@ export class ApiDocsComponent implements OnInit {
   private updateUrlWithTabId(tabId: string): void {
     // Navigate to the new URL without reloading the page
     this.router.navigate([`/api-docs/tab/${tabId}`], {
-      replaceUrl: true // Replace the current URL to avoid adding to browser history
+      replaceUrl: true, // Replace the current URL to avoid adding to browser history
+      queryParamsHandling: 'preserve' // Preserve existing query parameters
     });
   }
 
@@ -389,6 +437,11 @@ export class ApiDocsComponent implements OnInit {
           // Just log it for debugging purposes
           if (this.apiDocsService.isUsingSampleData()) {
             console.log('Using sample API data for demonstration purposes.');
+          }
+
+          // Only trigger search if we have search tags (not just a query)
+          if (this.docSearchTags.length > 0 && this.secondaryTabActiveTab === 'documentation') {
+            this.searchDocumentation();
           }
 
           resolve();
@@ -603,7 +656,8 @@ export class ApiDocsComponent implements OnInit {
 
     // Update the URL to reflect that we're showing API info
     this.router.navigate(['/api-docs/info'], {
-      replaceUrl: true // Replace the current URL to avoid adding to browser history
+      replaceUrl: true, // Replace the current URL to avoid adding to browser history
+      queryParamsHandling: 'preserve' // Preserve existing query parameters
     });
   }
 
@@ -1374,20 +1428,7 @@ export class ApiDocsComponent implements OnInit {
     );
   }
 
-  /**
-   * Update the URL to reflect the selected endpoint or API info
-   */
-  private updateUrl(tagName: string, path: string, methodType: string): void {
-    // Encode the parameters to handle special characters
-    const encodedTag = encodeURIComponent(tagName);
-    const encodedPath = encodeURIComponent(path);
-    const encodedMethod = encodeURIComponent(methodType.toLowerCase());
 
-    // Navigate to the new URL without reloading the page
-    this.router.navigate([`/api-docs/${encodedTag}/${encodedPath}/${encodedMethod}`], {
-      replaceUrl: true // Replace the current URL to avoid adding to browser history
-    });
-  }
 
   /**
    * Get all parameters for the selected endpoint
@@ -2110,6 +2151,60 @@ export class ApiDocsComponent implements OnInit {
   }
 
   /**
+   * Set the active secondary tab in the API Playground
+   */
+  setSecondaryTab(tab: 'playground' | 'documentation'): void {
+    // Store the current search state
+    const previousTab = this.secondaryTabActiveTab;
+    const previousTags = [...this.docSearchTags];
+
+    // Update the active tab
+    this.secondaryTabActiveTab = tab;
+
+    // Update the URL query parameter to persist the tab selection
+    this.updateUrlQueryParams();
+
+    // If switching back to documentation tab, restore the previous search state
+    if (tab === 'documentation' && previousTab === 'playground' && previousTags.length > 0) {
+      this.docSearchTags = previousTags;
+
+      // Trigger search with the restored tags
+      this.searchDocumentation();
+    }
+  }
+
+  /**
+   * Update the URL with query parameters to persist state
+   */
+  private updateUrlQueryParams(): void {
+    // Create query params object with current state
+    const queryParams: any = {
+      secondaryTab: this.secondaryTabActiveTab
+    };
+
+    // Only add tags parameter if there are tags and we're in documentation tab
+    if (this.docSearchTags.length > 0 && this.secondaryTabActiveTab === 'documentation') {
+      // Join all tags with a comma to preserve order
+      queryParams.tags = this.docSearchTags.map(tag => tag.text).join(',');
+    } else {
+      // Explicitly set tags to null to remove it from the URL if it exists
+      queryParams.tags = null;
+    }
+
+    // Get the current URL and preserve any existing path
+    const urlTree = this.router.createUrlTree([], {
+      queryParams: queryParams,
+      // Don't merge with existing query params to ensure removed params are actually removed
+      preserveFragment: true // Preserve any fragments
+    });
+
+    // Navigate to the updated URL without reloading the page
+    this.router.navigateByUrl(urlTree, {
+      replaceUrl: true // Replace the current URL to avoid adding to browser history
+    });
+  }
+
+  /**
    * Toggle the right pane collapsed state
    */
   toggleRightPane(): void {
@@ -2226,10 +2321,270 @@ export class ApiDocsComponent implements OnInit {
   }
 
   /**
+   * Handle keydown events in the tag input
+   */
+  handleTagInputKeydown(event: KeyboardEvent, inputValue: string): void {
+    // If Enter or comma is pressed, add a new tag
+    if ((event.key === 'Enter' || event.key === ',') && inputValue.trim()) {
+      event.preventDefault();
+      this.addSearchTag(inputValue.trim());
+
+      // Find the input element and clear it
+      const inputElement = document.querySelector('.tag-input') as HTMLInputElement;
+      if (inputElement) {
+        inputElement.value = '';
+        inputElement.focus();
+      }
+    }
+  }
+
+  /**
+   * Generate a random color for a tag
+   * Returns a color that's not too light (for readability on white background)
+   * If the tag already has a color assigned, returns that color
+   */
+  generateRandomColor(tagText?: string): string {
+    // If tag text is provided and we already have a color for it, return that color
+    if (tagText && this.tagColorMap.has(tagText.toLowerCase())) {
+      return this.tagColorMap.get(tagText.toLowerCase())!;
+    }
+
+    // Predefined set of vibrant colors that work well with white text
+    const colors = [
+      '#3498db', // Blue
+      '#9b59b6', // Purple
+      '#e74c3c', // Red
+      '#16a085', // Green
+      '#f39c12', // Orange
+      '#2c3e50', // Navy
+      '#1abc9c', // Turquoise
+      '#d35400', // Pumpkin
+      '#c0392b', // Pomegranate
+      '#8e44ad', // Wisteria
+      '#27ae60', // Nephritis
+      '#2980b9', // Belize Hole
+      '#f1c40f', // Sunflower
+      '#e67e22'  // Carrot
+    ];
+
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+
+    // If tag text is provided, store the color in the map
+    if (tagText) {
+      this.tagColorMap.set(tagText.toLowerCase(), randomColor);
+    }
+
+    return randomColor;
+  }
+
+  /**
+   * Add a new search tag
+   */
+  addSearchTag(text: string): void {
+    // Don't add empty tags or duplicate tags
+    if (!text || this.docSearchTags.some(tag => tag.text.toLowerCase() === text.toLowerCase())) {
+      return;
+    }
+
+    // Add the tag (no need for color as it's now set in CSS)
+    this.docSearchTags.push({
+      text,
+      color: '' // Empty string as we're using CSS for color
+    });
+
+    // Trigger search with the new tag
+    this.searchDocumentation();
+  }
+
+  /**
+   * Remove a search tag by index
+   */
+  removeSearchTag(index: number): void {
+    if (index >= 0 && index < this.docSearchTags.length) {
+      // Check if this is the last tag
+      const isLastTag = this.docSearchTags.length === 1;
+
+      // Remove the tag
+      this.docSearchTags.splice(index, 1);
+
+      // If it was the last tag, directly update URL params to ensure they're cleared
+      if (isLastTag) {
+        this.docSearchResults = [];
+        this.updateUrlQueryParams();
+      } else {
+        // Otherwise, use the normal search flow
+        this.searchDocumentation();
+      }
+    }
+  }
+
+  /**
+   * Search API documentation based on the search tags
+   * Supports multiple tags with ordered filtering
+   */
+  searchDocumentation(): void {
+    // Clear previous results
+    this.docSearchResults = [];
+
+    // Always update URL with tags (or lack thereof)
+    this.updateUrlQueryParams();
+
+    // Only perform search if we have tags
+    if (this.docSearchTags.length === 0) {
+      // Make sure loading state is cleared
+      this.docSearchLoading = false;
+      return;
+    }
+
+    // Set loading state
+    this.docSearchLoading = true;
+
+    // Use setTimeout to simulate async operation and avoid blocking UI
+    setTimeout(() => {
+      // Get search terms from tags
+      const searchTerms: string[] = this.docSearchTags.map(tag => tag.text.toLowerCase());
+
+      const results: Array<{tagName: string, endpoint: any, score: number, matchedTags: number}> = [];
+
+      // Search through all tags and endpoints
+      this.tags.forEach(tag => {
+        tag.endpoints.forEach(endpoint => {
+          const path = endpoint.path.toLowerCase();
+          const method = endpoint.method.type.toLowerCase();
+          const summary = (endpoint.method.operation.summary || '').toLowerCase();
+          const description = (endpoint.method.operation.description || '').toLowerCase();
+
+          // Track which tags match and their positions
+          const tagMatches: {tag: string, score: number, position: number}[] = [];
+
+          // Check each search tag against the endpoint
+          searchTerms.forEach((searchTerm, index) => {
+            let tagScore = 0;
+
+            // Exact matches in path get highest score
+            if (path.includes(searchTerm)) {
+              tagScore += 10;
+              // Bonus for exact path match
+              if (path === searchTerm) {
+                tagScore += 5;
+              }
+            }
+
+            // Method matches
+            if (method.includes(searchTerm)) {
+              tagScore += 8;
+            }
+
+            // Summary matches (important)
+            if (summary.includes(searchTerm)) {
+              tagScore += 7;
+              // Bonus for exact summary match
+              if (summary === searchTerm) {
+                tagScore += 3;
+              }
+            }
+
+            // Description matches
+            if (description.includes(searchTerm)) {
+              tagScore += 5;
+            }
+
+            // If this tag matched, add it to the matches
+            if (tagScore > 0) {
+              tagMatches.push({
+                tag: searchTerm,
+                score: tagScore,
+                position: index
+              });
+            }
+          });
+
+          // Only include results that match all search terms
+          if (tagMatches.length === searchTerms.length) {
+            // Calculate total score
+            const totalScore = tagMatches.reduce((sum, match) => sum + match.score, 0);
+
+            // Add to results
+            results.push({
+              tagName: tag.name,
+              endpoint,
+              score: totalScore,
+              matchedTags: tagMatches.length
+            });
+          }
+        });
+      });
+
+      // Sort results by:
+      // 1. Number of matched tags (descending)
+      // 2. Total score (descending)
+      results.sort((a, b) => {
+        // First sort by number of matched tags
+        if (b.matchedTags !== a.matchedTags) {
+          return b.matchedTags - a.matchedTags;
+        }
+        // Then by score
+        return b.score - a.score;
+      });
+
+      // Update results
+      this.docSearchResults = results;
+
+      // Clear loading state
+      this.docSearchLoading = false;
+    }, 300); // Small delay for better UX
+  }
+
+  /**
+   * Clear the documentation search
+   */
+  clearDocSearch(): void {
+    this.docSearchResults = [];
+    this.docSearchTags = [];
+
+    // Update URL to remove tags
+    this.updateUrlQueryParams();
+  }
+
+  /**
+   * Set an example search term
+   */
+  setExampleSearch(example: string): void {
+    // Clear existing search first
+    this.clearDocSearch();
+
+    // Add the example as a tag
+    this.addSearchTag(example);
+
+    // Note: addSearchTag calls searchDocumentation which calls updateUrlQueryParams
+  }
+
+  /**
+   * Navigate to an endpoint in the playground tab
+   */
+  navigateToEndpoint(endpoint: any): void {
+    // Use setSecondaryTab to properly handle tab switching and preserve search state
+    this.setSecondaryTab('playground');
+
+    // Select the endpoint
+    this.selectEndpoint(endpoint);
+  }
+
+  /**
    * Convert response code string to number for comparison
    */
   getResponseCodeNumber(code: string): number {
     return parseInt(code, 10) || 0;
+  }
+
+  /**
+   * Get response codes from the operation responses object
+   */
+  getResponseCodes(responses: any): string[] {
+    if (!responses) {
+      return [];
+    }
+    return Object.keys(responses);
   }
 
   /**
