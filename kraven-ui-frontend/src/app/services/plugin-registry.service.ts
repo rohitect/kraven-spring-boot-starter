@@ -58,7 +58,7 @@ export class PluginRegistryService {
       });
     }
 
-    console.log(`Registered route '${route}' for plugin '${pluginId}'`);
+    // console.log(`Registered route '${route}' for plugin '${pluginId}'`);
   }
 
   /**
@@ -81,7 +81,7 @@ export class PluginRegistryService {
    * @returns An observable that emits true if the plugin is ready, false otherwise
    */
   checkPluginReady(pluginId: string): Observable<boolean> {
-    console.log(`Checking if plugin '${pluginId}' is ready...`);
+    // console.log(`Checking if plugin '${pluginId}' is ready...`);
 
     // Update status to checking
     this.updatePluginStatus(pluginId, PluginStatus.CHECKING);
@@ -90,7 +90,7 @@ export class PluginRegistryService {
     const isRegistered = this.pluginService.isPluginRegistered(pluginId);
     const isRunning = this.pluginService.isPluginRunning(pluginId);
 
-    console.log(`Initial check - Plugin '${pluginId}' registered: ${isRegistered}, running: ${isRunning}`);
+    // console.log(`Initial check - Plugin '${pluginId}' registered: ${isRegistered}, running: ${isRunning}`);
 
     // If the plugin is already registered and running, return true immediately
     if (isRegistered && isRunning) {
@@ -144,7 +144,7 @@ export class PluginRegistryService {
       return of(false);
     }
 
-    console.log(`Retry ${retryCount + 1}/${this.maxRetries} for plugin '${pluginId}'`);
+    // console.log(`Retry ${retryCount + 1}/${this.maxRetries} for plugin '${pluginId}'`);
 
     // Fetch the plugins
     return this.pluginService.getPlugins().pipe(
@@ -154,7 +154,7 @@ export class PluginRegistryService {
         const isRegistered = this.pluginService.isPluginRegistered(pluginId);
         const isRunning = this.pluginService.isPluginRunning(pluginId);
 
-        console.log(`Retry ${retryCount + 1} - Plugin '${pluginId}' registered: ${isRegistered}, running: ${isRunning}`);
+        // console.log(`Retry ${retryCount + 1} - Plugin '${pluginId}' registered: ${isRegistered}, running: ${isRunning}`);
 
         if (isRegistered && isRunning) {
           // Plugin is registered and running, return true
@@ -181,7 +181,7 @@ export class PluginRegistryService {
    * @param status The new status
    */
   updatePluginStatus(pluginId: string, status: PluginStatus): void {
-    console.log(`Updating plugin '${pluginId}' status to '${status}'`);
+    // console.log(`Updating plugin '${pluginId}' status to '${status}'`);
 
     // Update plugin info
     const plugin = this.plugins.get(pluginId);

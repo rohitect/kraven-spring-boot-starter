@@ -48,23 +48,23 @@ export class PluginService {
 
     // If we have a cached observable and it's still valid, return it
     if (this.pluginsCache$ && (currentTime - this.lastFetchTime < this.cacheDuration)) {
-      console.log('Using cached plugins data');
+      // console.log('Using cached plugins data');
       return this.pluginsCache$;
     }
 
     // Otherwise, make a new request
     const url = `${this.baseUrl}${this.apiPath}/plugins`;
-    console.log('Fetching plugins from:', url);
+    // console.log('Fetching plugins from:', url);
 
     // Create a new observable and cache it
     this.lastFetchTime = currentTime;
     this.pluginsCache$ = this.http.get<Plugin[]>(url).pipe(
       tap(plugins => {
-        console.log('Received plugins:', plugins);
+        // console.log('Received plugins:', plugins);
         this.plugins$.next(plugins);
       }),
       catchError(error => {
-        console.error('Error fetching plugins:', error);
+        // console.error('Error fetching plugins:', error);
         // Return an empty array on error
         return of([]);
       }),
@@ -77,15 +77,15 @@ export class PluginService {
 
   getNavigationItems(): Observable<NavigationItem[]> {
     const url = `${this.baseUrl}${this.apiPath}/plugins/navigation`;
-    console.log('Fetching navigation items from:', url);
+    // console.log('Fetching navigation items from:', url);
 
     return this.http.get<NavigationItem[]>(url).pipe(
       tap(items => {
-        console.log('Received navigation items:', items);
+        // console.log('Received navigation items:', items);
         this.navigationItems$.next(items);
       }),
       catchError(error => {
-        console.error('Error fetching navigation items:', error);
+        // console.error('Error fetching navigation items:', error);
         // Return an empty array on error
         return of([]);
       }),
@@ -95,15 +95,15 @@ export class PluginService {
 
   startPlugin(pluginId: string): Observable<PluginResponse> {
     const url = `${this.baseUrl}${this.apiPath}/plugins/${pluginId}/start`;
-    console.log(`Starting plugin ${pluginId} at:`, url);
+    // console.log(`Starting plugin ${pluginId} at:`, url);
 
     return this.http.post<PluginResponse>(url, {}).pipe(
       tap(response => {
-        console.log(`Plugin ${pluginId} start response:`, response);
+        // console.log(`Plugin ${pluginId} start response:`, response);
         this.refreshPlugins();
       }),
       catchError(error => {
-        console.error(`Error starting plugin ${pluginId}:`, error);
+        // console.error(`Error starting plugin ${pluginId}:`, error);
         return of({ success: false, message: `Failed to start plugin: ${error.message || 'Unknown error'}` });
       })
     );
@@ -111,15 +111,15 @@ export class PluginService {
 
   stopPlugin(pluginId: string): Observable<PluginResponse> {
     const url = `${this.baseUrl}${this.apiPath}/plugins/${pluginId}/stop`;
-    console.log(`Stopping plugin ${pluginId} at:`, url);
+    // console.log(`Stopping plugin ${pluginId} at:`, url);
 
     return this.http.post<PluginResponse>(url, {}).pipe(
       tap(response => {
-        console.log(`Plugin ${pluginId} stop response:`, response);
+        // console.log(`Plugin ${pluginId} stop response:`, response);
         this.refreshPlugins();
       }),
       catchError(error => {
-        console.error(`Error stopping plugin ${pluginId}:`, error);
+        // console.error(`Error stopping plugin ${pluginId}:`, error);
         return of({ success: false, message: `Failed to stop plugin: ${error.message || 'Unknown error'}` });
       })
     );

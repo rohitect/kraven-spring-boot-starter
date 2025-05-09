@@ -40,13 +40,13 @@ export class FeignClientService {
       this.scanIntervalMs = 60000;
     }
 
-    console.log('Feign client service initialized with config:', {
-      apiPath: this.apiPath,
-      enabled: this.enabled,
-      tryItOutEnabled: this.tryItOutEnabled,
-      cacheMetadata: this.cacheMetadata,
-      scanIntervalMs: this.scanIntervalMs
-    });
+    // console.log('Feign client service initialized with config:', {
+    //   apiPath: this.apiPath,
+    //   enabled: this.enabled,
+    //   tryItOutEnabled: this.tryItOutEnabled,
+    //   cacheMetadata: this.cacheMetadata,
+    //   scanIntervalMs: this.scanIntervalMs
+    // });
   }
 
   /**
@@ -54,15 +54,12 @@ export class FeignClientService {
    */
   getFeignClients(): Observable<FeignClient[]> {
     if (!this.enabled) {
-      console.log('Feign client feature is disabled');
       return of([]);
     }
 
-    console.log('Fetching Feign clients from:', this.apiPath);
-
     // First try the debug endpoint to check if the controller is accessible
     this.http.get(`${this.apiPath}/debug`, { headers: { 'Accept': 'application/json' } }).subscribe({
-      next: (response) => console.log('Debug endpoint response:', response),
+      next: (response) => { /* Debug endpoint is working */ },
       error: (error) => console.error('Debug endpoint error:', error)
     });
 
@@ -77,8 +74,8 @@ export class FeignClientService {
         }
       }),
       catchError(error => {
-        console.error('Error fetching Feign clients:', error);
-        console.error('Response text:', error.error?.text || 'No response text');
+        // console.error('Error fetching Feign clients:', error);
+        // console.error('Response text:', error.error?.text || 'No response text');
         return of([]);
       })
     );
@@ -91,12 +88,12 @@ export class FeignClientService {
    */
   getFeignClient(name: string): Observable<FeignClient | null> {
     if (!this.enabled) {
-      console.log('Feign client feature is disabled');
+      // console.log('Feign client feature is disabled');
       return of(null);
     }
 
     const url = `${this.apiPath}/${name}`;
-    console.log('Fetching Feign client from:', url);
+    // console.log('Fetching Feign client from:', url);
 
     // First try the debug endpoint to check if the controller is accessible
     this.http.get(`${this.apiPath}/debug`, { headers: { 'Accept': 'application/json' } }).subscribe({
@@ -123,11 +120,11 @@ export class FeignClientService {
    */
   executeMethod(clientName: string, methodName: string, parameters: any, requestBody?: string): Observable<any> {
     if (!this.enabled) {
-      console.log('Feign client feature is disabled');
+      // console.log('Feign client feature is disabled');
       return of(null);
     }
 
-    console.log('Executing Feign client method:', `${this.apiPath}/${clientName}/methods/${methodName}/execute`);
+    // console.log('Executing Feign client method:', `${this.apiPath}/${clientName}/methods/${methodName}/execute`);
 
     // Prepare the request payload
     const payload: any = { ...parameters };
@@ -143,7 +140,7 @@ export class FeignClientService {
       }
     }
 
-    console.log('Request payload:', payload);
+    // console.log('Request payload:', payload);
 
     // Return the raw response without wrapping it
     return this.http.post(`${this.apiPath}/${clientName}/methods/${methodName}/execute`, payload, {

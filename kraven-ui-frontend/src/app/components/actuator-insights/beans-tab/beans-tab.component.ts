@@ -127,7 +127,6 @@ export class BeansTabComponent implements OnInit, AfterViewInit, OnDestroy {
           const newTheme = document.body.classList.contains('dark-theme') ? 'dark' : 'light';
           if (newTheme !== this.currentTheme) {
             this.currentTheme = newTheme;
-            console.log('Theme changed to:', newTheme);
 
             // Recreate the graph if it's active
             if (this.activeView === 'graph' && this.graph) {
@@ -836,9 +835,6 @@ export class BeansTabComponent implements OnInit, AfterViewInit, OnDestroy {
    * This could be enhanced with a toast notification component
    */
   private showCopySuccessMessage(): void {
-    // For now, just log to console
-    console.log('Copied to clipboard!');
-
     // In a real implementation, you would show a toast notification
     // or some other visual feedback to the user
   }

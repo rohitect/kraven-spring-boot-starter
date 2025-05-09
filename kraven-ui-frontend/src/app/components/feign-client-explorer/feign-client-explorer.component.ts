@@ -148,25 +148,20 @@ export class FeignClientExplorerComponent implements OnInit {
     const config = this.configService.getConfig();
     const apiPath = config.feignClient?.apiPath || '/kraven/v1/feign-clients';
 
-    console.log('Debug: Checking Feign client endpoints');
-    console.log('Debug: API Path:', apiPath);
-
     // Check the debug endpoint
     this.http.get(`${apiPath}/debug`).subscribe({
       next: (response) => {
-        console.log('Debug endpoint response:', response);
-        alert('Debug endpoint is working. Check console for details.');
+        alert('Debug endpoint is working.');
       },
       error: (error) => {
         console.error('Debug endpoint error:', error);
-        alert('Debug endpoint error. Check console for details.');
+        alert('Debug endpoint error.');
       }
     });
 
     // Check the names endpoint
     this.http.get<string[]>(`${apiPath}/debug/names`).subscribe({
       next: (names) => {
-        console.log('Client names:', names);
         if (names && names.length > 0) {
           alert(`Found ${names.length} client names: ${names.join(', ')}`);
         } else {
@@ -175,7 +170,7 @@ export class FeignClientExplorerComponent implements OnInit {
       },
       error: (error) => {
         console.error('Names endpoint error:', error);
-        alert('Names endpoint error. Check console for details.');
+        alert('Names endpoint error.');
       }
     });
   }
@@ -266,7 +261,6 @@ export class FeignClientExplorerComponent implements OnInit {
   selectClientByName(name: string): void {
     // Ensure feignClients is an array
     if (!Array.isArray(this.feignClients)) {
-      console.warn('feignClients is not an array:', this.feignClients);
       this.feignClients = [];
     }
 
@@ -365,7 +359,6 @@ export class FeignClientExplorerComponent implements OnInit {
     try {
       // Ensure feignClients is an array
       if (!Array.isArray(this.feignClients)) {
-        console.warn('feignClients is not an array:', this.feignClients);
         this.feignClients = [];
         return;
       }
@@ -515,9 +508,9 @@ export class FeignClientExplorerComponent implements OnInit {
       // Reset right pane tab
       this.rightPaneActiveTab = 'try-it-out';
 
-      console.log('Try It Out opened for method:', method.name);
+      // Method is now ready for execution
     } else {
-      console.log('Try It Out closed for method:', method.name);
+      // Try It Out has been closed
     }
   }
 
@@ -561,7 +554,7 @@ export class FeignClientExplorerComponent implements OnInit {
       });
     }
 
-    console.log('Executing method with parameters:', parameters);
+
 
     this.feignClientService.executeMethod(
       client.name,

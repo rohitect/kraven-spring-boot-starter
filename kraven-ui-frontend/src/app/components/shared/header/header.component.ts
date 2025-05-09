@@ -53,7 +53,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
    * Checks if the Kafka plugin is registered and running
    */
   private checkKafkaPluginStatus(): void {
-    console.log('HeaderComponent: Checking Kafka plugin status');
+
 
     // First, try to get the current status
     const isRegistered = this.pluginService.isPluginRegistered('kafka');
@@ -78,7 +78,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
    * Checks if the Mock Server plugin is registered and running
    */
   private checkMockServerPluginStatus(): void {
-    console.log('HeaderComponent: Checking Mock Server plugin status');
+
 
     // First, try to get the current status
     const isRegistered = this.pluginService.isPluginRegistered('mock-server');
@@ -116,7 +116,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
    * Checks if the Actuator Insights plugin is registered and running
    */
   private checkActuatorInsightsPluginStatus(): void {
-    console.log('HeaderComponent: Checking Actuator Insights plugin status');
+
 
     // First, try to get the current status
     const isRegistered = this.pluginService.isPluginRegistered('actuator-insights');

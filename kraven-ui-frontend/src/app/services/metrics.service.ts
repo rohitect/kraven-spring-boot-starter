@@ -186,18 +186,7 @@ export class MetricsService {
       this.enabled = true;
     }
 
-    console.log('Metrics service initialized with config:', {
-      apiPath: this.apiPath,
-      jvmMetricsEnabled: this.jvmMetricsEnabled,
-      springMetricsEnabled: this.springMetricsEnabled,
-      kafkaMetricsEnabled: this.kafkaMetricsEnabled,
-      feignMetricsEnabled: this.feignMetricsEnabled,
-      refreshIntervalMs: this.refreshIntervalMs,
-      autoRefreshEnabled: this.autoRefreshEnabled,
-      threadDumpEnabled: this.threadDumpEnabled,
-      heapDumpEnabled: this.heapDumpEnabled,
-      enabled: this.enabled
-    });
+
   }
 
   /**

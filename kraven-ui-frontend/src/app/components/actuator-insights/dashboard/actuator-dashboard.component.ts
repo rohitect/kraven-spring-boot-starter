@@ -172,7 +172,7 @@ export class ActuatorDashboardComponent implements OnInit, OnDestroy {
     
     this.http.post<any>(url, {}).subscribe(
       (response) => {
-        console.log('Actuator data refreshed:', response);
+        // console.log('Actuator data refreshed:', response);
         this.refreshData();
       },
       (error) => {

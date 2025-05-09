@@ -257,7 +257,7 @@ export class ApiDocsComponent implements OnInit {
       next: (appMetrics) => {
         // Use the application name from the metrics service
         this.applicationName = appMetrics.name || 'Application';
-        console.log('Application name from metrics:', this.applicationName);
+        // console.log('Application name from metrics:', this.applicationName);
 
         // Set the application name in the API History Service
         this.apiHistoryService.setApplicationName(this.applicationName);
@@ -881,7 +881,7 @@ export class ApiDocsComponent implements OnInit {
     // Clean up favorites that no longer exist
     this.favoritesService.cleanupFavorites(allEndpoints).subscribe({
       next: () => {
-        console.log('Favorites cleanup completed');
+        // console.log('Favorites cleanup completed');
       },
       error: (err) => {
         console.error('Error cleaning up favorites:', err);
@@ -1521,7 +1521,7 @@ export class ApiDocsComponent implements OnInit {
           // Clear previous response samples when selecting a new endpoint
           this.responseSamples = {};
           this.selectedResponseCode = null;
-          console.log('Cleared response samples for new endpoint');
+          // console.log('Cleared response samples for new endpoint');
 
           // Always set the active tab to try-it-out when selecting a new endpoint
           this.rightPaneActiveTab = 'try-it-out';
@@ -2141,7 +2141,7 @@ export class ApiDocsComponent implements OnInit {
       navigator.clipboard.writeText(sample)
         .then(() => {
           // Show a toast or notification
-          console.log('Response sample copied to clipboard');
+          // console.log('Response sample copied to clipboard');
         })
         .catch(err => {
           console.error('Failed to copy response sample:', err);
@@ -2253,7 +2253,7 @@ export class ApiDocsComponent implements OnInit {
 
         this.apiHistoryService.saveApiCall(historyEntry).subscribe({
           next: () => {
-            console.log('API call saved to history');
+            // console.log('API call saved to history');
           },
           error: (err) => {
             console.error('Error saving API call to history:', err);
@@ -2407,7 +2407,7 @@ export class ApiDocsComponent implements OnInit {
   deleteHistoryEntry(id: number): void {
     this.apiHistoryService.deleteApiCall(id).subscribe({
       next: () => {
-        console.log('API call deleted from history');
+        // console.log('API call deleted from history');
         this.closeHistoryDetailModal();
       },
       error: (err) => {

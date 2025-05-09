@@ -72,7 +72,7 @@ export class MarkdownComponent implements OnChanges, AfterViewInit, OnDestroy {
     try {
       // Use the documentationService to decode the base64 content
       decodedContent = this.documentationService.decodeBase64Content(this.content);
-      console.log('Successfully decoded base64 content');
+
     } catch (error) {
       // If decoding fails, use the original content (for backward compatibility)
       console.warn('Failed to decode content as base64, using original content:', error);
@@ -91,7 +91,7 @@ export class MarkdownComponent implements OnChanges, AfterViewInit, OnDestroy {
     // Process business flow tags
     this.processedContent = content;//this.processBusinessFlowTags(content);
 
-    console.log('Processed content length:', this.processedContent.length);
+
   }
 
   /**
@@ -111,7 +111,6 @@ export class MarkdownComponent implements OnChanges, AfterViewInit, OnDestroy {
    */
   renderMermaidDiagrams(): void {
     if (!this.markdownContainer || typeof (window as any).mermaid === 'undefined') {
-      console.log('Mermaid not available or container not found');
       return;
     }
 
@@ -119,17 +118,13 @@ export class MarkdownComponent implements OnChanges, AfterViewInit, OnDestroy {
       // Initialize mermaid with proper configuration
       const mermaid = (window as any).mermaid;
 
-      // Log the mermaid version to help with debugging
-      console.log('Mermaid version:', mermaid.version || 'unknown');
 
-      // Log available methods on mermaid object
-      console.log('Available mermaid methods:', Object.keys(mermaid));
 
       // Check if we're dealing with an older version of Mermaid
       const isOlderVersion = mermaid.version &&
         (mermaid.version.startsWith('8.') || mermaid.version.startsWith('9.'));
 
-      console.log('Is older Mermaid version:', isOlderVersion);
+      // console.log('Is older Mermaid version:', isOlderVersion);
 
       // Use a simpler configuration for older versions
       if (isOlderVersion) {
@@ -165,8 +160,6 @@ export class MarkdownComponent implements OnChanges, AfterViewInit, OnDestroy {
       const element = this.markdownContainer.nativeElement;
       const diagrams = element.querySelectorAll('code.language-mermaid');
 
-      console.log(`Found ${diagrams.length} mermaid diagrams`);
-
       if (diagrams.length === 0) {
         return;
       }
@@ -187,7 +180,7 @@ export class MarkdownComponent implements OnChanges, AfterViewInit, OnDestroy {
             diagram.parentNode.parentNode.replaceChild(container, diagram.parentNode);
           }
 
-          console.log(`Rendering diagram ${index} with content length: ${content.length}`);
+          // console.log(`Rendering diagram ${index} with content length: ${content.length}`);
 
           try {
             // Check if we're dealing with an older version of Mermaid
@@ -196,7 +189,7 @@ export class MarkdownComponent implements OnChanges, AfterViewInit, OnDestroy {
 
             // For older versions (8.x, 9.x), use a simpler approach
             if (isOlderVersion) {
-              console.log(`Using older Mermaid approach for diagram ${index}`);
+              // console.log(`Using older Mermaid approach for diagram ${index}`);
 
               // For older versions, we need to adapt the syntax
               let adaptedContent = content;
@@ -204,7 +197,7 @@ export class MarkdownComponent implements OnChanges, AfterViewInit, OnDestroy {
               // If content starts with "flowchart", change it to "graph" for older versions
               if (content.trim().startsWith('flowchart')) {
                 adaptedContent = content.replace(/^flowchart/, 'graph');
-                console.log(`Adapted content for older Mermaid version:`, adaptedContent);
+                // console.log(`Adapted content for older Mermaid version:`, adaptedContent);
               }
 
               // Insert the diagram content with the mermaid class
@@ -225,7 +218,7 @@ export class MarkdownComponent implements OnChanges, AfterViewInit, OnDestroy {
             else {
               // Check if parse method exists (for v11.6.0)
               if (typeof mermaid.parse === 'function') {
-                console.log(`Using mermaid.parse for diagram ${index}`);
+                // console.log(`Using mermaid.parse for diagram ${index}`);
 
                 // First parse the diagram to check for syntax errors
                 mermaid.parse(content);
@@ -238,7 +231,7 @@ export class MarkdownComponent implements OnChanges, AfterViewInit, OnDestroy {
               }
               // Fallback to render method if it exists
               else if (typeof mermaid.render === 'function') {
-                console.log(`Using mermaid.render for diagram ${index}`);
+                // console.log(`Using mermaid.render for diagram ${index}`);
 
                 try {
                   // Try the synchronous render API first
@@ -259,24 +252,19 @@ export class MarkdownComponent implements OnChanges, AfterViewInit, OnDestroy {
                       renderPromise.then((result: any) => {
                         container.innerHTML = result.svg;
                       }).catch((promiseError: any) => {
-                        console.error(`Promise-based render error:`, promiseError);
                         container.innerHTML = `<div class="mermaid-error">Error: ${promiseError.message || 'Render failed'}</div>`;
                       });
                     } else {
-                      console.error(`Render did not return a Promise:`, renderPromise);
                       container.innerHTML = `<div class="mermaid-error">Error: Render method did not return expected result</div>`;
                     }
                   } catch (error) {
                     const promiseError = error as Error;
-                    console.error(`Error trying Promise-based render:`, promiseError);
                     container.innerHTML = `<div class="mermaid-error">Error: ${promiseError.message || 'All render attempts failed'}</div>`;
                   }
                 }
               }
               // Last resort: try the old run method
               else if (typeof mermaid.run === 'function') {
-                console.log(`Using mermaid.run for diagram ${index}`);
-
                 // Insert the diagram content with the mermaid class
                 container.innerHTML = `<div class="mermaid" id="mermaid-${index}">${content}</div>`;
 
@@ -315,7 +303,7 @@ export class MarkdownComponent implements OnChanges, AfterViewInit, OnDestroy {
 
               // Try to render with fixed content as a last resort
               try {
-                console.log('Attempting to fix and render diagram with common fixes');
+                // console.log('Attempting to fix and render diagram with common fixes');
 
                 // Replace 'graph' with 'flowchart' for newer versions
                 if (mermaid.version && !mermaid.version.startsWith('8.') && !mermaid.version.startsWith('9.')) {
@@ -354,7 +342,7 @@ export class MarkdownComponent implements OnChanges, AfterViewInit, OnDestroy {
                   }
                 }
 
-                console.log('Fixed content:', fixedContent);
+                // console.log('Fixed content:', fixedContent);
 
                 // Try to render with the fixed content
                 container.innerHTML = `<div class="mermaid">${fixedContent}</div>`;
@@ -474,11 +462,8 @@ export class MarkdownComponent implements OnChanges, AfterViewInit, OnDestroy {
         const tagName = tagElement.getAttribute('data-tag-name');
         if (!tagName) return;
 
-        console.log('Business flow tag clicked:', tagName);
-
         const tag = this.businessFlowTags.find(t => t.name === tagName);
         if (tag) {
-          console.log('Emitting business flow tag:', tag);
           this.businessFlowTagClick.emit(tag);
         } else {
           console.warn('Business flow tag not found:', tagName);
@@ -489,11 +474,6 @@ export class MarkdownComponent implements OnChanges, AfterViewInit, OnDestroy {
     // Add the new event listener
     element.addEventListener('click', this.clickHandler);
 
-    // Log all business flow tags for debugging
-    console.log('Available business flow tags:', this.businessFlowTags);
 
-    // Log all view flow buttons
-    const viewButtons = element.querySelectorAll('.view-flow-btn');
-    console.log(`Found ${viewButtons.length} view flow buttons`);
   }
 }

@@ -48,9 +48,9 @@ export class ActuatorDataService {
             this.actuatorBasePath = status.actuatorBasePath || 'actuator';
             this.fullActuatorPath = status.fullActuatorPath || '/actuator';
             this.pluginInitialized = true;
-            console.log('Actuator plugin initialized with context path:', this.contextPath);
-            console.log('Actuator base path:', this.actuatorBasePath);
-            console.log('Full actuator path:', this.fullActuatorPath);
+            // console.log('Actuator plugin initialized with context path:', this.contextPath);
+            // console.log('Actuator base path:', this.actuatorBasePath);
+            // console.log('Full actuator path:', this.fullActuatorPath);
           }
         },
         error: (error) => {
@@ -101,9 +101,9 @@ export class ActuatorDataService {
             this.actuatorBasePath = status.actuatorBasePath || 'actuator';
             this.fullActuatorPath = status.fullActuatorPath || '/actuator';
             this.pluginInitialized = true;
-            console.log('Actuator plugin initialized with context path:', this.contextPath);
-            console.log('Actuator base path:', this.actuatorBasePath);
-            console.log('Full actuator path:', this.fullActuatorPath);
+            // console.log('Actuator plugin initialized with context path:', this.contextPath);
+            // console.log('Actuator base path:', this.actuatorBasePath);
+            // console.log('Full actuator path:', this.fullActuatorPath);
           }
 
           // Now get the data with the updated context path

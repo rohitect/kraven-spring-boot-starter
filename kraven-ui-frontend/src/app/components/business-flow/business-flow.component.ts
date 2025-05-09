@@ -160,7 +160,7 @@ export class BusinessFlowComponent implements OnInit, OnDestroy {
     this.refreshing = true;
     this.businessFlowService.refreshBusinessFlows().subscribe({
       next: (message) => {
-        console.log('Refresh result:', message);
+        // console.log('Refresh result:', message);
         this.loadTags();
         if (this.selectedTag) {
           this.loadBusinessFlow(this.selectedTag.name);

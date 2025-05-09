@@ -74,11 +74,11 @@ export class ThemeService {
     if (theme === 'light') {
       document.documentElement.classList.add('light-theme');
       document.documentElement.classList.remove('dark-theme');
-      console.log('Applied light theme');
+
     } else {
       document.documentElement.classList.add('dark-theme');
       document.documentElement.classList.remove('light-theme');
-      console.log('Applied dark theme');
+
     }
   }
 

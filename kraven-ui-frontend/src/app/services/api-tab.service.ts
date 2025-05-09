@@ -30,7 +30,7 @@ export class ApiTabService {
       .replace(/^-|-$/g, ''); // Remove leading and trailing hyphens
 
     this.dbName = `${sanitizedName}-kraven-api-tabs`;
-    console.log(`Using tabs database: ${this.dbName}`);
+
 
     // Initialize the database with the new name
     this.initDatabase();
@@ -65,7 +65,7 @@ export class ApiTabService {
     };
 
     request.onsuccess = () => {
-      console.log(`Successfully opened tabs database: ${this.dbName}`);
+
     };
   }
 

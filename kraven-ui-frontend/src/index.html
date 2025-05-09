@@ -63,11 +63,11 @@
       // Check if marked is not defined after scripts are loaded
       if (typeof marked === 'undefined' && typeof window.marked !== 'undefined') {
         window.marked = window.marked;
-        console.log('Marked library initialized from window.marked');
+        // console.log('Marked library initialized from window.marked');
       } else if (typeof marked === 'undefined') {
         console.error('Marked library is not available. This may cause rendering issues.');
       } else {
-        console.log('Marked library is already available');
+        // console.log('Marked library is already available');
       }
 
       // Check if Font Awesome is loaded

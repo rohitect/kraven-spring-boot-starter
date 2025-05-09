@@ -194,7 +194,7 @@ export class OAuth2AuthComponent implements OnInit {
   private authorizePassword(): void {
     // In a real implementation, this would make a token request to the token URL
     // For now, we'll just show a message
-    console.log('Password flow authorization not implemented in the UI');
+    // console.log('Password flow authorization not implemented in the UI');
     alert('Password flow requires server-side implementation. Please enter your access token manually.');
   }
 
@@ -204,7 +204,7 @@ export class OAuth2AuthComponent implements OnInit {
   private authorizeClientCredentials(): void {
     // In a real implementation, this would make a token request to the token URL
     // For now, we'll just show a message
-    console.log('Client credentials flow authorization not implemented in the UI');
+    // console.log('Client credentials flow authorization not implemented in the UI');
     alert('Client credentials flow requires server-side implementation. Please enter your access token manually.');
   }
 

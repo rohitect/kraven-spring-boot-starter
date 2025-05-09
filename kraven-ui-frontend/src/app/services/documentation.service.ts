@@ -74,7 +74,7 @@ export class DocumentationService {
     // Use the global variable if available, otherwise fall back to default
     const baseApiPath = (window as any).__KRAVEN_BASE_API_PATH__ || '/kraven/api';
     this.apiPath = `${baseApiPath}/documentation`;
-    console.log('DocumentationService using API path:', this.apiPath);
+
   }
 
   /**

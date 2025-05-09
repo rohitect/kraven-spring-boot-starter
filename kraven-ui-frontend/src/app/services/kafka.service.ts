@@ -116,7 +116,6 @@ export class KafkaService {
       // we're constructing the path correctly
       const servletContextPath = baseApiPath.replace('/kraven/api', '');
       this.apiPath = `${servletContextPath}/kraven/plugin/kafka`;
-      console.log('Constructed Kafka API path:', this.apiPath);
 
       this.messageLimit = config.kafka.messageLimit || 100;
       this.streamingEnabled = config.kafka.streamingEnabled !== false;
@@ -129,7 +128,6 @@ export class KafkaService {
       // Default values if kafka config is not provided
       const servletContextPath = baseApiPath.replace('/kraven/api', '');
       this.apiPath = `${servletContextPath}/kraven/plugin/kafka`;
-      console.log('Constructed Kafka API path (default config):', this.apiPath);
 
       this.messageLimit = 100;
       this.streamingEnabled = true;
@@ -140,15 +138,7 @@ export class KafkaService {
       this.enabled = true;
     }
 
-    console.log('Kafka service initialized with config:', {
-      apiPath: this.apiPath,
-      messageLimit: this.messageLimit,
-      streamingEnabled: this.streamingEnabled,
-      messageProductionEnabled: this.messageProductionEnabled,
-      messageConsumptionEnabled: this.messageConsumptionEnabled,
-      topicManagementEnabled: this.topicManagementEnabled,
-      enabled: this.enabled
-    });
+
   }
 
   /**
@@ -194,7 +184,6 @@ export class KafkaService {
     }
 
     const url = `${this.apiPath}/consumer-groups`;
-    console.log(`Fetching consumer groups from URL: ${url}`);
 
     return this.http.get<KafkaConsumerGroup[]>(url);
   }
@@ -209,7 +198,6 @@ export class KafkaService {
     }
 
     const url = `${this.apiPath}/listeners`;
-    console.log(`Fetching listeners from URL: ${url}`);
 
     return this.http.get<KafkaListener[]>(url);
   }
@@ -235,7 +223,6 @@ export class KafkaService {
     }
 
     const url = `${this.apiPath}/topics/${topicName}/consumers`;
-    console.log(`Fetching consumers for topic ${topicName} from URL: ${url}`);
 
     return this.http.get<KafkaConsumerGroup[]>(url);
   }

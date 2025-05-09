@@ -123,12 +123,7 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
       this.streamingEnabled = config.kafka.streamingEnabled !== false;
       this.messageLimit = config.kafka.messageLimit || 100;
 
-      console.log('Kafka Explorer initialized with config:', {
-        messageProductionEnabled: this.messageProductionEnabled,
-        messageConsumptionEnabled: this.messageConsumptionEnabled,
-        streamingEnabled: this.streamingEnabled,
-        messageLimit: this.messageLimit
-      });
+
     }
 
     // Initialize filtered messages array
@@ -160,10 +155,8 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
 
       // Only fetch cluster info if we don't already have it
       if (!this.clusterInfo) {
-        console.log('Fetching cluster info from API');
         this.kafkaService.getClusterInfo().subscribe({
           next: (clusterInfo) => {
-            console.log('Received cluster info:', clusterInfo);
             this.clusterInfo = clusterInfo;
             this.loading = false;
 
@@ -177,7 +170,7 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
           }
         });
       } else {
-        console.log('Using cached cluster info');
+
         this.loading = false;
         // Use the existing cluster info
         this.processClusterInfoAndParams(this.clusterInfo, tabParam, itemParam);
@@ -385,7 +378,7 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
 
     this.kafkaService.getMessagesFromTopic(topicName, page, this.messageLimit, sort).subscribe({
       next: (response) => {
-        console.log('Response from getMessagesFromTopic:', response);
+
 
         // Check if response is an array (direct messages) or an object with messages property
         if (Array.isArray(response)) {
@@ -535,11 +528,8 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
 
     this.newMessage.timestamp = new Date().toISOString();
 
-    console.log('Sending message to topic:', this.newMessage.topic);
     this.kafkaService.sendMessage(this.newMessage).subscribe({
       next: (response) => {
-        console.log('Message sent successfully:', response);
-
         // Clear the form but keep the topic
         const currentTopic = this.newMessage.topic;
         this.newMessage = {
@@ -732,7 +722,6 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
 
     // Check if event source was created (it might be null if streaming is disabled)
     if (!eventSource) {
-      console.warn('Failed to create event source');
       this.isStreaming = false;
       this.messageViewMode = 'new'; // Fall back to non-streaming mode
       return;
@@ -742,14 +731,13 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
 
     // Handle connection open
     this.eventSource.onopen = () => {
-      console.log('SSE connection opened for topic:', this.selectedTopic?.name);
+      // Connection opened successfully
     };
 
     // Handle messages
     this.eventSource.addEventListener('message', (event) => {
       try {
         const message = JSON.parse(event.data) as KafkaMessage;
-        console.log('Received message from stream:', message);
 
         // Add the message to the beginning of the array (newest first)
         this.streamedMessages.unshift(message);
@@ -884,10 +872,8 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
         break;
       case 1: // Brokers tab
         // Refresh brokers data
-        console.log('Loading brokers data');
         this.kafkaService.getBrokers().subscribe({
           next: (brokers) => {
-            console.log('Received brokers data:', brokers);
             if (this.clusterInfo) {
               this.clusterInfo.brokers = brokers;
             }
@@ -903,10 +889,8 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
         break;
       case 2: // Consumer Groups tab
         // Refresh consumer groups data
-        console.log('Loading consumer groups data');
         this.kafkaService.getConsumerGroups().subscribe({
           next: (consumerGroups) => {
-            console.log('Received consumer groups data:', consumerGroups);
             if (this.clusterInfo) {
               this.clusterInfo.consumerGroups = consumerGroups;
             }
@@ -922,18 +906,14 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
         break;
       case 3: // Listeners tab
         // Refresh listeners data
-        console.log('Loading listeners data');
         this.kafkaService.getListeners().subscribe({
           next: (listeners) => {
-            console.log('Received listeners data:', listeners);
             if (this.clusterInfo) {
               this.clusterInfo.listeners = listeners;
             }
             // Select the first listener if none is selected
             if (!this.selectedListener && listeners && listeners.length > 0) {
               this.selectListener(listeners[0]);
-            } else {
-              console.warn('No listeners found or listeners array is empty');
             }
           },
           error: (error) => {
@@ -950,7 +930,7 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
    * Sets the active topic tab, loads the appropriate data for the tab, and updates the query parameters.
    */
   setActiveTopicTab(tab: string): void {
-    console.log(`Setting active topic tab to: ${tab}`);
+    // console.log(`Setting active topic tab to: ${tab}`);
     this.activeTopicTab = tab;
 
     // Load the appropriate data based on the selected tab
@@ -958,10 +938,10 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
       switch (tab) {
         case 'overview':
           // Refresh topic details
-          console.log(`Loading topic details for: ${this.selectedTopic.name}`);
+          // console.log(`Loading topic details for: ${this.selectedTopic.name}`);
           this.kafkaService.getTopicByName(this.selectedTopic.name).subscribe({
             next: (topicDetails) => {
-              console.log('Received topic details:', topicDetails);
+              // console.log('Received topic details:', topicDetails);
               this.topicDetails = topicDetails;
             },
             error: (error) => {
@@ -971,21 +951,17 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
           break;
         case 'messages':
           // Refresh messages only when switching to the messages tab
-          console.log(`Loading messages for topic: ${this.selectedTopic.name}`);
           const sortParam = this.messageViewMode === 'old' ? 'old' : 'new';
           this.loadMessagesForTopic(this.selectedTopic.name, sortParam, this.currentPage);
           break;
         case 'consumers':
           // Refresh consumers for this topic
-          console.log(`Loading consumers for topic: ${this.selectedTopic.name}`);
           this.refreshConsumers();
           break;
         case 'settings':
           // Refresh topic details to get settings
-          console.log(`Loading settings for topic: ${this.selectedTopic.name}`);
           this.kafkaService.getTopicByName(this.selectedTopic.name).subscribe({
             next: (topicDetails) => {
-              console.log('Received topic settings:', topicDetails);
               this.topicDetails = topicDetails;
             },
             error: (error) => {
@@ -1138,7 +1114,6 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
     // Copy to clipboard
     navigator.clipboard.writeText(content)
       .then(() => {
-        console.log('Content copied to clipboard');
         // You could add a toast notification here
       })
       .catch(err => {

@@ -284,7 +284,7 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
   scrollToSection(sectionId: string, event: Event): void {
     event.preventDefault();
 
-    console.log(`Attempting to scroll to section: ${sectionId}`);
+    // console.log(`Attempting to scroll to section: ${sectionId}`);
 
     // Try to find the element by ID
     const element = document.getElementById(sectionId);
@@ -298,7 +298,7 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
     }
 
     if (element) {
-      console.log(`Found element with ID: ${sectionId}`);
+      // console.log(`Found element with ID: ${sectionId}`);
 
       // Define header offset for scrolling
       const headerOffset = 80; // Adjust this value based on your header height
@@ -310,7 +310,7 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
       // Calculate the scroll position within the middle pane
       const scrollTop = elementRect.top - middlePaneRect.top + middlePaneElement.scrollTop - headerOffset;
 
-      console.log(`Scrolling middle pane to position: ${scrollTop}`);
+      // console.log(`Scrolling middle pane to position: ${scrollTop}`);
 
       // Scroll the middle pane to the element
       middlePaneElement.scrollTo({
@@ -326,7 +326,7 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
       // Try to find the element using a query selector with the ID
       const elementBySelector = document.querySelector(`#${sectionId}`);
       if (elementBySelector) {
-        console.log(`Found element with selector #${sectionId}`);
+        // console.log(`Found element with selector #${sectionId}`);
 
         // Get the position of the element relative to the middle pane
         const middlePaneRect = middlePaneElement.getBoundingClientRect();
@@ -335,7 +335,7 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
         // Calculate the scroll position within the middle pane
         const scrollTop = elementRect.top - middlePaneRect.top + middlePaneElement.scrollTop - 80;
 
-        console.log(`Scrolling middle pane to position: ${scrollTop}`);
+        // console.log(`Scrolling middle pane to position: ${scrollTop}`);
 
         // Scroll the middle pane to the element
         middlePaneElement.scrollTo({
@@ -359,7 +359,7 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
    * Handles navigation to a specific group
    */
   private handleGroupNavigation(groupId: string, fileId?: string | null): void {
-    console.log(`Handling navigation to group: ${groupId}, file: ${fileId || 'none'}`);
+    // console.log(`Handling navigation to group: ${groupId}, file: ${fileId || 'none'}`);
 
 
     // Generate a new request ID to track this navigation
@@ -369,7 +369,7 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
     const group = this.groups.find(g => g.id === groupId);
 
     if (group) {
-      console.log(`Group ${groupId} found in loaded data`);
+      // console.log(`Group ${groupId} found in loaded data`);
 
       // If we already have the group, select it
       this.selectedGroup = group;
@@ -379,37 +379,37 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
         const file = group.files.find(f => f.id === fileId);
 
         if (file) {
-          console.log(`File ${fileId} found in loaded data`);
+          // console.log(`File ${fileId} found in loaded data`);
 
           // If we have the file, select it
           this.selectedFile = file;
           this.loadBusinessFlowTags(file.id);
         } else {
-          console.log(`File ${fileId} not found in loaded data, loading group details`);
+          // console.log(`File ${fileId} not found in loaded data, loading group details`);
 
           // If we don't have the file, load the group details to get updated files
           this.loadGroupDetails(groupId, fileId, requestId);
         }
       } else if (group.overview) {
-        console.log('No file ID specified, selecting overview file');
+        // console.log('No file ID specified, selecting overview file');
 
         // If no file ID but we have an overview, select it
         this.selectedFile = group.overview;
         this.loadBusinessFlowTags(group.overview.id);
       } else if (group.files.length > 0) {
-        console.log('No overview file, selecting first file');
+        // console.log('No overview file, selecting first file');
 
         // Otherwise select the first file
         this.selectedFile = group.files[0];
         this.loadBusinessFlowTags(group.files[0].id);
       } else {
-        console.log('Group has no files, loading group details');
+        // console.log('Group has no files, loading group details');
 
         // If the group has no files, load the group details
         this.loadGroupDetails(groupId, fileId, requestId);
       }
     } else {
-      console.log(`Group ${groupId} not found in loaded data, loading group details`);
+      // console.log(`Group ${groupId} not found in loaded data, loading group details`);
 
       // If we don't have the group, load it
       this.loadGroupDetails(groupId, fileId, requestId);
@@ -420,7 +420,7 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
    * Loads detailed information for a group
    */
   private loadGroupDetails(groupId: string, fileId?: string | null, requestId?: number): void {
-    console.log(`Loading group details for: ${groupId}, file: ${fileId || 'none'}, requestId: ${requestId || 'none'}`);
+    // console.log(`Loading group details for: ${groupId}, file: ${fileId || 'none'}, requestId: ${requestId || 'none'}`);
 
     // If no request ID was provided, generate one
     const currentRequestId = requestId || ++this.currentRequestId;
@@ -431,11 +431,11 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
       next: (group) => {
         // Check if this is still the current request
         if (requestId && currentRequestId !== this.currentRequestId) {
-          console.log(`Ignoring stale response for request ${currentRequestId}, current is ${this.currentRequestId}`);
+          // console.log(`Ignoring stale response for request ${currentRequestId}, current is ${this.currentRequestId}`);
           return;
         }
 
-        console.log(`Loaded group details for: ${groupId}`);
+        // console.log(`Loaded group details for: ${groupId}`);
 
         // Update the group in our groups array
         const index = this.groups.findIndex(g => g.id === groupId);
@@ -456,42 +456,42 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
           const file = group.files.find(f => f.id === fileId);
 
           if (file) {
-            console.log(`File ${fileId} found in loaded group data`);
+            // console.log(`File ${fileId} found in loaded group data`);
 
             // If we have the file, select it
             this.selectedFile = file;
             this.loadBusinessFlowTags(file.id);
           } else if (group.overview) {
-            console.log(`File ${fileId} not found, selecting overview file`);
+            // console.log(`File ${fileId} not found, selecting overview file`);
 
             // If we don't have the file but have an overview, select it
             this.selectedFile = group.overview;
             this.loadBusinessFlowTags(group.overview.id);
           } else if (group.files.length > 0) {
-            console.log(`File ${fileId} not found, no overview, selecting first file`);
+            // console.log(`File ${fileId} not found, no overview, selecting first file`);
 
             // Otherwise select the first file
             this.selectedFile = group.files[0];
             this.loadBusinessFlowTags(group.files[0].id);
           } else {
-            console.log('Group has no files');
+            // console.log('Group has no files');
             this.selectedFile = null;
             this.businessFlowTags = [];
           }
         } else if (group.overview) {
-          console.log('No file ID specified, selecting overview file');
+          // console.log('No file ID specified, selecting overview file');
 
           // If no file ID but we have an overview, select it
           this.selectedFile = group.overview;
           this.loadBusinessFlowTags(group.overview.id);
         } else if (group.files.length > 0) {
-          console.log('No overview file, selecting first file');
+          // console.log('No overview file, selecting first file');
 
           // Otherwise select the first file
           this.selectedFile = group.files[0];
           this.loadBusinessFlowTags(group.files[0].id);
         } else {
-          console.log('Group has no files');
+          // console.log('Group has no files');
           this.selectedFile = null;
           this.businessFlowTags = [];
         }
@@ -501,7 +501,7 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
       error: (error) => {
         // Check if this is still the current request
         if (requestId && currentRequestId !== this.currentRequestId) {
-          console.log(`Ignoring error for stale request ${currentRequestId}, current is ${this.currentRequestId}`);
+          // console.log(`Ignoring error for stale request ${currentRequestId}, current is ${this.currentRequestId}`);
           return;
         }
 
@@ -516,14 +516,14 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
    * Loads business flow tags for a file
    */
   loadBusinessFlowTags(fileId: string): void {
-    console.log(`Loading business flow tags for file: ${fileId}`);
+    // console.log(`Loading business flow tags for file: ${fileId}`);
 
     // Generate a new request ID
     const requestId = ++this.currentRequestId;
 
     // Check if we already have the tags in cache
     if (this.businessFlowTagsCache.has(fileId)) {
-      console.log(`Using cached business flow tags for file ${fileId}`);
+      // console.log(`Using cached business flow tags for file ${fileId}`);
       this.businessFlowTags = this.businessFlowTagsCache.get(fileId) || [];
       return;
     }
@@ -532,11 +532,11 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
       next: (tags) => {
         // Check if this is still the current request
         if (requestId !== this.currentRequestId) {
-          console.log(`Ignoring stale business flow tags for request ${requestId}, current is ${this.currentRequestId}`);
+          // console.log(`Ignoring stale business flow tags for request ${requestId}, current is ${this.currentRequestId}`);
           return;
         }
 
-        console.log(`Loaded ${tags.length} business flow tags for file ${fileId}`);
+        // console.log(`Loaded ${tags.length} business flow tags for file ${fileId}`);
         this.businessFlowTags = tags;
 
         // Cache the tags
@@ -550,7 +550,7 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
       error: (error) => {
         // Check if this is still the current request
         if (requestId !== this.currentRequestId) {
-          console.log(`Ignoring error for stale business flow tags request ${requestId}, current is ${this.currentRequestId}`);
+          // console.log(`Ignoring error for stale business flow tags request ${requestId}, current is ${this.currentRequestId}`);
           return;
         }
 
@@ -565,7 +565,7 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
    */
   private setupViewFlowButtons(): void {
     const viewFlowButtons = document.querySelectorAll('.view-flow-button');
-    console.log(`Found ${viewFlowButtons.length} view flow buttons`);
+    // console.log(`Found ${viewFlowButtons.length} view flow buttons`);
 
     viewFlowButtons.forEach(button => {
       button.addEventListener('click', (event) => {
@@ -636,7 +636,7 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
    * Public method to load all groups (for refresh button)
    */
   loadGroups(): void {
-    console.log('Refreshing all groups');
+    // console.log('Refreshing all groups');
 
     // Generate a new request ID
     const requestId = ++this.currentRequestId;
@@ -656,11 +656,11 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
       next: (groups) => {
         // Check if this is still the current request
         if (requestId !== this.currentRequestId) {
-          console.log(`Ignoring stale groups response for request ${requestId}, current is ${this.currentRequestId}`);
+          // console.log(`Ignoring stale groups response for request ${requestId}, current is ${this.currentRequestId}`);
           return;
         }
 
-        console.log(`Loaded ${groups.length} groups`);
+        // console.log(`Loaded ${groups.length} groups`);
         this.groups = groups;
         this.filteredGroups = [...groups];
         this.loading = false;
@@ -670,7 +670,7 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
           const previousGroup = groups.find(g => g.id === currentGroupId);
 
           if (previousGroup) {
-            console.log(`Reselecting previously selected group: ${currentGroupId}`);
+            // console.log(`Reselecting previously selected group: ${currentGroupId}`);
             this.selectedGroup = previousGroup;
 
             // If we had a file selected before, try to reselect it
@@ -678,49 +678,49 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
               const previousFile = previousGroup.files.find(f => f.id === currentFileId);
 
               if (previousFile) {
-                console.log(`Reselecting previously selected file: ${currentFileId}`);
+                // console.log(`Reselecting previously selected file: ${currentFileId}`);
                 this.selectedFile = previousFile;
                 this.loadBusinessFlowTags(previousFile.id);
               } else if (previousGroup.overview) {
-                console.log('Previously selected file not found, selecting overview');
+                // console.log('Previously selected file not found, selecting overview');
                 this.selectedFile = previousGroup.overview;
                 this.loadBusinessFlowTags(previousGroup.overview.id);
               } else if (previousGroup.files.length > 0) {
-                console.log('No overview, selecting first file');
+                // console.log('No overview, selecting first file');
                 this.selectedFile = previousGroup.files[0];
                 this.loadBusinessFlowTags(previousGroup.files[0].id);
               } else {
-                console.log('Group has no files');
+                // console.log('Group has no files');
                 this.selectedFile = null;
                 this.businessFlowTags = [];
               }
             } else if (previousGroup.overview) {
-              console.log('No file was selected, selecting overview');
+              // console.log('No file was selected, selecting overview');
               this.selectedFile = previousGroup.overview;
               this.loadBusinessFlowTags(previousGroup.overview.id);
             } else if (previousGroup.files.length > 0) {
-              console.log('No overview, selecting first file');
+              // console.log('No overview, selecting first file');
               this.selectedFile = previousGroup.files[0];
               this.loadBusinessFlowTags(previousGroup.files[0].id);
             } else {
-              console.log('Group has no files');
+              // console.log('Group has no files');
               this.selectedFile = null;
               this.businessFlowTags = [];
             }
           } else if (groups.length > 0) {
-            console.log('Previously selected group not found, selecting first group');
+            // console.log('Previously selected group not found, selecting first group');
             this.selectGroup(groups[0], true);
           } else {
-            console.log('No groups available');
+            // console.log('No groups available');
             this.selectedGroup = null;
             this.selectedFile = null;
             this.businessFlowTags = [];
           }
         } else if (groups.length > 0) {
-          console.log('No group was selected, selecting first group');
+          // console.log('No group was selected, selecting first group');
           this.selectGroup(groups[0], true);
         } else {
-          console.log('No groups available');
+          // console.log('No groups available');
           this.selectedGroup = null;
           this.selectedFile = null;
           this.businessFlowTags = [];
@@ -729,7 +729,7 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
       error: (error) => {
         // Check if this is still the current request
         if (requestId !== this.currentRequestId) {
-          console.log(`Ignoring error for stale groups request ${requestId}, current is ${this.currentRequestId}`);
+          // console.log(`Ignoring error for stale groups request ${requestId}, current is ${this.currentRequestId}`);
           return;
         }
 
@@ -744,7 +744,7 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
    * Public method to load a group (for UI)
    */
   loadGroup(groupId: string, fileId?: string | null): void {
-    console.log(`Public method loadGroup called for: ${groupId}, file: ${fileId || 'none'}`);
+    // console.log(`Public method loadGroup called for: ${groupId}, file: ${fileId || 'none'}`);
 
     // Generate a new request ID
     const requestId = ++this.currentRequestId;
@@ -756,7 +756,7 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
    * Public method to load a file (for UI)
    */
   loadFile(fileId: string): void {
-    console.log(`Public method loadFile called for: ${fileId}`);
+    // console.log(`Public method loadFile called for: ${fileId}`);
 
     // Generate a new request ID
     const requestId = ++this.currentRequestId;
@@ -767,11 +767,11 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
       next: (file) => {
         // Check if this is still the current request
         if (requestId !== this.currentRequestId) {
-          console.log(`Ignoring stale file response for request ${requestId}, current is ${this.currentRequestId}`);
+          // console.log(`Ignoring stale file response for request ${requestId}, current is ${this.currentRequestId}`);
           return;
         }
 
-        console.log(`Loaded file: ${file.id}`);
+        // console.log(`Loaded file: ${file.id}`);
         this.selectedFile = file;
         this.loadBusinessFlowTags(file.id);
         this.loading = false;
@@ -779,7 +779,7 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
       error: (error) => {
         // Check if this is still the current request
         if (requestId !== this.currentRequestId) {
-          console.log(`Ignoring error for stale file request ${requestId}, current is ${this.currentRequestId}`);
+          // console.log(`Ignoring error for stale file request ${requestId}, current is ${this.currentRequestId}`);
           return;
         }
 
@@ -862,11 +862,11 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
    */
   refreshDocumentation(): void {
     if (this.refreshing) {
-      console.log('Already refreshing documentation, skipping');
+      // console.log('Already refreshing documentation, skipping');
       return;
     }
 
-    console.log('Refreshing documentation');
+    // console.log('Refreshing documentation');
     this.refreshing = true;
 
     // Generate a new request ID
@@ -876,12 +876,12 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
       next: () => {
         // Check if this is still the current request
         if (requestId !== this.currentRequestId) {
-          console.log(`Ignoring stale refresh response for request ${requestId}, current is ${this.currentRequestId}`);
+          // console.log(`Ignoring stale refresh response for request ${requestId}, current is ${this.currentRequestId}`);
           this.refreshing = false;
           return;
         }
 
-        console.log('Documentation refreshed successfully');
+        // console.log('Documentation refreshed successfully');
 
         // Clear the cache
         this.businessFlowTagsCache.clear();
@@ -894,7 +894,7 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
       error: (error) => {
         // Check if this is still the current request
         if (requestId !== this.currentRequestId) {
-          console.log(`Ignoring error for stale refresh request ${requestId}, current is ${this.currentRequestId}`);
+          // console.log(`Ignoring error for stale refresh request ${requestId}, current is ${this.currentRequestId}`);
           this.refreshing = false;
           return;
         }
@@ -967,7 +967,7 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
           }, 2000);
         }
 
-        console.log('Document link copied to clipboard:', url);
+        // console.log('Document link copied to clipboard:', url);
       })
       .catch(err => {
         console.error('Failed to copy link:', err);

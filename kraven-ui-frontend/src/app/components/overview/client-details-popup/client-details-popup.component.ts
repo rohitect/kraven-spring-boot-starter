@@ -116,7 +116,7 @@ export class ClientDetailsPopupComponent implements OnInit, OnChanges {
   copyToClipboard(text: string): void {
     navigator.clipboard.writeText(text).then(() => {
       // Show a temporary toast or notification here if desired
-      console.log('Copied to clipboard:', text);
+      // console.log('Copied to clipboard:', text);
 
       // You could implement a toast notification here
       this.showCopyFeedback();

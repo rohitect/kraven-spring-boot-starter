@@ -30,7 +30,7 @@ export class ApiHistoryService {
       .replace(/^-|-$/g, ''); // Remove leading and trailing hyphens
 
     this.dbName = `${sanitizedName}-kraven-api-play-history`;
-    console.log(`Using database: ${this.dbName}`);
+    // console.log(`Using database: ${this.dbName}`);
 
     // Initialize the database with the new name
     this.initDatabase();
@@ -64,7 +64,7 @@ export class ApiHistoryService {
     };
 
     request.onsuccess = () => {
-      console.log(`Successfully opened database: ${this.dbName}`);
+      // console.log(`Successfully opened database: ${this.dbName}`);
     };
   }
 
@@ -158,7 +158,7 @@ export class ApiHistoryService {
 
       // If we have more entries than the maximum, delete the oldest ones
       if (totalEntries > this.MAX_ENTRIES) {
-        console.log(`Trimming history: ${totalEntries} entries found, limit is ${this.MAX_ENTRIES}`);
+        // console.log(`Trimming history: ${totalEntries} entries found, limit is ${this.MAX_ENTRIES}`);
 
         // Get all entries sorted by timestamp (oldest first)
         const getAllRequest = index.getAll();
@@ -175,7 +175,7 @@ export class ApiHistoryService {
           // Get the entries to delete (the oldest ones)
           const entriesToDelete = entries.slice(0, deleteCount);
 
-          console.log(`Deleting ${entriesToDelete.length} oldest entries`);
+          // console.log(`Deleting ${entriesToDelete.length} oldest entries`);
 
           // Delete the oldest entries
           entriesToDelete.forEach(entry => {
@@ -309,7 +309,7 @@ export class ApiHistoryService {
           const request = store.clear();
 
           request.onsuccess = () => {
-            console.log(`Cleared all history for database: ${this.dbName}`);
+            // console.log(`Cleared all history for database: ${this.dbName}`);
             observer.next();
             observer.complete();
           };

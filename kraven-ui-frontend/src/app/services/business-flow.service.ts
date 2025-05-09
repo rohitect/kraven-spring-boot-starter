@@ -39,7 +39,7 @@ export class BusinessFlowService {
     // Use the global variable if available, otherwise fall back to default
     const baseApiPath = (window as any).__KRAVEN_BASE_API_PATH__ || '/kraven/api';
     this.apiPath = `${baseApiPath}/business-flows`;
-    console.log('BusinessFlowService using API path:', this.apiPath);
+
   }
 
   /**

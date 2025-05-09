@@ -29,7 +29,7 @@ export class ApiFavoritesService {
       .replace(/^-|-$/g, ''); // Remove leading and trailing hyphens
 
     this.dbName = `${sanitizedName}-kraven-api-favorites`;
-    console.log(`Using favorites database: ${this.dbName}`);
+    // console.log(`Using favorites database: ${this.dbName}`);
 
     // Initialize the database with the new name
     this.initDatabase();
@@ -65,7 +65,7 @@ export class ApiFavoritesService {
     };
 
     request.onsuccess = () => {
-      console.log(`Successfully opened favorites database: ${this.dbName}`);
+      // console.log(`Successfully opened favorites database: ${this.dbName}`);
     };
   }
 

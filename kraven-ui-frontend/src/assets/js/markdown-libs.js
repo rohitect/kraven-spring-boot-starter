@@ -16,4 +16,4 @@ mermaid.initialize({
   fontFamily: 'inherit'
 });
 
-console.log('Markdown libraries loaded successfully');
+// console.log('Markdown libraries loaded successfully');

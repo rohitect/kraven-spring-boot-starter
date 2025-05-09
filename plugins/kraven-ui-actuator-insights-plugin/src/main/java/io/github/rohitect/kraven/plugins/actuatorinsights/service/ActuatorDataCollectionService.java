@@ -480,9 +480,9 @@ public class ActuatorDataCollectionService {
                         MetricData metricData = new MetricData(metricName, value, new Date(), description, baseUnit);
                         // Store in cache
                         dataCache.put("metric." + metricName, metricData);
-                        log.debug("Collected metric data for {}: {}", metricName, value);
+                        // log.debug("Collected metric data for {}: {}", metricName, value);
                     } else {
-                        log.warn("No value found in measurements for metric: {}", metricName);
+                        // log.warn("No value found in measurements for metric: {}", metricName);
                     }
                 } catch (Exception e) {
                     log.warn("Error processing metric data for {}: {}", metricName, e.getMessage());

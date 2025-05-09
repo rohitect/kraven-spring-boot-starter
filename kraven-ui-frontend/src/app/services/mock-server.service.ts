@@ -79,7 +79,7 @@ export class MockServerService {
     const servletContextPath = baseApiPath.replace('/kraven/api', '');
     this.baseUrl = `${servletContextPath}/kraven/plugin/mock-server`;
 
-    console.log('Constructed Mock Server API path:', this.baseUrl);
+
   }
 
   /**

@@ -20,7 +20,7 @@ export class ApiDocsService {
     const customApiDocsUrl = (window as any).__KRAVEN_API_DOCS_URL__;
 
     if (customApiDocsUrl) {
-      console.log('Using custom API docs URL from application config:', customApiDocsUrl);
+
       return this.http.get(customApiDocsUrl).pipe(
         catchError(error => {
           console.error('Error fetching API docs from custom URL:', error);
@@ -40,7 +40,7 @@ export class ApiDocsService {
     if (apiDocsPath.startsWith('/v3')) {
       apiDocsPath = baseApiPath + apiDocsPath;
     }
-    console.log('Fetching API docs from:', apiDocsPath);
+
 
     return this.http.get(apiDocsPath).pipe(
       catchError(error => {
@@ -56,10 +56,8 @@ export class ApiDocsService {
    * Tries multiple locations for better compatibility
    */
   getSampleApiDocs(): Observable<any> {
-    console.log('Loading sample API docs');
     return this.http.get('sample-openapi.json').pipe(
       catchError(error => {
-        console.log('Trying alternative location for sample API docs');
         return this.http.get('assets/sample-openapi.json');
       })
     );
