@@ -203,13 +203,6 @@ if [ -f "$ZIP_FILE" ]; then
     echo "3. Click on 'Upload Artifacts' and select the zip file"
     echo "4. Follow the instructions to complete the upload process"
 
-    # Open the Central Portal upload page
-    echo ""
-    echo "Would you like to open the Central Portal upload page now? (y/n)"
-    read -r answer
-    if [[ "$answer" =~ ^[Yy]$ ]]; then
-        open "https://central.sonatype.org/publish/publish-portal-upload/"
-    fi
 else
     echo "Failed to create the zip file."
 fi

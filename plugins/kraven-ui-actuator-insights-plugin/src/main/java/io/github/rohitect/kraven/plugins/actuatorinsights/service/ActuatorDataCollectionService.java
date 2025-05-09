@@ -67,7 +67,7 @@ public class ActuatorDataCollectionService {
      */
     public void startDataCollection() {
         if (collecting.compareAndSet(false, true)) {
-            log.info("Starting actuator data collection");
+            // log.info("Starting actuator data collection");
 
             // Discover available endpoints
             discoverEndpoints();
@@ -91,7 +91,7 @@ public class ActuatorDataCollectionService {
      */
     public void stopDataCollection() {
         if (collecting.compareAndSet(true, false)) {
-            log.info("Stopping actuator data collection");
+            // log.info("Stopping actuator data collection");
             scheduler.shutdown();
             try {
                 if (!scheduler.awaitTermination(5, TimeUnit.SECONDS)) {
@@ -109,7 +109,7 @@ public class ActuatorDataCollectionService {
      * This should be called when forcing a refresh of the data.
      */
     public void clearCaches() {
-        log.info("Clearing all caches");
+        // log.info("Clearing all caches");
         sensitiveDataMaskingService.clearCache();
     }
 
@@ -382,27 +382,27 @@ public class ActuatorDataCollectionService {
         String healthUrl = getEndpointPath("health");
 
         try {
-            log.info("Collecting health data from: {}", healthUrl);
+            // log.info("Collecting health data from: {}", healthUrl);
             ResponseEntity<Map> response = restTemplate.getForEntity(healthUrl, Map.class);
             Map<String, Object> body = response.getBody();
 
             if (body != null) {
                 String status = (String) body.get("status");
-                log.info("Health status: {}", status);
+                // log.info("Health status: {}", status);
 
                 // Check for components
                 if (body.containsKey("components")) {
                     Map<String, Object> components = (Map<String, Object>) body.get("components");
-                    log.info("Health components found: {}", components.keySet());
+                    // log.info("Health components found: {}", components.keySet());
                 } else {
-                    log.info("No health components found in response");
+                    // log.info("No health components found in response");
                 }
 
                 HealthStatus healthStatus = new HealthStatus(status, new Date(), body);
 
                 // Store in cache
                 dataCache.put("health", healthStatus);
-                log.info("Health data stored in cache");
+                // log.info("Health data stored in cache");
             } else {
                 log.warn("Health endpoint returned null body");
                 // Create a default UP status to avoid null pointer exceptions
@@ -501,14 +501,14 @@ public class ActuatorDataCollectionService {
         String infoUrl = getEndpointPath("info");
 
         try {
-            log.info("Collecting info data from: {}", infoUrl);
+            // log.info("Collecting info data from: {}", infoUrl);
             ResponseEntity<Map> response = restTemplate.getForEntity(infoUrl, Map.class);
             Map<String, Object> body = response.getBody();
 
             if (body != null) {
                 // Store in cache
                 dataCache.put("info", body);
-                log.info("Successfully collected info data: {}", body);
+                // log.info("Successfully collected info data: {}", body);
             } else {
                 log.warn("Info endpoint returned null body");
                 // Store an empty map to avoid null pointer exceptions
@@ -528,7 +528,7 @@ public class ActuatorDataCollectionService {
         String envUrl = getEndpointPath("env");
 
         try {
-            log.info("Collecting env data from: {}", envUrl);
+            // log.info("Collecting env data from: {}", envUrl);
             ResponseEntity<Map> response = restTemplate.getForEntity(envUrl, Map.class);
             Map<String, Object> body = response.getBody();
 
@@ -538,9 +538,8 @@ public class ActuatorDataCollectionService {
 
                 // Store in cache
                 dataCache.put("env", body);
-                log.info("Successfully collected env data with {} properties",
-                    body.containsKey("propertySources") ?
-                    ((List)body.get("propertySources")).size() : 0);
+                // log.info("Successfully collected env data with {} properties",
+                    // body.containsKey("propertySources") ?((List)body.get("propertySources")).size() : 0);
             } else {
                 log.warn("Env endpoint returned null body");
                 // Store an empty map to avoid null pointer exceptions
@@ -560,14 +559,14 @@ public class ActuatorDataCollectionService {
         String beansUrl = getEndpointPath("beans");
 
         try {
-            log.info("Collecting beans data from: {}", beansUrl);
+            // log.info("Collecting beans data from: {}", beansUrl);
             ResponseEntity<Map> response = restTemplate.getForEntity(beansUrl, Map.class);
             Map<String, Object> body = response.getBody();
 
             if (body != null) {
                 // Store in cache
                 dataCache.put("beans", body);
-                log.info("Successfully collected beans data");
+                // log.info("Successfully collected beans data");
             } else {
                 log.warn("Beans endpoint returned null body");
                 // Store an empty map to avoid null pointer exceptions
@@ -699,14 +698,14 @@ public class ActuatorDataCollectionService {
         String threadDumpUrl = getEndpointPath("threaddump");
 
         try {
-            log.info("Fetching thread dump data from: {}", threadDumpUrl);
+            // log.info("Fetching thread dump data from: {}", threadDumpUrl);
             ResponseEntity<Map> response = restTemplate.getForEntity(threadDumpUrl, Map.class);
             Map<String, Object> body = response.getBody();
 
             if (body != null) {
                 // Store in cache
                 dataCache.put("threaddump", body);
-                log.info("Successfully fetched thread dump data");
+                // log.info("Successfully fetched thread dump data");
                 return body;
             } else {
                 log.warn("Thread dump endpoint returned null body");

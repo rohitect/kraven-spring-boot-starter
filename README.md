@@ -22,6 +22,9 @@ More than just API documentation, Kraven UI is a **complete development and debu
 - 🔍 **Markdown Support** - Write API descriptions that don't look like they're from 1997
 - 🧪 **Interactive Try-It-Out** - Test your APIs without switching to Postman (revolutionary concept)
 - 📦 **Sample Request Bodies** - Auto-generated examples so you don't have to guess the format
+- 🔖 **Favorites System** - Bookmark your most-used endpoints for quick access
+- 🔎 **Enhanced Search** - Find endpoints by path, description, or parameters with tag-based filtering
+- 📑 **Dual-Mode Interface** - Switch between Documentation and Playground modes for different workflows
 
 <p align="center">
   <img src="docs/screenshots/kraven_api_playground.png" alt="Kraven UI API Playground" width="800" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
@@ -98,6 +101,10 @@ Tired of juggling between Swagger UI, Postman, Kafka UIs, and monitoring tools? 
 - **Live Streaming**: Watch Kafka messages arrive in real-time as your system processes them
 - **Export Options**: Export API definitions to Postman or as cURL commands
 - **Targeted Postman Exports**: Export specific endpoint groups to Postman collections for focused testing
+- **Favorites System**: Bookmark frequently used endpoints for quick access in future sessions
+- **Tag-Based Search**: Find endpoints quickly using multiple search tags with context highlighting
+- **Documentation Mode**: Learn about APIs without the distraction of execution panels
+- **Context Menu**: Right-click on tabs for quick actions like closing, favoriting, or copying as cURL
 
 ### Simplicity Without Sacrifice
 - **Zero Configuration**: Works out of the box with sensible defaults
@@ -280,6 +287,7 @@ For a complete list of all configuration options, see the [Configuration Guide](
 
 The API Documentation UI is where Kraven UI really shines:
 
+- **Dual-Mode Interface**: Switch between Documentation mode (for learning) and Playground mode (for testing)
 - **Three-Pane Layout**: Left navigation, middle details, right try-it-out panel
 - **Markdown Support**: Write API descriptions with proper formatting, code blocks, and links
 - **Interactive Try-It-Out**: Test your APIs directly from the documentation
@@ -288,6 +296,10 @@ The API Documentation UI is where Kraven UI really shines:
 - **Export Options**: Export API definitions to Postman and other formats
 - **Endpoint Group Export**: Export specific endpoint groups to Postman with a single click
 - **Postman Integration**: Generate ready-to-use Postman collections with headers and example request bodies
+- **Favorites System**: Bookmark frequently used endpoints for quick access across sessions
+- **Tag-Based Search**: Find endpoints using multiple search tags with context highlighting
+- **Request History**: Track your API call history for easy reference and reuse
+- **Context Menu**: Right-click on tabs for quick actions like closing, favoriting, or copying as cURL
 
 ### 🕵️ Feign Client Explorer
 

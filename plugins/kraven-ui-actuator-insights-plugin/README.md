@@ -8,7 +8,9 @@ A powerful Spring Boot Actuator visualization and monitoring plugin for Kraven U
 - **Interactive exploration** of application internals (beans, environment, configurations)
 - **Historical data analysis** to identify trends and potential issues
 - **Smart auto-detection** of Spring Boot Actuator in your application (by class, bean, or endpoint)
-- **Customizable dashboard** with various visualization options
+- **Comprehensive thread analysis** with state distribution, deadlock detection, and thread pool insights
+- **Advanced environment visualization** with property source exploration and search highlighting
+- **Customizable dashboard** with various visualization options and auto-refresh controls
 
 ## 🔧 Installation
 
@@ -57,12 +59,38 @@ kraven:
 ## 🚀 Usage
 
 1. **Access the Dashboard**: Navigate to the "Actuator Insights" section in the Kraven UI
-2. **View Health Status**: See the current health of your application and its components
-3. **Monitor Metrics**: View real-time metrics with historical trends
-4. **Explore Environment**: Examine your application's environment properties
-5. **Analyze Threads**: View thread dumps and identify potential issues
+2. **View Health Status**: See the current health of your application and its components with real-time updates
+3. **Monitor Metrics**: View real-time metrics with historical trends and customizable charts
+4. **Explore Environment**: Examine your application's environment properties with advanced search and filtering
+   - Search across all property sources with highlighted results
+   - View active profiles and application info
+   - Explore property sources with collapsible sections
+5. **Analyze Beans**: Explore your application's bean definitions and dependencies
+6. **Analyze Threads**: Comprehensive thread analysis with multiple visualization options
+   - View thread state distribution with color-coded indicators
+   - Detect deadlocks and lock contention issues
+   - Analyze thread pools (Tomcat, HikariCP, Kafka, etc.)
+   - Identify CPU-intensive threads and potential memory leaks
+   - Generate detailed thread analysis reports
 
-### Environment Properties Display
+### Environment Tab Features
+
+The Environment tab provides a comprehensive view of your application's configuration:
+
+#### Advanced Search and Filtering
+- Search across all property sources with real-time highlighting
+- Filter property sources to show only matching properties
+- Collapsible sections for easy navigation of large configuration sets
+
+#### Property Source Visualization
+- Hierarchical view of all property sources with property counts
+- Origin tracking for each property (where it was defined)
+- Special formatting for different value types (strings, numbers, objects, arrays)
+
+#### Active Profiles and Application Info
+- Visual display of active Spring profiles
+- Detailed application information from the info endpoint
+- Automatic refresh on demand
 
 #### Spring Boot Masking
 
@@ -88,6 +116,33 @@ This feature is particularly useful when:
 - You're using Spring Boot 2.x which doesn't have built-in masking
 - You need more fine-grained control over which values are masked
 
+### Thread Analysis
+
+The Thread Analysis tab provides comprehensive insights into your application's thread usage and potential concurrency issues:
+
+#### Thread State Visualization
+- Color-coded thread state distribution (RUNNABLE, BLOCKED, WAITING, TIMED_WAITING, TERMINATED)
+- Interactive thread list filtered by state
+- Detailed thread stack trace viewer
+
+#### Thread Analysis Types
+The plugin offers multiple analysis types to help diagnose different issues:
+
+| Analysis Type | Description |
+|---------------|-------------|
+| State Distribution | Overview of thread states with percentages |
+| Deadlock Detection | Identifies circular dependencies between threads |
+| Lock Contention | Finds locks with multiple waiting threads |
+| Thread Pool Analysis | Groups threads by common pools (Tomcat, HikariCP, etc.) |
+| Stack Trace Patterns | Identifies common patterns in thread stack traces |
+| Thread Grouping | Groups threads by naming patterns |
+| CPU-Intensive Threads | Identifies threads likely consuming CPU resources |
+| Memory Leak Indicators | Finds potential memory leak indicators |
+| Comprehensive | Combines all analyses into a single report |
+
+#### Report Generation
+Generate detailed PDF reports of thread analysis results for sharing or documentation.
+
 ## 🔍 Auto-Detection
 
 The plugin uses a multi-layered approach to detect Spring Boot Actuator:
@@ -100,6 +155,22 @@ This ensures reliable detection even in complex application environments.
 
 ## 💻 Development
 
+### Plugin Architecture
+
+The Actuator Insights feature is implemented as a plugin with two main components:
+
+1. **Backend Plugin Module**: `kraven-ui-actuator-insights-plugin`
+   - Responsible for data collection, processing, and API exposure
+   - Implements auto-detection of Spring Boot Actuator
+   - Manages data caching and historical data storage
+   - Handles configuration and settings management
+
+2. **Frontend Components**: Integrated directly into the main Kraven UI Angular project
+   - Angular-based interactive UI components
+   - Chart and visualization libraries integration
+   - Tab-based navigation system
+   - Consistent styling with the main Kraven UI
+
 ### Building the Plugin
 
 ```bash
@@ -111,6 +182,30 @@ mvn clean package
 
 ```bash
 mvn test
+```
+
+### Frontend Components
+
+The frontend components are organized into a modular structure:
+
+```
+kraven-ui-frontend/src/app/components/actuator-insights/
+├── actuator-insights.module.ts
+├── tab-container/
+│   ├── actuator-tab-container.component.ts
+│   ├── actuator-tab-container.component.html
+│   └── actuator-tab-container.component.scss
+├── health-tab/
+├── metrics-tab/
+├── environment-tab/
+├── beans-tab/
+├── threads-tab/
+│   ├── threads-tab.component.ts
+│   ├── threads-tab.component.html
+│   ├── threads-tab.component.scss
+│   └── thread-analysis.scss
+└── services/
+    └── actuator-data.service.ts
 ```
 
 ## 📝 License
