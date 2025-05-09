@@ -10,6 +10,7 @@ A powerful Spring Boot Actuator visualization and monitoring plugin for Kraven U
 - **Smart auto-detection** of Spring Boot Actuator in your application (by class, bean, or endpoint)
 - **Comprehensive thread analysis** with state distribution, deadlock detection, and thread pool insights
 - **Advanced environment visualization** with property source exploration and search highlighting
+- **Auto-configuration analysis** with detailed conditions evaluation reporting
 - **Customizable dashboard** with various visualization options and auto-refresh controls
 
 ## 🔧 Installation
@@ -72,6 +73,12 @@ kraven:
    - Analyze thread pools (Tomcat, HikariCP, Kafka, etc.)
    - Identify CPU-intensive threads and potential memory leaks
    - Generate detailed thread analysis reports
+7. **Explore Conditions**: Understand Spring Boot auto-configuration decisions
+   - View positive matches (configurations that were applied)
+   - Examine negative matches (configurations that were skipped and why)
+   - See unconditional classes (configurations always applied)
+   - Search across all conditions with highlighted results
+   - Navigate easily with fixed secondary tabs
 
 ### Environment Tab Features
 
@@ -143,6 +150,31 @@ The plugin offers multiple analysis types to help diagnose different issues:
 #### Report Generation
 Generate detailed PDF reports of thread analysis results for sharing or documentation.
 
+### Conditions Report Features
+
+The Conditions Report tab provides insights into Spring Boot's auto-configuration decisions:
+
+#### Auto-Configuration Analysis
+- Understand why certain auto-configurations were applied or skipped
+- Categorized view with secondary tabs for positive matches, negative matches, and unconditional classes
+- Detailed condition evaluation messages for debugging configuration issues
+
+#### Secondary Tabs Navigation
+- **Positive Matches**: View all auto-configurations that were successfully applied
+- **Negative Matches**: Examine configurations that were skipped and the exact conditions that weren't met
+- **Unconditional Classes**: See configurations that are always applied without conditions
+- Fixed tab navigation that remains visible when scrolling through large condition reports
+
+#### Search and Filtering
+- Real-time search across all conditions with highlighted results
+- Dynamic count indicators showing matches in each category
+- Back-to-top button for easy navigation in large reports
+
+This feature is particularly useful when:
+- Debugging why certain auto-configurations aren't being applied
+- Understanding the startup configuration of your Spring Boot application
+- Optimizing your application by removing unnecessary dependencies
+
 ## 🔍 Auto-Detection
 
 The plugin uses a multi-layered approach to detect Spring Boot Actuator:
@@ -204,6 +236,10 @@ kraven-ui-frontend/src/app/components/actuator-insights/
 │   ├── threads-tab.component.html
 │   ├── threads-tab.component.scss
 │   └── thread-analysis.scss
+├── conditions-tab/
+│   ├── conditions-tab.component.ts
+│   ├── conditions-tab.component.html
+│   └── conditions-tab.component.scss
 └── services/
     └── actuator-data.service.ts
 ```
