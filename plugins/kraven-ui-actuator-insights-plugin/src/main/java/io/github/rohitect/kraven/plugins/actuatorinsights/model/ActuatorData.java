@@ -36,4 +36,9 @@ public class ActuatorData {
      * Beans data from the beans endpoint.
      */
     private Map<String, Object> beans;
+
+    /**
+     * Conditions data from the conditions endpoint.
+     */
+    private Map<String, Object> conditions;
 }

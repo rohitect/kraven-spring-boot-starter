@@ -252,6 +252,25 @@ export class ActuatorDataService {
   }
 
   /**
+   * Get conditions data
+   */
+  getConditionsData(): Observable<any> {
+    // Ensure the plugin is initialized
+    if (!this.pluginInitialized) {
+      return this.initializeAndGetData('conditions');
+    }
+
+    const url = `${this.baseUrl}${this.apiPath}/plugins/actuator-insights/conditions`;
+
+    return this.http.get<any>(url).pipe(
+      catchError(error => {
+        console.error('Error getting conditions data:', error);
+        return of(null);
+      })
+    );
+  }
+
+  /**
    * Get info data
    */
   getInfoData(): Observable<any> {

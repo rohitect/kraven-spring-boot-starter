@@ -25,7 +25,8 @@ export class ActuatorTabContainerComponent implements OnInit, AfterViewInit, OnD
     { id: 'metrics', label: 'Metrics & Performance', icon: 'fa-chart-line', route: 'metrics' },
     { id: 'environment', label: 'Environment & Config', icon: 'fa-cogs', route: 'environment' },
     { id: 'beans', label: 'Beans & Dependencies', icon: 'fa-project-diagram', route: 'beans' },
-    { id: 'threads', label: 'Thread Analysis', icon: 'fa-microchip', route: 'threads' }
+    { id: 'threads', label: 'Thread Analysis', icon: 'fa-microchip', route: 'threads' },
+    { id: 'conditions', label: 'Conditions Report', icon: 'fa-code-branch', route: 'conditions' }
   ];
 
   activeTabId: string;

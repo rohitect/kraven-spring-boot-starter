@@ -5,6 +5,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import io.github.rohitect.kraven.plugins.actuatorinsights.config.ActuatorInsightsConfig;
 import io.github.rohitect.kraven.plugins.actuatorinsights.model.ActuatorData;
 import io.github.rohitect.kraven.plugins.actuatorinsights.model.ActuatorEndpoint;
+import io.github.rohitect.kraven.plugins.actuatorinsights.model.ConditionsData;
 import io.github.rohitect.kraven.plugins.actuatorinsights.model.HealthStatus;
 import io.github.rohitect.kraven.plugins.actuatorinsights.model.MetricData;
 import lombok.extern.slf4j.Slf4j;
@@ -21,11 +22,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.springframework.stereotype.Service;
 
 /**
  * Service for collecting data from Spring Boot Actuator endpoints.
  */
 @Slf4j
+@Service
 public class ActuatorDataCollectionService {
 
     private final ActuatorInsightsConfig config;
@@ -125,6 +128,7 @@ public class ActuatorDataCollectionService {
                 .info(getInfoData())
                 .env(getEnvData())
                 .beans(getBeansData())
+                .conditions(getConditionsData())
                 .build();
     }
 
@@ -373,6 +377,9 @@ public class ActuatorDataCollectionService {
 
         // Collect beans data
         collectBeansData();
+
+        // Collect conditions data
+        collectConditionsData();
     }
 
     /**
@@ -715,6 +722,61 @@ public class ActuatorDataCollectionService {
             log.warn("Failed to fetch thread dump data: {}", e.getMessage());
             return new HashMap<>();
         }
+    }
+
+    /**
+     * Collect conditions data from the conditions endpoint.
+     */
+    private void collectConditionsData() {
+        String conditionsUrl = getEndpointPath("conditions");
+
+        try {
+            log.debug("Collecting conditions data from: {}", conditionsUrl);
+            ResponseEntity<Map> response = restTemplate.getForEntity(conditionsUrl, Map.class);
+            Map<String, Object> body = response.getBody();
+
+            if (body != null) {
+                // Store in cache with timestamp
+                ConditionsData conditionsData = new ConditionsData(new Date(), body);
+                dataCache.put("conditions", conditionsData);
+                log.debug("Successfully collected conditions data");
+            } else {
+                log.warn("Conditions endpoint returned null body");
+                // Store an empty map to avoid null pointer exceptions
+                dataCache.put("conditions", new ConditionsData(new Date(), new HashMap<>()));
+            }
+        } catch (RestClientException e) {
+            log.warn("Failed to collect conditions data: {}", e.getMessage());
+            // Store an empty map to avoid null pointer exceptions
+            dataCache.put("conditions", new ConditionsData(new Date(), new HashMap<>()));
+        }
+    }
+
+    /**
+     * Get the latest conditions data from the cache.
+     *
+     * @return the latest conditions data
+     */
+    public Map<String, Object> getConditionsData() {
+        Object cachedData = dataCache.getIfPresent("conditions");
+        if (cachedData == null) {
+            return null;
+        }
+
+        // If the cached data is a ConditionsData object, return its details
+        if (cachedData instanceof ConditionsData) {
+            ConditionsData conditionsData = (ConditionsData) cachedData;
+            return conditionsData.getDetails();
+        }
+
+        // If it's already a Map, return it directly
+        if (cachedData instanceof Map) {
+            return (Map<String, Object>) cachedData;
+        }
+
+        // If it's neither, log a warning and return null
+        log.warn("Unexpected type for conditions data in cache: {}", cachedData.getClass().getName());
+        return null;
     }
 
 

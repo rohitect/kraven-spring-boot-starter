@@ -13,11 +13,13 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.springframework.stereotype.Service;
 
 /**
  * Service for detecting Spring Boot Actuator in the application.
  */
 @Slf4j
+@Service
 public class ActuatorDetectionService {
 
     private final ActuatorInsightsConfig config;

@@ -5,11 +5,13 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 import java.util.regex.Pattern;
+import org.springframework.stereotype.Service;
 
 /**
  * Service for masking sensitive data in environment variables.
  */
 @Slf4j
+@Service
 public class SensitiveDataMaskingService {
 
     private static final String MASKED_VALUE = "********";

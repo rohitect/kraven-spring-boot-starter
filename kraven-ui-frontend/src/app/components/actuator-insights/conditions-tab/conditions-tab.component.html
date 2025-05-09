@@ -1,0 +1,175 @@
+<div class="conditions-tab-container">
+  <div class="tab-header">
+    <h2>Conditions Evaluation Report</h2>
+    <div class="tab-controls">
+      <div class="search-container">
+        <input
+          type="text"
+          [(ngModel)]="searchText"
+          (ngModelChange)="applySearch()"
+          placeholder="Search conditions..."
+          class="search-input"
+        >
+        <i class="fas fa-search search-icon"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- Secondary Tabs -->
+  <div class="secondary-tabs" *ngIf="!loading && conditionsData">
+    <div class="tab" [class.active]="activeSecondaryTab === 'positive'" (click)="switchSecondaryTab('positive')">
+      <i class="fas fa-check-circle"></i> Positive Matches
+      <span class="tab-count" *ngIf="positivesCount > 0">{{ positivesCount }}</span>
+    </div>
+    <div class="tab" [class.active]="activeSecondaryTab === 'negative'" (click)="switchSecondaryTab('negative')">
+      <i class="fas fa-times-circle"></i> Negative Matches
+      <span class="tab-count" *ngIf="negativesCount > 0">{{ negativesCount }}</span>
+    </div>
+    <div class="tab" [class.active]="activeSecondaryTab === 'unconditional'" (click)="switchSecondaryTab('unconditional')">
+      <i class="fas fa-code"></i> Unconditional Classes
+      <span class="tab-count" *ngIf="unconditionalCount > 0">{{ unconditionalCount }}</span>
+    </div>
+  </div>
+
+  <div class="tab-content">
+    <!-- Loading indicator -->
+    <div class="loading-indicator" *ngIf="loading">
+      <i class="fas fa-spinner fa-spin"></i>
+      <span>Loading conditions data...</span>
+    </div>
+
+    <!-- Error message -->
+    <div class="error-message" *ngIf="error">
+      <i class="fas fa-exclamation-triangle"></i>
+      <span>{{ error }}</span>
+    </div>
+
+    <!-- No data message -->
+    <div class="no-data-message" *ngIf="!loading && !error && (!conditionsData || isEmptyObject(conditionsData))">
+      <i class="fas fa-info-circle"></i>
+      <span>No conditions data available. The conditions endpoint may not be enabled in your Spring Boot application.</span>
+    </div>
+
+    <!-- Conditions data -->
+    <div class="conditions-data" *ngIf="!loading && !error && filteredData && !isEmptyObject(filteredData)">
+      <!-- Scrollable results container -->
+      <div id="scrollable-results" class="scrollable-results" (scroll)="onResultsScroll($event)">
+        <div class="contexts-container" *ngIf="filteredData.contexts">
+          <div class="context-item" *ngFor="let contextEntry of filteredData.contexts | keyvalue">
+            <div class="context-header">
+              <h3 [innerHTML]="contextEntry.key"></h3>
+            </div>
+
+            <!-- Positive matches - show in positive tab -->
+            <div id="positive-matches-section" class="matches-section positive-section"
+                 *ngIf="activeSecondaryTab === 'positive' &&
+                        contextEntry.value.positiveMatches &&
+                        !isEmptyObject(contextEntry.value.positiveMatches)">
+              <div class="section-header">
+                <h4 class="section-title positive">
+                  <i class="fas fa-check-circle"></i> Positive Matches
+                </h4>
+                <span class="section-count">{{ getObjectKeysCount(contextEntry.value.positiveMatches) }} classes</span>
+              </div>
+              <div class="matches-container">
+                <div class="match-item" *ngFor="let matchEntry of contextEntry.value.positiveMatches | keyvalue">
+                  <div class="match-header">
+                    <span class="match-name" [innerHTML]="matchEntry.key"></span>
+                    <span class="match-badge positive">Matched</span>
+                  </div>
+                  <div class="conditions-list">
+                    <div class="condition-item" *ngFor="let condition of matchEntry.value">
+                      <div class="condition-name">
+                        <i class="fas fa-check"></i> {{ condition.condition }}
+                      </div>
+                      <div class="condition-message" [innerHTML]="condition.message"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Negative matches - show in negative tab -->
+            <div id="negative-matches-section" class="matches-section negative-section"
+                 *ngIf="activeSecondaryTab === 'negative' &&
+                        contextEntry.value.negativeMatches &&
+                        !isEmptyObject(contextEntry.value.negativeMatches)">
+              <div class="section-header">
+                <h4 class="section-title negative">
+                  <i class="fas fa-times-circle"></i> Negative Matches
+                </h4>
+                <span class="section-count">{{ getObjectKeysCount(contextEntry.value.negativeMatches) }} classes</span>
+              </div>
+              <div class="matches-container">
+                <div class="match-item" *ngFor="let matchEntry of contextEntry.value.negativeMatches | keyvalue">
+                  <div class="match-header">
+                    <span class="match-name" [innerHTML]="matchEntry.key"></span>
+                    <span class="match-badge negative">Not Matched</span>
+                  </div>
+
+                  <!-- Not matched conditions -->
+                  <div class="conditions-group" *ngIf="matchEntry.value.notMatched && matchEntry.value.notMatched.length > 0">
+                    <div class="group-header negative">
+                      <i class="fas fa-times"></i> Conditions Not Matched
+                    </div>
+                    <div class="conditions-list">
+                      <div class="condition-item" *ngFor="let condition of matchEntry.value.notMatched">
+                        <div class="condition-name">
+                          <i class="fas fa-times"></i> {{ condition.condition }}
+                        </div>
+                        <div class="condition-message" [innerHTML]="condition.message"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Matched conditions -->
+                  <div class="conditions-group" *ngIf="matchEntry.value.matched && matchEntry.value.matched.length > 0">
+                    <div class="group-header positive">
+                      <i class="fas fa-check"></i> Conditions Matched
+                    </div>
+                    <div class="conditions-list">
+                      <div class="condition-item" *ngFor="let condition of matchEntry.value.matched">
+                        <div class="condition-name">
+                          <i class="fas fa-check"></i> {{ condition.condition }}
+                        </div>
+                        <div class="condition-message" [innerHTML]="condition.message"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Unconditional classes - show in unconditional tab -->
+            <div id="unconditional-classes-section" class="matches-section unconditional-section"
+                 *ngIf="activeSecondaryTab === 'unconditional' &&
+                        contextEntry.value.unconditionalClasses &&
+                        contextEntry.value.unconditionalClasses.length > 0">
+              <div class="section-header">
+                <h4 class="section-title unconditional">
+                  <i class="fas fa-code"></i> Unconditional Classes
+                </h4>
+                <span class="section-count">{{ contextEntry.value.unconditionalClasses.length }} classes</span>
+              </div>
+              <div class="unconditional-list">
+                <div class="unconditional-item" *ngFor="let className of contextEntry.value.unconditionalClasses">
+                  <i class="fas fa-file-code"></i> <span [innerHTML]="className"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      <!-- Back to top button -->
+      <button
+        *ngIf="showBackToTop"
+        class="back-to-top-button"
+        (click)="scrollToTop()"
+        title="Back to top"
+      >
+        <i class="fas fa-arrow-up"></i>
+      </button>
+    </div>
+    </div>
+  </div>
+</div>

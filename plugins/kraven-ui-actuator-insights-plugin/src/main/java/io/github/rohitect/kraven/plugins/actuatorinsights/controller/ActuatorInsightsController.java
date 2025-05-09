@@ -142,6 +142,16 @@ public class ActuatorInsightsController {
     }
 
     /**
+     * Get the latest conditions data.
+     *
+     * @return the latest conditions data
+     */
+    @GetMapping("/conditions")
+    public ResponseEntity<Map<String, Object>> getConditionsData() {
+        return ResponseEntity.ok(dataCollectionService.getConditionsData());
+    }
+
+    /**
      * Get all actuator data (for backward compatibility).
      *
      * @return the latest actuator data

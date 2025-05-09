@@ -10,6 +10,7 @@ import io.github.rohitect.kraven.plugins.actuatorinsights.service.ActuatorDetect
 import io.github.rohitect.kraven.plugins.actuatorinsights.service.ActuatorDataCollectionService;
 import io.github.rohitect.kraven.plugins.actuatorinsights.service.ThreadDumpAnalysisService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationContext;
 
 /**
  * Actuator Insights plugin for Kraven UI.
@@ -59,17 +60,15 @@ public class ActuatorInsightsPlugin implements KravenUIPlugin {
             return;
         }
 
-        // Create and register services
-        detectionService = new ActuatorDetectionService(config, context.getApplicationContext());
+        // Get services from the application context
+        ApplicationContext applicationContext = context.getApplicationContext();
+        detectionService = applicationContext.getBean(ActuatorDetectionService.class);
         context.registerService(detectionService);
 
-        // Get the Environment from the ApplicationContext
-        org.springframework.core.env.Environment environment = context.getApplicationContext().getEnvironment();
-
-        dataCollectionService = new ActuatorDataCollectionService(config, environment);
+        dataCollectionService = applicationContext.getBean(ActuatorDataCollectionService.class);
         context.registerService(dataCollectionService);
 
-        threadDumpAnalysisService = new ThreadDumpAnalysisService();
+        threadDumpAnalysisService = applicationContext.getBean(ThreadDumpAnalysisService.class);
         context.registerService(threadDumpAnalysisService);
 
         // Register controllers
