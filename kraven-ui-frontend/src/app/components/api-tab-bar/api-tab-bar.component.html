@@ -25,8 +25,10 @@
         *ngFor="let tab of tabs"
         class="tab"
         [class.active]="tab.id === activeTabId"
+        [class.favorite]="tab.isFavorite"
         [attr.data-tab-id]="tab.id"
         (click)="selectTab(tab.id, $event)"
+        (contextmenu)="onTabRightClick($event, tab.id)"
         cdkDrag
         [cdkDragData]="tab"
         [appTooltip]="getTabTooltip(tab)"
@@ -66,3 +68,13 @@
   (confirm)="confirmCloseTab()"
   (cancel)="cancelCloseTab()"
 ></app-confirmation-dialog>
+
+<!-- Context Menu for Tabs -->
+<app-context-menu
+  [items]="contextMenuItems"
+  [x]="contextMenuX"
+  [y]="contextMenuY"
+  [visible]="showContextMenu"
+  (menuItemClicked)="onContextMenuItemClick($event)"
+  (menuClosed)="onContextMenuClosed()"
+></app-context-menu>

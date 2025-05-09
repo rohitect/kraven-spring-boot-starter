@@ -494,6 +494,45 @@ export class ApiTabService {
   }
 
   /**
+   * Delete multiple tabs by ID
+   */
+  deleteTabs(ids: string[]): Observable<void> {
+    if (ids.length === 0) {
+      return of(void 0);
+    }
+
+    // Create an observable for each tab deletion
+    const deleteObservables = ids.map(id => this.deleteTab(id));
+
+    // Execute all deletions in parallel
+    return forkJoin(deleteObservables).pipe(
+      map(() => void 0)
+    );
+  }
+
+  /**
+   * Update a tab with new properties
+   */
+  updateTab(tab: ApiTab): Observable<ApiTab> {
+    return this.getTabById(tab.id).pipe(
+      switchMap(existingTab => {
+        if (!existingTab) {
+          return throwError(() => new Error(`Tab with ID ${tab.id} not found`));
+        }
+
+        // Merge the existing tab with the updated properties
+        const updatedTab = {
+          ...existingTab,
+          ...tab,
+          lastAccessedAt: Date.now()
+        };
+
+        return this.saveTab(updatedTab);
+      })
+    );
+  }
+
+  /**
    * Reorder tabs by moving a tab to a new position
    * @param tabId The ID of the tab to move
    * @param newIndex The new index for the tab

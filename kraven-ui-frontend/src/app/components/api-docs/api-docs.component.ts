@@ -744,6 +744,61 @@ export class ApiDocsComponent implements OnInit {
   }
 
   /**
+   * Close all tabs except the specified one
+   */
+  closeOtherTabs(tabId: string): void {
+    // Get the tab to keep
+    const tabToKeep = this.tabs.find(t => t.id === tabId);
+    if (!tabToKeep) return;
+
+    // Get the IDs of tabs to close
+    const tabIdsToClose = this.tabs
+      .filter(t => t.id !== tabId)
+      .map(t => t.id);
+
+    if (tabIdsToClose.length === 0) return;
+
+    // Close the tabs
+    this.apiTabService.deleteTabs(tabIdsToClose).subscribe({
+      next: () => {
+        // Update the tabs array
+        this.tabs = [tabToKeep];
+
+        // Make sure the remaining tab is selected
+        this.selectTabById(tabId);
+      },
+      error: (err) => {
+        console.error('Error closing other tabs:', err);
+      }
+    });
+  }
+
+  /**
+   * Toggle the favorite status of a tab
+   */
+  toggleTabFavorite(tab: ApiTab): void {
+    // Toggle the favorite status
+    const updatedTab = {
+      ...tab,
+      isFavorite: !tab.isFavorite
+    };
+
+    // Update the tab in the database
+    this.apiTabService.updateTab(updatedTab).subscribe({
+      next: (updated) => {
+        // Update the tab in the tabs array
+        const index = this.tabs.findIndex(t => t.id === tab.id);
+        if (index !== -1) {
+          this.tabs[index] = updated;
+        }
+      },
+      error: (err) => {
+        console.error('Error updating tab favorite status:', err);
+      }
+    });
+  }
+
+  /**
    * Handle tab reordering
    */
   onTabReordered(event: {tabId: string, newIndex: number}): void {

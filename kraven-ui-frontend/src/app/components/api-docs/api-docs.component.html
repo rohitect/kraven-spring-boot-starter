@@ -205,9 +205,17 @@
       <!-- Center Pane: API Details -->
       <div style="width: calc(100% - 300px); margin-left: 300px; display: flex; flex-direction: column; align-items: flex-start;">
         <!-- Tab Bar -->
-        <app-api-tab-bar [tabs]="tabs" [activeTabId]="activeTabId" (tabSelected)="onTabSelected($event)"
-          (tabClosed)="onTabClosed($event)" (showApiInfo)="showApiInfo()"
-          (tabReordered)="onTabReordered($event)"></app-api-tab-bar>
+        <app-api-tab-bar
+          style="width: 100%"
+          [tabs]="tabs"
+          [activeTabId]="activeTabId"
+          (tabSelected)="onTabSelected($event)"
+          (tabClosed)="onTabClosed($event)"
+          (showApiInfo)="showApiInfo()"
+          (tabReordered)="onTabReordered($event)"
+          (closeAllTabs)="closeAllTabs()"
+          (closeOtherTabs)="closeOtherTabs($event)"
+          (toggleFavorite)="toggleTabFavorite($event)"></app-api-tab-bar>
 
         <div class="center-pane-container" style="overflow-x: auto;">
           <div class="center-pane">

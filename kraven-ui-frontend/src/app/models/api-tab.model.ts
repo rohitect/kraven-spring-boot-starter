@@ -20,6 +20,8 @@ export interface ApiTab {
   selectedResponseCode?: string | null;
   // Store the active right pane tab
   rightPaneActiveTab?: 'try-it-out' | 'response-samples';
+  // Whether the tab is marked as a favorite
+  isFavorite?: boolean;
 }
 
 /**

@@ -4,11 +4,12 @@ import { ApiTab } from '../../models/api-tab.model';
 import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
 import { TooltipDirective } from '../../directives/tooltip.directive';
 import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
+import { ContextMenuComponent, ContextMenuItem } from '../context-menu/context-menu.component';
 
 @Component({
   selector: 'app-api-tab-bar',
   standalone: true,
-  imports: [CommonModule, DragDropModule, TooltipDirective, ConfirmationDialogComponent],
+  imports: [CommonModule, DragDropModule, TooltipDirective, ConfirmationDialogComponent, ContextMenuComponent],
   templateUrl: './api-tab-bar.component.html',
   styleUrls: ['./api-tab-bar.component.scss']
 })
@@ -19,6 +20,9 @@ export class ApiTabBarComponent implements AfterViewInit, OnChanges {
   @Output() tabClosed = new EventEmitter<string>();
   @Output() showApiInfo = new EventEmitter<void>();
   @Output() tabReordered = new EventEmitter<{tabId: string, newIndex: number}>();
+  @Output() closeAllTabs = new EventEmitter<void>();
+  @Output() closeOtherTabs = new EventEmitter<string>();
+  @Output() toggleFavorite = new EventEmitter<ApiTab>();
 
   @ViewChild('tabsContainer') tabsContainer!: ElementRef;
 
@@ -28,6 +32,13 @@ export class ApiTabBarComponent implements AfterViewInit, OnChanges {
   // Confirmation dialog properties
   showConfirmDialog = false;
   tabToClose: string | null = null;
+
+  // Context menu properties
+  contextMenuX = 0;
+  contextMenuY = 0;
+  showContextMenu = false;
+  contextMenuItems: ContextMenuItem[] = [];
+  contextMenuTabId: string | null = null;
 
   constructor() {}
 
@@ -282,5 +293,121 @@ export class ApiTabBarComponent implements AfterViewInit, OnChanges {
       const tabId = this.tabs[event.previousIndex].id;
       this.tabReordered.emit({ tabId, newIndex: event.currentIndex });
     }
+  }
+
+  /**
+   * Handle right-click on a tab to show context menu
+   */
+  onTabRightClick(event: MouseEvent, tabId: string): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    // Set the context menu position
+    this.contextMenuX = event.clientX;
+    this.contextMenuY = event.clientY;
+    this.contextMenuTabId = tabId;
+
+    // Find the tab
+    const tab = this.tabs.find(t => t.id === tabId);
+    if (!tab) return;
+
+    // Build the context menu items
+    this.contextMenuItems = [
+      {
+        label: 'Close',
+        icon: 'close',
+        action: 'close'
+      },
+      {
+        label: 'Close All',
+        icon: 'close-all',
+        action: 'close-all'
+      },
+      {
+        label: 'Close Others',
+        icon: 'close-others',
+        action: 'close-others',
+        disabled: this.tabs.length <= 1
+      },
+      {
+        divider: true,
+        label: '',
+        action: ''
+      },
+      {
+        label: tab.isFavorite ? 'Remove from Favorites' : 'Add to Favorites',
+        icon: tab.isFavorite ? 'unfavorite' : 'favorite',
+        action: 'toggle-favorite'
+      },
+      {
+        divider: true,
+        label: '',
+        action: ''
+      },
+      {
+        label: 'Copy URL',
+        icon: 'copy',
+        action: 'copy-url'
+      }
+    ];
+
+    // Show the context menu
+    this.showContextMenu = true;
+  }
+
+  /**
+   * Handle context menu item click
+   */
+  onContextMenuItemClick(action: string): void {
+    if (!this.contextMenuTabId) return;
+
+    const tab = this.tabs.find(t => t.id === this.contextMenuTabId);
+    if (!tab) return;
+
+    switch (action) {
+      case 'close':
+        this.closeTab(this.contextMenuTabId, new Event('click'));
+        break;
+      case 'close-all':
+        this.closeAllTabs.emit();
+        break;
+      case 'close-others':
+        this.closeOtherTabs.emit(this.contextMenuTabId);
+        break;
+      case 'toggle-favorite':
+        this.toggleFavorite.emit(tab);
+        break;
+      case 'copy-url':
+        this.copyTabUrl(tab);
+        break;
+    }
+
+    // Reset context menu
+    this.contextMenuTabId = null;
+  }
+
+  /**
+   * Copy the tab URL to clipboard
+   */
+  private copyTabUrl(tab: ApiTab): void {
+    // Create the URL for the tab
+    const url = `/api-docs/tab/${tab.id}`;
+
+    // Copy to clipboard
+    navigator.clipboard.writeText(window.location.origin + url)
+      .then(() => {
+        console.log('URL copied to clipboard');
+      })
+      .catch(err => {
+        console.error('Could not copy URL: ', err);
+      });
+  }
+
+  /**
+   * Close the context menu
+   */
+  onContextMenuClosed(): void {
+    this.showContextMenu = false;
+    this.contextMenuTabId = null;
   }
 }

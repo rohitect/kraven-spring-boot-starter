@@ -1,0 +1,79 @@
+.context-menu {
+  position: fixed;
+  z-index: 1000;
+  background-color: var(--background-color);
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  min-width: 180px;
+  max-width: 250px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  animation: fadeIn 0.15s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.context-menu-items {
+  padding: 4px 0;
+}
+
+.context-menu-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: var(--text-color);
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: var(--muted-color);
+  }
+
+  &.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+
+    &:hover {
+      background-color: transparent;
+    }
+  }
+
+  &.divider {
+    height: 1px;
+    padding: 0;
+    margin: 4px 0;
+    background-color: var(--border-color);
+    pointer-events: none;
+  }
+}
+
+.item-content {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.item-icon {
+  margin-right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted-color);
+}
+
+.item-label {
+  flex: 1;
+}
