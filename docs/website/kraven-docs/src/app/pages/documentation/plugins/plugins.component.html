@@ -38,14 +38,21 @@
       <div class="plugin-row">
         <div class="plugin-name">Kafka</div>
         <div class="plugin-description">Comprehensive Kafka management with topic browsing, message production/consumption, and streaming</div>
-        <div class="plugin-version">1.0.6</div>
+        <div class="plugin-version">1.0.7</div>
         <div class="plugin-status"><span class="status-badge available">Available</span></div>
       </div>
 
       <div class="plugin-row">
         <div class="plugin-name">Mock Server</div>
         <div class="plugin-description">Integration testing & development tool for mocking API responses</div>
-        <div class="plugin-version">1.0.7</div>
+        <div class="plugin-version">1.0.8</div>
+        <div class="plugin-status"><span class="status-badge available">Available</span></div>
+      </div>
+
+      <div class="plugin-row">
+        <div class="plugin-name">Actuator Insights</div>
+        <div class="plugin-description">Spring Boot Actuator visualization and monitoring with thread analysis and environment exploration</div>
+        <div class="plugin-version">1.0.8</div>
         <div class="plugin-status"><span class="status-badge available">Available</span></div>
       </div>
 
@@ -90,7 +97,7 @@
           <pre><code>&lt;dependency&gt;
     &lt;groupId&gt;io.github.rohitect&lt;/groupId&gt;
     &lt;artifactId&gt;kraven-ui-kafka-plugin&lt;/artifactId&gt;
-    &lt;version&gt;1.0.6&lt;/version&gt;
+    &lt;version&gt;1.0.7&lt;/version&gt;
 &lt;/dependency&gt;</code></pre>
         </div>
 
@@ -149,7 +156,7 @@ kraven.ui.kafka.clusters[0].bootstrapServers=localhost:9092</code></pre>
           <pre><code>&lt;dependency&gt;
     &lt;groupId&gt;io.github.rohitect&lt;/groupId&gt;
     &lt;artifactId&gt;kraven-ui-mock-server-plugin&lt;/artifactId&gt;
-    &lt;version&gt;1.0.7&lt;/version&gt;
+    &lt;version&gt;1.0.8&lt;/version&gt;
 &lt;/dependency&gt;</code></pre>
         </div>
 
@@ -174,6 +181,63 @@ kraven.ui.plugin.mock-server.enable-dynamic-responses=true</code></pre>
       </div>
       <div class="image-placeholder">
         <div class="placeholder-text">Mock Server Plugin Screenshot</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section" @fadeInUp>
+    <h2 id="actuator-insights-plugin">Actuator Insights Plugin</h2>
+    <p>
+      The Actuator Insights Plugin provides a powerful visualization and monitoring layer for Spring Boot Actuator endpoints, making it easy to monitor
+      and manage your application's health, metrics, configuration, and thread activity.
+    </p>
+
+    <div class="feature-details">
+      <div class="feature-text">
+        <h3>Key Features:</h3>
+        <ul>
+          <li><strong>Real-time Visualization</strong> - Interactive dashboards for application health, metrics, and system resources</li>
+          <li><strong>Smart Auto-detection</strong> - Automatically detects Spring Boot Actuator in your application</li>
+          <li><strong>Comprehensive Thread Analysis</strong> - Thread state distribution, deadlock detection, and thread pool insights</li>
+          <li><strong>Advanced Environment Visualization</strong> - Property source exploration with search highlighting</li>
+          <li><strong>Historical Data Analysis</strong> - Track metrics over time with trend visualization</li>
+          <li><strong>Tab-based Interface</strong> - Health & Status, Metrics & Performance, Environment & Config, Beans & Dependencies, Thread Analysis</li>
+        </ul>
+
+        <h3>Installation:</h3>
+        <div class="code-block">
+          <pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;io.github.rohitect&lt;/groupId&gt;
+    &lt;artifactId&gt;kraven-ui-actuator-insights-plugin&lt;/artifactId&gt;
+    &lt;version&gt;1.0.8&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+        </div>
+
+        <h3>Configuration:</h3>
+        <div class="code-block">
+          <pre><code># Enable the plugin system
+kraven.ui.plugins.enabled=true
+
+# Actuator Insights plugin configuration
+kraven.plugins.actuator-insights.enabled=true
+kraven.plugins.actuator-insights.auto-detect=true
+kraven.plugins.actuator-insights.base-url=http://localhost:8080
+kraven.plugins.actuator-insights.context-path=
+kraven.plugins.actuator-insights.data-collection.interval=15s
+kraven.plugins.actuator-insights.data-collection.retention-period=1h
+kraven.plugins.actuator-insights.endpoints.include=*
+kraven.plugins.actuator-insights.endpoints.exclude=heapdump,shutdown
+kraven.plugins.actuator-insights.sensitive-data.mask-sensitive-values=true
+kraven.plugins.actuator-insights.sensitive-data.sensitive-patterns=password,passwd,secret,credential,token,key,auth,private,access
+
+# Spring Boot Actuator configuration (recommended)
+management.endpoints.web.exposure.include=*
+management.endpoint.health.show-details=always
+management.endpoint.env.show-values=always  # For Spring Boot 3 to show environment values</code></pre>
+        </div>
+      </div>
+      <div class="image-placeholder">
+        <div class="placeholder-text">Actuator Insights Plugin Screenshot</div>
       </div>
     </div>
   </div>

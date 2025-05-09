@@ -104,6 +104,7 @@ export class DocumentationComponent implements OnInit, OnDestroy {
         { title: 'Available Plugins', route: 'plugins', fragment: 'available-plugins', icon: 'list' },
         { title: 'Kafka Plugin', route: 'plugins', fragment: 'kafka-plugin', icon: 'sync_alt' },
         { title: 'Mock Server Plugin', route: 'plugins', fragment: 'mock-server-plugin', icon: 'dns' },
+        { title: 'Actuator Insights Plugin', route: 'plugins', fragment: 'actuator-insights-plugin', icon: 'monitor_heart' },
         { title: 'Creating Custom Plugins', route: 'plugins', fragment: 'creating-custom-plugins', icon: 'add_circle' }
       ]
     }

@@ -33,7 +33,7 @@ import { Subscription, filter } from 'rxjs';
     <div class="documentation-container" [class.light-theme]="!isDarkTheme">
       <div class="page-header" @fadeIn>
         <h1 class="page-title">Kraven UI Plugins</h1>
-        <div class="version-badge">v1.0.7</div>
+        <div class="version-badge">v1.0.9</div>
       </div>
 
       <div class="content-section" @fadeInUp>
@@ -78,7 +78,7 @@ import { Subscription, filter } from 'rxjs';
             <div class="code-block">
               <pre><code>&lt;dependency&gt;
   &lt;groupId&gt;io.github.rohitect&lt;/groupId&gt;
-  &lt;artifactId&gt;kraven-kafka-plugin&lt;/artifactId&gt;
+  &lt;artifactId&gt;kraven-ui-kafka-plugin&lt;/artifactId&gt;
   &lt;version&gt;1.0.7&lt;/version&gt;
 &lt;/dependency&gt;</code></pre>
             </div>
@@ -110,8 +110,40 @@ import { Subscription, filter } from 'rxjs';
             <div class="code-block">
               <pre><code>&lt;dependency&gt;
   &lt;groupId&gt;io.github.rohitect&lt;/groupId&gt;
-  &lt;artifactId&gt;kraven-mock-server-plugin&lt;/artifactId&gt;
-  &lt;version&gt;1.0.7&lt;/version&gt;
+  &lt;artifactId&gt;kraven-ui-mock-server-plugin&lt;/artifactId&gt;
+  &lt;version&gt;1.0.8&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div id="actuator-insights-plugin" class="plugin-card">
+          <div class="plugin-header">
+            <div class="plugin-icon" style="background-color: rgba(0, 184, 148, 0.1);">
+              <mat-icon style="color: #00b894;">monitor_heart</mat-icon>
+            </div>
+            <h3 class="plugin-name">Actuator Insights Plugin</h3>
+          </div>
+          <p class="plugin-description">
+            Provides visualization and monitoring for Spring Boot Actuator endpoints with thread analysis and environment exploration.
+          </p>
+          <div class="plugin-features">
+            <h4>Key Features</h4>
+            <ul>
+              <li>Real-time visualization of application health and metrics</li>
+              <li>Comprehensive thread analysis with state distribution</li>
+              <li>Advanced environment property exploration</li>
+              <li>Bean dependency visualization</li>
+              <li>Historical data tracking and analysis</li>
+            </ul>
+          </div>
+          <div class="plugin-installation">
+            <h4>Installation</h4>
+            <div class="code-block">
+              <pre><code>&lt;dependency&gt;
+  &lt;groupId&gt;io.github.rohitect&lt;/groupId&gt;
+  &lt;artifactId&gt;kraven-ui-actuator-insights-plugin&lt;/artifactId&gt;
+  &lt;version&gt;1.0.8&lt;/version&gt;
 &lt;/dependency&gt;</code></pre>
             </div>
           </div>

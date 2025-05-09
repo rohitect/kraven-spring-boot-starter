@@ -48,6 +48,13 @@ export class FeaturesComponent implements OnInit, AfterViewInit {
 
   features: Feature[] = [
     {
+      icon: 'assets/icons/performance.svg',
+      title: 'Ultra-Lightweight',
+      description: 'Incredibly small memory footprint of only 7,552 bytes (0.007 MB). The entire core library uses less memory than a small JPEG image, ensuring minimal impact on your application\'s performance.',
+      image: 'assets/features/performance.png',
+      color: '#ff9800'
+    },
+    {
       icon: 'assets/icons/api-docs.svg',
       title: 'API Documentation',
       description: 'Beautiful, interactive API documentation with a modern UI. Try out API endpoints directly from the documentation. Kraven UI combines the elegant readability of Redoc with the interactive playground capabilities of Swagger UI.',

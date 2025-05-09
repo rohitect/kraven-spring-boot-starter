@@ -51,7 +51,7 @@
 .hero-title {
   font-size: 2.5rem;
   font-weight: 700;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   line-height: 1.2;
 
   @media (min-width: 768px) {
@@ -60,7 +60,7 @@
 
   @media (max-width: 480px) {
     font-size: 2rem;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
   }
 
   .gradient-text {
@@ -92,6 +92,60 @@
     :host-context(.light-theme) &, .light-theme & {
       color: #1a1b2e;
     }
+  }
+}
+
+.performance-badge {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(90deg, rgba(255, 193, 7, 0.15), rgba(255, 87, 34, 0.15));
+  border-left: 3px solid #ff9800;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
+  color: #ffb74d;
+  max-width: fit-content;
+  animation: pulse 2s infinite;
+
+  @media (max-width: 767px) {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 0.875rem;
+    padding: 0.4rem 0.8rem;
+  }
+
+  mat-icon {
+    margin-right: 0.5rem;
+    color: #ff9800;
+  }
+
+  strong {
+    font-weight: 600;
+  }
+
+  :host-context(.light-theme) &, .light-theme & {
+    background: linear-gradient(90deg, rgba(255, 152, 0, 0.1), rgba(255, 87, 34, 0.1));
+    color: #e65100;
+
+    mat-icon {
+      color: #ff5722;
+    }
+  }
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(255, 152, 0, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 152, 0, 0);
   }
 }
 
@@ -129,6 +183,17 @@
   .get-started-btn {
     padding: 0.5rem 1.5rem;
     font-weight: 500;
+    background-color: #3f51b5;
+    color: white;
+
+    &:hover {
+      background-color: #303f9f;
+    }
+
+    :host-context(.light-theme) &, .light-theme & {
+      background-color: #3f51b5;
+      color: white;
+    }
 
     @media (max-width: 480px) {
       padding: 0.5rem 1rem;

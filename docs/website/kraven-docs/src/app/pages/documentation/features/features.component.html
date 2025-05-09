@@ -93,12 +93,24 @@
         <h3>Key Features:</h3>
         <ul class="feature-list">
           <li><strong>Three-Pane Layout</strong> - Navigation sidebar, API details, and request/response panels</li>
+          <li><strong>Dual-Mode Interface</strong> - Switch between Documentation and Playground modes</li>
           <li><strong>Syntax Highlighting</strong> - Beautiful code highlighting for JSON and other formats</li>
           <li><strong>Markdown Support</strong> - Rich formatting for API descriptions</li>
           <li><strong>Schema Visualization</strong> - Interactive schema diagrams</li>
-          <li><strong>Search</strong> - Quickly find endpoints and models</li>
+          <li><strong>Enhanced Search</strong> - Find endpoints by path, description, or parameters with tag-based filtering</li>
+          <li><strong>Favorites System</strong> - Bookmark frequently used endpoints for quick access</li>
           <li><strong>Dark/Light Themes</strong> - Choose your preferred visual style</li>
           <li><strong>Responsive Design</strong> - Works on desktop and mobile devices</li>
+          <li><strong>Context Menu</strong> - Right-click on tabs for quick actions</li>
+        </ul>
+
+        <h3 class="mt-4">Documentation Experience:</h3>
+        <ul class="feature-list">
+          <li><strong>Comprehensive Details</strong> - Complete information about each endpoint</li>
+          <li><strong>Tag-Based Organization</strong> - Endpoints grouped by logical categories</li>
+          <li><strong>Parameter Documentation</strong> - Detailed descriptions of all parameters</li>
+          <li><strong>Response Examples</strong> - Sample responses for different status codes</li>
+          <li><strong>Schema References</strong> - Links between related data models</li>
         </ul>
       </div>
       <div class="image-placeholder">
@@ -111,19 +123,39 @@
     <h2 id="api-playground">API Playground</h2>
     <p>
       The API Playground allows you to test your API endpoints directly from the documentation. It provides a user-friendly
-      interface for constructing requests and viewing responses.
+      interface for constructing requests and viewing responses, with enhanced features for both learning and testing.
     </p>
     <div class="feature-details feature-card-modern">
       <div class="feature-text">
         <h3>Key Features:</h3>
         <ul class="feature-list">
+          <li><strong>Dual-Mode Interface</strong> - Switch between Documentation mode (for learning) and Playground mode (for testing)</li>
           <li><strong>Request Builder</strong> - Easily construct API requests with a form-based interface</li>
           <li><strong>Parameter Validation</strong> - Validate request parameters before sending</li>
           <li><strong>Authentication Support</strong> - Test authenticated endpoints with various auth methods</li>
           <li><strong>Response Visualization</strong> - See formatted responses with syntax highlighting</li>
           <li><strong>Request History</strong> - Keep track of previous requests for quick reference</li>
+          <li><strong>Favorites System</strong> - Bookmark frequently used endpoints for quick access across sessions</li>
+          <li><strong>Tag-Based Search</strong> - Find endpoints using multiple search tags with context highlighting</li>
+          <li><strong>Context Menu</strong> - Right-click on tabs for quick actions like closing, favoriting, or copying as cURL</li>
           <li><strong>Copy as cURL</strong> - Generate cURL commands for your requests</li>
           <li><strong>Download Response</strong> - Save API responses for later use</li>
+        </ul>
+
+        <h3 class="mt-4">Documentation Mode:</h3>
+        <ul class="feature-list">
+          <li><strong>Focused Reading</strong> - Clean interface for learning about APIs without execution distractions</li>
+          <li><strong>Enhanced Search</strong> - Find endpoints by path, description, or parameters with tag-based filtering</li>
+          <li><strong>Comprehensive Details</strong> - View complete API documentation with all parameters and response types</li>
+          <li><strong>One-Click Testing</strong> - Easily switch to Playground mode to test any endpoint</li>
+        </ul>
+
+        <h3 class="mt-4">Playground Mode:</h3>
+        <ul class="feature-list">
+          <li><strong>Interactive Testing</strong> - Try out API endpoints with a powerful request builder</li>
+          <li><strong>Sample Request Bodies</strong> - Auto-generated examples so you don't have to guess the format</li>
+          <li><strong>Response Inspection</strong> - Examine detailed responses with syntax highlighting</li>
+          <li><strong>Request History</strong> - Track your API call history for easy reference and reuse</li>
         </ul>
       </div>
       <div class="image-placeholder">
@@ -209,24 +241,100 @@
   <div class="content-section" @fadeInUp>
     <h2 id="actuator-insights">Actuator Insights</h2>
     <p>
-      Actuator Insights provides a beautiful visualization of Spring Boot Actuator endpoints, making it easy to monitor
-      and manage your application's health, metrics, and configuration.
+      Actuator Insights provides a powerful visualization and monitoring layer for Spring Boot Actuator endpoints, making it easy to monitor
+      and manage your application's health, metrics, configuration, and thread activity.
     </p>
     <div class="feature-details feature-card-modern">
       <div class="feature-text">
         <h3>Key Features:</h3>
         <ul class="feature-list">
-          <li><strong>Interactive Dashboards</strong> - Visual representation of actuator data</li>
-          <li><strong>Real-time Updates</strong> - Live monitoring of application metrics</li>
-          <li><strong>Customizable Views</strong> - Configure which metrics to display</li>
-          <li><strong>Alert Configuration</strong> - Set up alerts for critical metrics</li>
-          <li><strong>Historical Data</strong> - Track metrics over time with trend analysis</li>
-          <li><strong>Export Options</strong> - Download metrics data for offline analysis</li>
+          <li><strong>Real-time Visualization</strong> - Interactive dashboards for application health, metrics, and system resources</li>
+          <li><strong>Smart Auto-detection</strong> - Automatically detects Spring Boot Actuator in your application</li>
+          <li><strong>Comprehensive Thread Analysis</strong> - Thread state distribution, deadlock detection, and thread pool insights</li>
+          <li><strong>Advanced Environment Visualization</strong> - Property source exploration with search highlighting</li>
+          <li><strong>Historical Data Analysis</strong> - Track metrics over time with trend visualization</li>
+          <li><strong>Customizable Dashboard</strong> - Configure views and auto-refresh intervals</li>
+        </ul>
+
+        <h3 class="mt-4">Tab-based Interface:</h3>
+        <ul class="feature-list">
+          <li><strong>Health & Status</strong> - Monitor application health with real-time updates</li>
+          <li><strong>Metrics & Performance</strong> - Track key performance indicators with historical trends</li>
+          <li><strong>Environment & Config</strong> - Explore configuration with advanced search and filtering</li>
+          <li><strong>Beans & Dependencies</strong> - Visualize application structure and dependencies</li>
+          <li><strong>Thread Analysis</strong> - Comprehensive thread diagnostics and visualization</li>
+        </ul>
+
+        <h3 class="mt-4">Thread Analysis Features:</h3>
+        <ul class="feature-list">
+          <li><strong>Thread State Visualization</strong> - Color-coded thread state distribution</li>
+          <li><strong>Deadlock Detection</strong> - Identify circular dependencies between threads</li>
+          <li><strong>Lock Contention Analysis</strong> - Find locks with multiple waiting threads</li>
+          <li><strong>Thread Pool Analysis</strong> - Group threads by common pools (Tomcat, HikariCP, Kafka, etc.)</li>
+          <li><strong>CPU-Intensive Thread Detection</strong> - Identify threads likely consuming CPU resources</li>
+          <li><strong>Memory Leak Indicators</strong> - Find potential memory leak indicators</li>
+          <li><strong>PDF Report Generation</strong> - Create shareable thread analysis reports</li>
+        </ul>
+
+        <h3 class="mt-4">Environment Tab Features:</h3>
+        <ul class="feature-list">
+          <li><strong>Advanced Search</strong> - Search across all property sources with real-time highlighting</li>
+          <li><strong>Property Source Visualization</strong> - Hierarchical view with property counts</li>
+          <li><strong>Origin Tracking</strong> - See where each property was defined</li>
+          <li><strong>Active Profiles Display</strong> - Visual representation of active Spring profiles</li>
+          <li><strong>Sensitive Value Masking</strong> - Configurable masking of sensitive information</li>
         </ul>
       </div>
       <div class="image-placeholder">
         <div class="placeholder-text">Actuator Insights Dashboard</div>
       </div>
+    </div>
+
+    <div class="feature-subsection">
+      <h3>Configuration</h3>
+      <p>
+        Configure the Actuator Insights plugin using your application's <code>application.yml</code> or environment variables:
+      </p>
+      <pre class="code-block">
+kraven:
+  plugins:
+    actuator-insights:
+      enabled: true
+      auto-detect: true
+      base-url: "http://localhost:8080"
+      context-path: ""
+      data-collection:
+        interval: 15s
+        retention-period: 1h
+      endpoints:
+        include: "*"
+        exclude: "heapdump,shutdown"
+      sensitive-data:
+        mask-sensitive-values: true
+        sensitive-patterns: "password,passwd,secret,credential,token,key,auth,private,access"
+      </pre>
+      <p class="note">
+        <strong>Note:</strong> The plugin automatically uses the application's actual port from <code>server.port</code> and context path from either <code>server.servlet.context-path</code> or <code>spring.mvc.servlet.path</code> if configured. The <code>base-url</code> and <code>context-path</code> settings are only used as fallbacks.
+      </p>
+    </div>
+
+    <div class="feature-subsection">
+      <h3>Spring Boot Actuator Configuration</h3>
+      <p>
+        To get the most out of Actuator Insights, configure Spring Boot Actuator in your application:
+      </p>
+      <pre class="code-block">
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+    env:
+      show-values: always  # For Spring Boot 3 to show environment values
+      </pre>
     </div>
   </div>
 
