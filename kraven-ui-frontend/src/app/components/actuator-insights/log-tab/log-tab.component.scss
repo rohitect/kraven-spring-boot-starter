@@ -1,0 +1,643 @@
+.log-tab-container {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 108px - 2rem); /* 60px header + 48px tabs + 2rem padding */
+  width: 100%;
+  overflow: hidden; /* Prevent the container from scrolling */
+  position: relative; /* For absolute positioning of children */
+  flex: 1; /* Take up all available space */
+  box-sizing: border-box; /* Include padding in height calculation */
+
+  /* Define CSS variables for the heights of fixed elements */
+  --tab-header-height: 3.5rem;
+  --pagination-info-height: 3.5rem;
+  --log-controls-height: 8rem;
+  --margin-spacing: 2.5rem; /* Account for margins between elements */
+
+  /* Define keyframes for highlight pulse animation */
+  @keyframes highlight-pulse {
+    0% {
+      box-shadow: 0 0 3px rgba(var(--primary-color-rgb, 25, 118, 210), 0.5);
+    }
+    50% {
+      box-shadow: 0 0 8px rgba(var(--primary-color-rgb, 25, 118, 210), 0.8);
+    }
+    100% {
+      box-shadow: 0 0 3px rgba(var(--primary-color-rgb, 25, 118, 210), 0.5);
+    }
+  }
+
+  .tab-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    position: relative;
+    z-index: 30; /* Highest z-index to ensure it's always on top */
+    height: var(--tab-header-height);
+
+    h2 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    .tab-controls {
+      display: flex;
+      align-items: center;
+
+      .refresh-control {
+        display: flex;
+        align-items: center;
+        gap: 16px; /* Space between groups */
+
+        .auto-refresh-group, .interval-group {
+          display: flex;
+          align-items: center;
+          background-color: rgba(255, 255, 255, 0.05);
+          padding: 6px 12px;
+          border-radius: 20px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .auto-refresh-group {
+          label {
+            margin-right: 8px;
+            color: var(--text-color);
+            font-weight: 500;
+          }
+
+          input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+          }
+        }
+
+        .interval-group {
+          label {
+            margin-right: 8px;
+            color: var(--text-color);
+            font-weight: 500;
+          }
+
+          input[type="number"] {
+            width: 50px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background-color: rgba(0, 0, 0, 0.2);
+            color: var(--text-color);
+            text-align: center;
+            margin-right: 8px;
+            font-weight: 500;
+          }
+
+          span {
+            color: var(--text-color);
+          }
+        }
+
+        .action-buttons {
+          display: flex;
+          gap: 12px; /* Space between buttons */
+
+          .action-button {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+
+            i {
+              font-size: 1rem;
+            }
+
+            &:hover:not(:disabled) {
+              transform: translateY(-2px);
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            }
+
+            &:disabled {
+              opacity: 0.5;
+              cursor: not-allowed;
+              transform: none;
+              box-shadow: none;
+            }
+
+            &.refresh-button {
+              background-color: #2d3748; /* Dark slate */
+              color: #e2e8f0; /* Light gray */
+
+              &:hover:not(:disabled) {
+                background-color: #3a4a5e;
+              }
+            }
+
+            &.download-button {
+              background-color: #1976d2; /* Primary blue */
+              color: white;
+
+              &:hover:not(:disabled) {
+                background-color: #2196f3;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .pagination-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    background-color: var(--card-bg-color);
+    border-radius: 4px;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-color);
+    height: var(--pagination-info-height);
+    box-sizing: border-box;
+    z-index: 25; /* Just below the header but above other elements */
+
+    .file-info {
+      display: flex;
+      align-items: center;
+
+      span {
+        margin-right: 1.5rem;
+        color: var(--text-muted-color);
+        font-size: 0.9rem;
+
+        &.sort-direction-indicator {
+          font-weight: 500;
+          color: var(--primary-color);
+
+          i {
+            margin-right: 0.25rem;
+          }
+        }
+      }
+
+      .sort-toggle-button {
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        border: 1px solid var(--border-color);
+        background-color: var(--button-bg-color);
+        color: var(--text-color);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        font-size: 0.85rem;
+        margin-right: 1.5rem;
+
+        i {
+          margin-right: 0.5rem;
+        }
+
+        &:hover {
+          background-color: var(--button-hover-bg-color);
+        }
+      }
+    }
+
+    .pagination-controls {
+      .load-more-button {
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        border: 1px solid var(--border-color);
+        background-color: var(--button-bg-color);
+        color: var(--text-color);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+
+        i {
+          margin-right: 0.5rem;
+        }
+
+        &:hover {
+          background-color: var(--button-hover-bg-color);
+        }
+
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+      }
+    }
+  }
+
+  .log-controls {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
+    background-color: var(--card-bg-color);
+    border-radius: 4px;
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+    height: var(--log-controls-height);
+    box-sizing: border-box;
+    z-index: 20; /* Below the pagination info but above the log content */
+
+    .search-filter {
+      display: flex;
+      margin-bottom: 1rem;
+
+      .filter-control, .search-control {
+        display: flex;
+        align-items: center;
+        margin-right: 2rem;
+
+        label {
+          margin-right: 0.5rem;
+          color: var(--text-muted-color);
+          white-space: nowrap;
+        }
+
+        input {
+          width: 250px;
+          padding: 0.5rem;
+          border-radius: 4px;
+          border: 1px solid var(--border-color);
+          background-color: var(--input-bg-color);
+          color: var(--text-color);
+        }
+      }
+    }
+
+    .log-level-filters {
+      display: flex;
+      align-items: center;
+
+      span {
+        margin-right: 1rem;
+        color: var(--text-muted-color);
+      }
+
+      .log-level-buttons {
+        display: flex;
+
+        .log-level-button {
+          padding: 0.25rem 0.75rem;
+          border-radius: 4px;
+          border: 1px solid var(--border-color);
+          background-color: var(--button-bg-color);
+          color: var(--text-color);
+          cursor: pointer;
+          margin-right: 0.5rem;
+          font-size: 0.85rem;
+          font-weight: 500;
+
+          &:hover {
+            background-color: var(--button-hover-bg-color);
+          }
+
+          &.active {
+            border-color: var(--primary-color);
+            background-color: var(--primary-color-light);
+          }
+
+          &.level-error {
+            &.active {
+              background-color: rgba(220, 53, 69, 0.2);
+              border-color: #dc3545;
+              color: #dc3545;
+            }
+          }
+
+          &.level-warn {
+            &.active {
+              background-color: rgba(255, 193, 7, 0.2);
+              border-color: #ffc107;
+              color: #ffc107;
+            }
+          }
+
+          &.level-info {
+            &.active {
+              background-color: rgba(13, 202, 240, 0.2);
+              border-color: #0dcaf0;
+              color: #0dcaf0;
+            }
+          }
+
+          &.level-debug {
+            &.active {
+              background-color: rgba(108, 117, 125, 0.2);
+              border-color: #6c757d;
+              color: #6c757d;
+            }
+          }
+
+          &.level-trace {
+            &.active {
+              background-color: rgba(111, 66, 193, 0.2);
+              border-color: #6f42c1;
+              color: #6f42c1;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .log-content-container {
+    /* Calculate height based on parent height minus the heights of fixed elements */
+    height: calc(100vh - 108px - 2rem - var(--tab-header-height) - var(--pagination-info-height) - var(--log-controls-height) - var(--margin-spacing)); /* Account for all fixed elements */
+    min-height: 200px; /* Ensure a minimum height */
+    overflow-y: auto; /* Make this container scrollable vertically */
+    overflow-x: hidden; /* Hide horizontal scrollbar */
+    background-color: var(--card-bg-color);
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    position: relative;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05); /* Add subtle inset shadow to indicate scrollable area */
+    margin-top: 0.5rem; /* Add some space between controls and scrollable area */
+    flex: 1; /* Take up remaining space */
+
+    /* Custom scrollbar styling */
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background-color: var(--card-bg-color);
+      border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: var(--border-color);
+      border-radius: 4px;
+
+      &:hover {
+        background-color: var(--primary-color);
+      }
+    }
+
+    .log-content {
+      padding: 1rem;
+      font-family: monospace;
+      white-space: pre-wrap;
+      word-break: break-all;
+      height: 100%; /* Take full height of parent */
+      overflow: visible; /* Let parent handle scrolling */
+      box-sizing: border-box; /* Include padding in height calculation */
+
+      /* Fallback button container removed */
+
+      .load-more-wrapper {
+        display: flex;
+        justify-content: center;
+        padding: 0.5rem 0;
+        margin: 0.5rem 0;
+
+        &.top {
+          margin-top: 0;
+          margin-bottom: 1rem;
+          border-bottom: 1px dashed var(--border-color);
+        }
+
+        &.bottom {
+          margin-top: 1rem;
+          margin-bottom: 0;
+          border-top: 1px dashed var(--border-color);
+        }
+
+        .load-more-button {
+          padding: 0.5rem 1rem;
+          border-radius: 4px;
+          border: 1px solid var(--border-color);
+          background-color: var(--button-bg-color);
+          color: var(--text-color);
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center; /* Center content */
+          font-size: 0.9rem;
+          min-width: 150px; /* Ensure minimum width */
+          transition: all 0.2s ease;
+          white-space: nowrap; /* Prevent text wrapping */
+
+          i {
+            margin-right: 0.5rem;
+          }
+
+          &:hover {
+            background-color: var(--button-hover-bg-color);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          }
+
+          &.load-newer {
+            /* Use explicit colors instead of CSS variables to ensure visibility */
+            background-color: rgba(25, 118, 210, 0.15);
+            border: 2px solid #1976d2;
+            color: #1976d2;
+            min-width: 150px;
+            justify-content: center;
+            font-weight: 600;
+            padding: 0.6rem 1.2rem;
+
+            /* Dark theme - use explicit colors */
+            body.dark-theme & {
+              background-color: rgba(100, 181, 246, 0.2);
+              border-color: #64b5f6;
+              color: #ffffff;
+            }
+
+            &:hover {
+              background-color: rgba(25, 118, 210, 0.25);
+
+              body.dark-theme & {
+                background-color: rgba(100, 181, 246, 0.3);
+              }
+            }
+
+            span {
+              display: inline-block;
+              padding: 0 0.25rem;
+            }
+          }
+
+          &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+          }
+        }
+      }
+
+      pre {
+        margin: 0;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        height: auto; /* Let content determine height */
+        overflow: visible; /* Let parent handle scrolling */
+      }
+
+      /* Use the common highlight-search class for consistency with other components */
+      ::ng-deep .highlight-search {
+        background-color: rgba(var(--primary-color-rgb, 25, 118, 210), 0.3);
+        border-radius: 3px;
+        padding: 0 3px;
+        font-weight: bold;
+        color: var(--primary-color, #1976d2);
+        box-shadow: 0 0 3px rgba(var(--primary-color-rgb, 25, 118, 210), 0.5);
+        position: relative;
+        display: inline-block;
+        animation: highlight-pulse 1.5s ease-in-out infinite;
+
+        /* Dark theme support */
+        :host-context(body.dark-theme) & {
+          background-color: rgba(var(--primary-color-rgb, 25, 118, 210), 0.4);
+          box-shadow: 0 0 4px rgba(var(--primary-color-rgb, 25, 118, 210), 0.6);
+          color: var(--primary-color-light, #64b5f6);
+        }
+      }
+    }
+
+    .no-logs-message {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      text-align: center;
+
+      i {
+        font-size: 3rem;
+        color: var(--warning-color);
+        margin-bottom: 1rem;
+      }
+
+      p {
+        margin-bottom: 2rem;
+        color: var(--text-color);
+      }
+
+      .help-text {
+        background-color: var(--code-bg-color);
+        padding: 1rem;
+        border-radius: 4px;
+        width: 100%;
+        max-width: 600px;
+
+        p {
+          margin-top: 0;
+          margin-bottom: 0.5rem;
+          text-align: left;
+        }
+
+        pre {
+          text-align: left;
+          background-color: var(--code-block-bg-color);
+          padding: 1rem;
+          border-radius: 4px;
+          overflow-x: auto;
+          margin: 0;
+        }
+      }
+    }
+
+    .loading-indicator {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+
+      i {
+        font-size: 2rem;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+      }
+
+      span {
+        color: var(--text-muted-color);
+      }
+    }
+
+    .loading-more-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      background-color: var(--card-bg-color);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0; /* Stick to the top of the scrollable container */
+      z-index: 5; /* Lower than the controls but still sticky */
+
+      i {
+        font-size: 1rem;
+        color: var(--primary-color);
+        margin-right: 0.5rem;
+      }
+
+      span {
+        color: var(--text-muted-color);
+      }
+    }
+  }
+
+  .back-to-top {
+    position: absolute; /* Position relative to the log-tab-container */
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease;
+    z-index: 20; /* Ensure it stays above other elements */
+
+    .tooltip {
+      position: absolute;
+      right: 50px;
+      background-color: var(--tooltip-bg-color, rgba(0, 0, 0, 0.8));
+      color: white;
+      padding: 0.5rem 0.75rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      white-space: nowrap;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+
+      &:after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        right: -6px;
+        transform: translateY(-50%);
+        border-width: 6px 0 6px 6px;
+        border-style: solid;
+        border-color: transparent transparent transparent var(--tooltip-bg-color, rgba(0, 0, 0, 0.8));
+      }
+    }
+
+    &:hover {
+      transform: translateY(-2px);
+
+      .tooltip {
+        opacity: 1;
+        visibility: visible;
+      }
+    }
+  }
+}

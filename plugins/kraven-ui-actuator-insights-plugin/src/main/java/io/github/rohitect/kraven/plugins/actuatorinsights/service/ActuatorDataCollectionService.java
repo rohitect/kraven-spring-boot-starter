@@ -10,10 +10,16 @@ import io.github.rohitect.kraven.plugins.actuatorinsights.model.HealthStatus;
 import io.github.rohitect.kraven.plugins.actuatorinsights.model.MetricData;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.OutputStream;
 
 import java.time.Duration;
 import java.util.*;
@@ -129,6 +135,7 @@ public class ActuatorDataCollectionService {
                 .env(getEnvData())
                 .beans(getBeansData())
                 .conditions(getConditionsData())
+                .logfileAvailable(isLogfileAvailable())
                 .build();
     }
 
@@ -380,6 +387,9 @@ public class ActuatorDataCollectionService {
 
         // Collect conditions data
         collectConditionsData();
+
+        // Check if logfile endpoint is available
+        checkLogfileEndpoint();
     }
 
     /**
@@ -780,6 +790,240 @@ public class ActuatorDataCollectionService {
     }
 
 
+
+    /**
+     * Check if the logfile endpoint is available and store its status.
+     * This method uses cache control headers to ensure we get fresh data.
+     */
+    private void checkLogfileEndpoint() {
+        String logfileUrl = getEndpointPath("logfile");
+
+        try {
+            log.debug("Checking logfile endpoint availability: {}", logfileUrl);
+
+            // Add cache control headers to ensure we get fresh data
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.set("Cache-Control", "no-cache, no-store, must-revalidate");
+            headers.set("Pragma", "no-cache");
+            headers.set("Expires", "0");
+
+            org.springframework.http.HttpEntity<?> requestEntity = new org.springframework.http.HttpEntity<>(headers);
+
+            ResponseEntity<String> response = restTemplate.exchange(
+                logfileUrl,
+                HttpMethod.HEAD,
+                requestEntity,
+                String.class
+            );
+
+            boolean available = response.getStatusCode().is2xxSuccessful();
+            dataCache.put("logfileAvailable", available);
+            log.debug("Logfile endpoint available: {}", available);
+        } catch (RestClientException e) {
+            log.debug("Logfile endpoint not available: {}", e.getMessage());
+            dataCache.put("logfileAvailable", false);
+        }
+    }
+
+    /**
+     * Check if the logfile endpoint is available.
+     * This method performs a real-time check instead of relying on cached data.
+     *
+     * @return true if the logfile endpoint is available
+     */
+    public boolean isLogfileAvailable() {
+        String logfileUrl = getLogfileUrl();
+
+        try {
+            // Add cache control headers to ensure we get fresh data
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.set("Cache-Control", "no-cache, no-store, must-revalidate");
+            headers.set("Pragma", "no-cache");
+            headers.set("Expires", "0");
+
+            org.springframework.http.HttpEntity<?> requestEntity = new org.springframework.http.HttpEntity<>(headers);
+
+            ResponseEntity<String> response = restTemplate.exchange(
+                logfileUrl,
+                HttpMethod.HEAD,
+                requestEntity,
+                String.class
+            );
+
+            boolean available = response.getStatusCode().is2xxSuccessful();
+            // Update the cache
+            dataCache.put("logfileAvailable", available);
+            return available;
+        } catch (RestClientException e) {
+            // Update the cache
+            dataCache.put("logfileAvailable", false);
+            return false;
+        }
+    }
+
+    /**
+     * Get the logfile URL.
+     *
+     * @return the logfile URL
+     */
+    public String getLogfileUrl() {
+        return getEndpointPath("logfile");
+    }
+
+    /**
+     * Get the log file content from the logfile endpoint with pagination support.
+     * This method supports the Range header for pagination.
+     * Note: Logfile data is never cached and is always fetched fresh from the actuator endpoint.
+     *
+     * @param rangeHeader the Range header for pagination (e.g., "bytes=0-1024")
+     * @return ResponseEntity with the requested range of log content
+     */
+    public ResponseEntity<String> getLogfileContent(String rangeHeader) {
+        if (!isLogfileAvailable()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        String logfileUrl = getLogfileUrl();
+        log.debug("Fetching logfile content from: {} with range: {}", logfileUrl, rangeHeader);
+
+        try {
+            // Create request entity with Range header if provided
+            org.springframework.http.HttpHeaders requestHeaders = new org.springframework.http.HttpHeaders();
+
+            // Add Cache-Control header to ensure we get fresh data
+            requestHeaders.set("Cache-Control", "no-cache, no-store, must-revalidate");
+            requestHeaders.set("Pragma", "no-cache");
+            requestHeaders.set("Expires", "0");
+
+            // Add Range header if provided
+            if (rangeHeader != null && !rangeHeader.isEmpty()) {
+                requestHeaders.set("Range", rangeHeader);
+            }
+
+            org.springframework.http.HttpEntity<?> requestEntity = new org.springframework.http.HttpEntity<>(requestHeaders);
+
+            // Execute the request
+            ResponseEntity<String> response = restTemplate.exchange(
+                logfileUrl,
+                HttpMethod.GET,
+                requestEntity,
+                String.class
+            );
+
+            // Set appropriate headers for the response
+            org.springframework.http.HttpHeaders responseHeaders = new org.springframework.http.HttpHeaders();
+            responseHeaders.setContentType(org.springframework.http.MediaType.TEXT_PLAIN);
+            responseHeaders.set("Content-Disposition", "inline; filename=\"application.log\"");
+
+            // Add cache control headers to prevent caching
+            responseHeaders.setCacheControl("no-cache, no-store, must-revalidate");
+            responseHeaders.setPragma("no-cache");
+            responseHeaders.setExpires(0);
+
+            // Copy Content-Range header if present
+            if (response.getHeaders().containsKey("Content-Range")) {
+                responseHeaders.set("Content-Range", response.getHeaders().getFirst("Content-Range"));
+            }
+
+            // Copy Accept-Ranges header if present
+            if (response.getHeaders().containsKey("Accept-Ranges")) {
+                responseHeaders.set("Accept-Ranges", response.getHeaders().getFirst("Accept-Ranges"));
+            } else {
+                // Explicitly set Accept-Ranges to bytes if not present
+                responseHeaders.set("Accept-Ranges", "bytes");
+            }
+
+            return new ResponseEntity<>(
+                response.getBody(),
+                responseHeaders,
+                response.getStatusCode()
+            );
+        } catch (RestClientException e) {
+            log.error("Failed to fetch logfile content: {}", e.getMessage());
+            return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Failed to fetch logfile content: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Get the size of the log file in bytes.
+     * This method tries multiple approaches to determine the size:
+     * 1. First, it tries a HEAD request to get the Content-Length header
+     * 2. If that fails, it tries a GET request with Range: bytes=0-0 to get the Content-Range header
+     * 3. If that fails, it makes a GET request for the entire file and measures its length
+     *
+     * @return the size of the log file in bytes
+     */
+    public long getLogfileSize() {
+        if (!isLogfileAvailable()) {
+            return 0;
+        }
+
+        String logfileUrl = getLogfileUrl();
+        log.debug("Getting logfile size from: {}", logfileUrl);
+
+        try {
+            // Approach 1: Try a HEAD request to get the Content-Length header
+            org.springframework.http.HttpHeaders headers = restTemplate.headForHeaders(logfileUrl);
+
+            if (headers.containsKey("Content-Length")) {
+                long size = headers.getContentLength();
+                log.debug("Logfile size from Content-Length header: {} bytes", size);
+                return size;
+            } else {
+                log.debug("Content-Length header not found in HEAD response, trying Range request");
+            }
+
+            // Approach 2: Try a GET request with Range: bytes=0-0 to get the Content-Range header
+            org.springframework.http.HttpHeaders rangeHeaders = new org.springframework.http.HttpHeaders();
+            rangeHeaders.set("Range", "bytes=0-0");
+            org.springframework.http.HttpEntity<String> requestEntity = new org.springframework.http.HttpEntity<>(rangeHeaders);
+
+            ResponseEntity<String> response = restTemplate.exchange(
+                logfileUrl,
+                HttpMethod.GET,
+                requestEntity,
+                String.class
+            );
+
+            if (response.getHeaders().containsKey("Content-Range")) {
+                String contentRange = response.getHeaders().getFirst("Content-Range");
+                log.debug("Content-Range header: {}", contentRange);
+
+                // Parse the Content-Range header (format: "bytes 0-0/12345")
+                if (contentRange != null && contentRange.startsWith("bytes ")) {
+                    String[] parts = contentRange.substring(6).split("/");
+                    if (parts.length == 2) {
+                        try {
+                            long size = Long.parseLong(parts[1]);
+                            log.debug("Logfile size from Content-Range header: {} bytes", size);
+                            return size;
+                        } catch (NumberFormatException e) {
+                            log.warn("Failed to parse Content-Range header: {}", contentRange);
+                        }
+                    }
+                }
+            } else {
+                log.debug("Content-Range header not found in Range response, fetching entire file");
+            }
+
+            // Approach 3: As a last resort, get the entire file and measure its length
+            // Note: This is not ideal for large files but ensures we get a size
+            log.debug("Fetching entire logfile to determine size");
+            String content = restTemplate.getForObject(logfileUrl, String.class);
+            if (content != null) {
+                long size = content.length();
+                log.debug("Logfile size from content length: {} bytes", size);
+                return size;
+            }
+
+            log.warn("All approaches to determine logfile size failed");
+            return 0;
+        } catch (RestClientException e) {
+            log.error("Failed to get logfile size: {}", e.getMessage());
+            return 0;
+        }
+    }
 
     /**
      * Parse a duration string into a Duration object.

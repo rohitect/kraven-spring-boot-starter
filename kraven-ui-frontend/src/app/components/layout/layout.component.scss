@@ -8,9 +8,11 @@
 
 .content-container {
   flex: 1;
-  overflow-y: auto;
   margin-top: 60px; /* Height of the header */
   height: calc(100vh - 60px); /* Viewport height minus header height */
   width: 100%;
   position: relative;
+  overflow: hidden; /* Prevent scrolling at this level */
+  display: flex; /* Ensure child components can use flex layout */
+  flex-direction: column; /* Stack children vertically */
 }

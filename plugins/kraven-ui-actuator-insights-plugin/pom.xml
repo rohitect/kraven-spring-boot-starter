@@ -6,7 +6,7 @@
 
     <groupId>io.github.rohitect</groupId>
     <artifactId>kraven-ui-actuator-insights-plugin</artifactId>
-    <version>1.0.9</version>
+    <version>1.0.10</version>
     <packaging>jar</packaging>
 
     <name>Kraven UI Actuator Insights Plugin</name>
@@ -115,6 +115,14 @@
             <groupId>com.github.ben-manes.caffeine</groupId>
             <artifactId>caffeine</artifactId>
             <version>${caffeine.version}</version>
+        </dependency>
+
+        <!-- Servlet API -->
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>6.0.0</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- Lombok -->

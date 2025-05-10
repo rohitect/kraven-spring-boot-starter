@@ -41,4 +41,9 @@ public class ActuatorData {
      * Conditions data from the conditions endpoint.
      */
     private Map<String, Object> conditions;
+
+    /**
+     * Logfile availability status.
+     */
+    private boolean logfileAvailable;
 }

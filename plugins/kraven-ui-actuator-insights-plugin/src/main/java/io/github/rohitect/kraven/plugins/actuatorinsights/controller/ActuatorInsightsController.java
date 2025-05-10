@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -291,5 +292,51 @@ public class ActuatorInsightsController {
         return ResponseEntity.ok(analysisTypes);
     }
 
+    /**
+     * Check if the logfile endpoint is available.
+     *
+     * @return the logfile availability status
+     */
+    @GetMapping("/logfile/status")
+    public ResponseEntity<Map<String, Object>> getLogfileStatus() {
+        Map<String, Object> status = new HashMap<>();
+        boolean available = dataCollectionService.isLogfileAvailable();
+        status.put("available", available);
 
+        if (available) {
+            status.put("url", dataCollectionService.getLogfileUrl());
+        }
+
+        return ResponseEntity.ok(status);
+    }
+
+    /**
+     * Get the logfile content with pagination support.
+     * This endpoint fetches content from the actuator logfile endpoint
+     * with support for the Range header for pagination.
+     *
+     * @param rangeHeader the Range header for pagination (e.g., "bytes=0-1024")
+     * @param response the HTTP response
+     * @return the logfile content for the requested range
+     */
+    @GetMapping(value = "/logfile", produces = {"text/plain", "*/*"})
+    public ResponseEntity<String> getLogfile(
+            @RequestHeader(value = "Range", required = false) String rangeHeader,
+            HttpServletResponse response) {
+        return dataCollectionService.getLogfileContent(rangeHeader);
+    }
+
+    /**
+     * Get the size of the logfile.
+     * This endpoint returns the total size of the logfile in bytes.
+     *
+     * @return the size of the logfile in bytes
+     */
+    @GetMapping("/logfile/size")
+    public ResponseEntity<Map<String, Object>> getLogfileSize() {
+        Map<String, Object> result = new HashMap<>();
+        long size = dataCollectionService.getLogfileSize();
+        result.put("size", size);
+        return ResponseEntity.ok(result);
+    }
 }

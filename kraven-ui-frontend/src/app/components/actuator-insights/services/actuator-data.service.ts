@@ -486,4 +486,187 @@ export class ActuatorDataService {
       })
     );
   }
+
+  /**
+   * Check if the logfile endpoint is available
+   */
+  getLogfileStatus(): Observable<any> {
+    // Ensure the plugin is initialized
+    if (!this.pluginInitialized) {
+      return this.http.get<any>(`${this.baseUrl}${this.apiPath}/plugins/actuator-insights/status`).pipe(
+        switchMap(status => {
+          if (status) {
+            this.contextPath = status.contextPath || '';
+            this.actuatorBasePath = status.actuatorBasePath || 'actuator';
+            this.fullActuatorPath = status.fullActuatorPath || '/actuator';
+            this.pluginInitialized = true;
+          }
+
+          // Now get the logfile status
+          const url = `${this.baseUrl}${this.apiPath}/plugins/actuator-insights/logfile/status`;
+          return this.http.get<any>(url);
+        }),
+        catchError(error => {
+          console.error('Error getting logfile status:', error);
+          return of({ available: false });
+        })
+      );
+    }
+
+    const url = `${this.baseUrl}${this.apiPath}/plugins/actuator-insights/logfile/status`;
+
+    return this.http.get<any>(url).pipe(
+      catchError(error => {
+        console.error('Error getting logfile status:', error);
+        return of({ available: false });
+      })
+    );
+  }
+
+  /**
+   * Get the URL for the logfile endpoint
+   */
+  getLogfileUrl(): string {
+    return `${this.baseUrl}${this.apiPath}/plugins/actuator-insights/logfile`;
+  }
+
+  /**
+   * Get the URL for the logfile size endpoint
+   */
+  getLogfileSizeUrl(): string {
+    return `${this.baseUrl}${this.apiPath}/plugins/actuator-insights/logfile/size`;
+  }
+
+  /**
+   * Get the size of the logfile in bytes
+   */
+  getLogfileSize(): Observable<number> {
+    const url = this.getLogfileSizeUrl();
+    const timestamp = new Date().getTime(); // Add timestamp to prevent caching
+
+    return this.http.get<any>(`${url}?_=${timestamp}`, {
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    }).pipe(
+      map(response => {
+        const size = response.size || 0;
+        if (size > 0) {
+          // Update the cached size
+          this.logfileTotalSize = size;
+        }
+        return size;
+      }),
+      catchError(error => {
+        console.error('Error getting logfile size:', error);
+        return of(0);
+      })
+    );
+  }
+
+  /**
+   * Get a specific range of the logfile content
+   * @param start The start byte position
+   * @param end The end byte position
+   */
+  getLogfileRange(start: number, end: number): Observable<string> {
+    const url = this.getLogfileUrl();
+    const timestamp = new Date().getTime(); // Add timestamp to prevent caching
+
+    return this.http.get(`${url}?_=${timestamp}`, {
+      responseType: 'text',
+      headers: {
+        'Accept': 'text/plain',
+        'Range': `bytes=${start}-${end}`,
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      },
+      observe: 'response'
+    }).pipe(
+      map(response => {
+        // Extract Content-Range header if present
+        const contentRange = response.headers.get('Content-Range');
+        if (contentRange) {
+          // Parse content range to get total size
+          const match = contentRange.match(/bytes\s+(\d+)-(\d+)\/(\d+)/);
+          if (match && match[3]) {
+            // Store total size for future reference
+            this.logfileTotalSize = parseInt(match[3], 10);
+          }
+        }
+        return response.body || '';
+      }),
+      catchError(error => {
+        console.error('Error getting logfile range:', error);
+        return of('');
+      })
+    );
+  }
+
+  // Store the total size of the logfile
+  private logfileTotalSize: number = 0;
+
+  /**
+   * Get the total size of the logfile (cached from previous range requests)
+   */
+  getLogfileTotalSize(): number {
+    return this.logfileTotalSize;
+  }
+
+  /**
+   * Download the logfile
+   */
+  downloadLogfile(): void {
+    const url = this.getLogfileUrl();
+    const timestamp = new Date().getTime(); // Add timestamp to prevent caching
+
+    // Create a link with proper headers
+    this.http.get(`${url}?_=${timestamp}`, {
+      responseType: 'blob',
+      headers: {
+        'Accept': 'text/plain',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    }).subscribe({
+      next: (blob) => {
+        try {
+          // Create a Blob URL and trigger download
+          const a = document.createElement('a');
+          const objectUrl = URL.createObjectURL(blob);
+
+          // Set attributes
+          a.href = objectUrl;
+          a.download = `application_log_${new Date().toISOString().replace(/[:.]/g, '-')}.log`;
+          a.style.display = 'none';
+
+          // Append to body, click, and clean up
+          document.body.appendChild(a);
+          a.click();
+
+          // Clean up after a short delay to ensure the download starts
+          setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(objectUrl);
+          }, 100);
+
+          console.log('Log file download initiated');
+        } catch (error) {
+          console.error('Error creating download link:', error);
+
+          // Fallback method - open in new tab
+          const fallbackUrl = `${url}?_=${timestamp}`;
+          window.open(fallbackUrl, '_blank');
+        }
+      },
+      error: (error) => {
+        console.error('Error downloading log file:', error);
+        alert('Failed to download log file. Please try again.');
+      }
+    });
+  }
 }

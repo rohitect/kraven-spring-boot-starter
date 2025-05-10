@@ -11,6 +11,7 @@ A powerful Spring Boot Actuator visualization and monitoring plugin for Kraven U
 - **Comprehensive thread analysis** with state distribution, deadlock detection, and thread pool insights
 - **Advanced environment visualization** with property source exploration and search highlighting
 - **Auto-configuration analysis** with detailed conditions evaluation reporting
+- **Application log streaming** with advanced filtering, search, and real-time updates
 - **Customizable dashboard** with various visualization options and auto-refresh controls
 
 ## 🔧 Installation
@@ -79,6 +80,12 @@ kraven:
    - See unconditional classes (configurations always applied)
    - Search across all conditions with highlighted results
    - Navigate easily with fixed secondary tabs
+8. **View Application Logs**: Stream and analyze application logs
+   - View logs in real-time with auto-refresh capabilities
+   - Filter logs by log level (ERROR, WARN, INFO, DEBUG, TRACE)
+   - Search for specific text with highlighted results
+   - Download complete log files for offline analysis
+   - Configure auto-refresh intervals for real-time monitoring
 
 ### Environment Tab Features
 
@@ -175,6 +182,40 @@ This feature is particularly useful when:
 - Understanding the startup configuration of your Spring Boot application
 - Optimizing your application by removing unnecessary dependencies
 
+### Application Logs Features
+
+The Application Logs tab provides a modern, feature-rich log viewer for your Spring Boot application:
+
+#### Real-time Log Streaming
+- Stream logs directly from Spring Boot Actuator's logfile endpoint
+- Configure auto-refresh intervals to see the latest log entries in real-time
+- Auto-scroll functionality to follow new log entries as they appear
+
+#### Advanced Filtering and Search
+- Filter logs by log level with color-coded indicators (ERROR, WARN, INFO, DEBUG, TRACE)
+- Search for specific text with real-time highlighting of matches
+- Text-based filtering to show only entries containing specific text
+
+#### Professional Interface
+- Syntax highlighting for better readability
+- Download functionality for offline analysis
+- Responsive design that adapts to different screen sizes
+
+#### Configuration Requirements
+To use the Application Logs feature, you need to enable the logfile endpoint in your Spring Boot application:
+
+```properties
+# Enable logfile endpoint
+management.endpoints.web.exposure.include=logfile
+logging.file.name=/path/to/your/application.log
+```
+
+This feature is particularly useful when:
+- Monitoring application behavior in real-time
+- Troubleshooting issues by analyzing log patterns
+- Identifying errors and warnings in your application
+- Sharing log files with team members for collaborative debugging
+
 ## 🔍 Auto-Detection
 
 The plugin uses a multi-layered approach to detect Spring Boot Actuator:
@@ -240,6 +281,10 @@ kraven-ui-frontend/src/app/components/actuator-insights/
 │   ├── conditions-tab.component.ts
 │   ├── conditions-tab.component.html
 │   └── conditions-tab.component.scss
+├── log-tab/
+│   ├── log-tab.component.ts
+│   ├── log-tab.component.html
+│   └── log-tab.component.scss
 └── services/
     └── actuator-data.service.ts
 ```

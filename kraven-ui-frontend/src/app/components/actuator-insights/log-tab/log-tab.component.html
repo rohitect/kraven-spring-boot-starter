@@ -1,0 +1,165 @@
+<div class="log-tab-container">
+  <div class="tab-header">
+    <h2>Application Logs</h2>
+
+    <div class="tab-controls">
+      <div class="refresh-control" *ngIf="logfileAvailable">
+        <div class="auto-refresh-group">
+          <label for="auto-refresh">Auto-refresh:</label>
+          <input type="checkbox" id="auto-refresh" [(ngModel)]="autoRefresh" (change)="toggleAutoRefresh()">
+        </div>
+
+        <div class="interval-group" *ngIf="autoRefresh">
+          <label for="refresh-interval">Interval:</label>
+          <input
+            type="number"
+            id="refresh-interval"
+            [(ngModel)]="refreshInterval"
+            min="1"
+            max="60"
+            (change)="toggleAutoRefresh()">
+          <span>seconds</span>
+        </div>
+
+        <div class="action-buttons">
+          <button class="action-button refresh-button" (click)="refreshNow()" [disabled]="isLoading" title="Refresh logs">
+            <i class="fas fa-sync-alt" [class.fa-spin]="isLoading"></i>
+          </button>
+
+          <button class="action-button download-button" (click)="downloadLog()" [disabled]="!logfileAvailable || isDownloading" title="{{ isDownloading ? 'Downloading...' : 'Download logs' }}">
+            <i class="fas" [ngClass]="{'fa-download': !isDownloading, 'fa-spinner fa-spin': isDownloading}"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pagination-info" *ngIf="logfileAvailable && !isLoading">
+    <div class="file-info">
+      <span>Log file size: {{ (logfileSize / 1024 / 1024).toFixed(2) }} MB</span>
+      <span>Showing {{ currentPosition }} to {{ Math.min(currentPosition + pageSize, logfileSize) }} bytes</span>
+      <span class="sort-direction-indicator">
+        <i class="fas" [ngClass]="{'fa-sort-amount-down': newestLogsFirst, 'fa-sort-amount-up': !newestLogsFirst}"></i>
+        {{ newestLogsFirst ? 'Newest logs first' : 'Oldest logs first (newest at bottom)' }}
+      </span>
+      <button class="sort-toggle-button" (click)="toggleSortDirection()">
+        <i class="fas fa-exchange-alt"></i>
+        Reverse order
+      </button>
+    </div>
+    <!-- Pagination controls removed - load more buttons will be placed within the log content -->
+  </div>
+
+  <div class="log-controls">
+    <div class="search-filter">
+      <div class="filter-control">
+        <label for="filter-text">Filter:</label>
+        <input
+          type="text"
+          id="filter-text"
+          [(ngModel)]="filterText"
+          placeholder="Filter log entries...">
+      </div>
+
+      <div class="search-control">
+        <label for="search-text">Search:</label>
+        <input
+          type="text"
+          id="search-text"
+          [(ngModel)]="searchText"
+          placeholder="Search in logs...">
+      </div>
+    </div>
+
+    <div class="log-level-filters">
+      <span>Log Levels:</span>
+      <div class="log-level-buttons">
+        <button
+          *ngFor="let level of logLevels"
+          class="log-level-button"
+          [class.active]="selectedLogLevels[level]"
+          [class.level-error]="level === 'ERROR'"
+          [class.level-warn]="level === 'WARN'"
+          [class.level-info]="level === 'INFO'"
+          [class.level-debug]="level === 'DEBUG'"
+          [class.level-trace]="level === 'TRACE'"
+          (click)="toggleLogLevel(level)">
+          {{ level }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="log-content-container" #logContainer (scroll)="onScroll()">
+    <div class="loading-more-indicator" *ngIf="isLoadingMore">
+      <i class="fas fa-spinner fa-spin"></i>
+      <span>Loading more logs...</span>
+    </div>
+
+    <div class="log-content" *ngIf="!isLoading && logfileAvailable">
+      <!-- Load older logs button at the top when in oldest-first mode -->
+      <div class="load-more-wrapper top" *ngIf="!newestLogsFirst && hasMoreContent">
+        <button
+          class="load-more-button"
+          (click)="loadMoreContent()"
+          [disabled]="isLoadingMore">
+          <i class="fas fa-arrow-up" *ngIf="!isLoadingMore"></i>
+          <i class="fas fa-spinner fa-spin" *ngIf="isLoadingMore"></i>
+          <span>Load older logs</span>
+        </button>
+      </div>
+
+      <!-- The log content -->
+      <pre [innerHTML]="getFilteredLogContent() | highlightSearch:searchText"></pre>
+
+      <!-- Load older logs button at the bottom when in newest-first mode -->
+      <div class="load-more-wrapper bottom" *ngIf="newestLogsFirst && hasMoreContent">
+        <button
+          class="load-more-button"
+          (click)="loadMoreContent()"
+          [disabled]="isLoadingMore">
+          <i class="fas fa-arrow-down" *ngIf="!isLoadingMore"></i>
+          <i class="fas fa-spinner fa-spin" *ngIf="isLoadingMore"></i>
+          <span>Load older logs</span>
+        </button>
+      </div>
+
+      <!-- Load newer logs button at the bottom when in oldest-first mode -->
+      <div class="load-more-wrapper bottom" *ngIf="!newestLogsFirst">
+        <button
+          class="load-more-button load-newer"
+          (click)="loadNewerLogs()"
+          [disabled]="isLoadingNewer">
+          <i class="fas fa-arrow-down" *ngIf="!isLoadingNewer"></i>
+          <i class="fas fa-spinner fa-spin" *ngIf="isLoadingNewer"></i>
+          <span>Load newer logs</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="log-content" *ngIf="!isLoading && !logfileAvailable">
+      <div class="no-logs-message">
+        <i class="fas fa-exclamation-triangle"></i>
+        <p>{{ logContent }}</p>
+        <div class="help-text">
+          <p>To enable the logfile endpoint, add the following to your application.properties or application.yml:</p>
+          <pre>
+# Enable logfile endpoint
+management.endpoints.web.exposure.include=logfile
+logging.file.name=/path/to/your/application.log
+          </pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="loading-indicator" *ngIf="isLoading">
+      <i class="fas fa-spinner fa-spin"></i>
+      <span>Loading logs...</span>
+    </div>
+  </div>
+
+  <div class="back-to-top" *ngIf="!isScrolledToBottom() && !isLoading" (click)="scrollToBottom()">
+    <i class="fas fa-arrow-down"></i>
+    <span class="tooltip">{{ newestLogsFirst ? 'Scroll to older logs' : 'Scroll to newest logs' }}</span>
+  </div>
+</div>

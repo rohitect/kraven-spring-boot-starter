@@ -8,6 +8,7 @@ import { EnvironmentTabComponent } from './environment-tab/environment-tab.compo
 import { BeansTabComponent } from './beans-tab/beans-tab.component';
 import { ThreadsTabComponent } from './threads-tab/threads-tab.component';
 import { ConditionsTabComponent } from './conditions-tab/conditions-tab.component';
+import { LogTabComponent } from './log-tab/log-tab.component';
 import { PluginRouteGuard } from '../../guards/plugin-route.guard';
 
 const routes: Routes = [
@@ -23,7 +24,8 @@ const routes: Routes = [
       { path: 'environment', component: EnvironmentTabComponent },
       { path: 'beans', component: BeansTabComponent },
       { path: 'threads', component: ThreadsTabComponent },
-      { path: 'conditions', component: ConditionsTabComponent }
+      { path: 'conditions', component: ConditionsTabComponent },
+      { path: 'logs', component: LogTabComponent }
     ]
   }
 ];
@@ -37,7 +39,8 @@ const routes: Routes = [
     EnvironmentTabComponent,
     BeansTabComponent,
     ThreadsTabComponent,
-    ConditionsTabComponent
+    ConditionsTabComponent,
+    LogTabComponent
   ],
   exports: [
     RouterModule
