@@ -304,7 +304,7 @@
           <li><strong>Log Level Filtering</strong> - Filter logs by level (ERROR, WARN, INFO, DEBUG, TRACE) with color-coded indicators</li>
           <li><strong>Text Search & Filtering</strong> - Search for specific text with highlighting and filter log entries</li>
           <li><strong>Download Logs</strong> - Download the complete log file for offline analysis</li>
-          <li><strong>Modern Interface</strong> - Professional, syntax-highlighted log viewer with auto-scroll functionality</li>
+          <li><strong>Enhanced Log Viewer</strong> - Advanced log viewer with search highlighting, dual-direction pagination, and auto-scroll functionality</li>
         </ul>
       </div>
       <div class="image-placeholder">
@@ -356,7 +356,35 @@ management:
       show-details: always
     env:
       show-values: always  # For Spring Boot 3 to show environment values
+
+# To enable the log viewer
+logging:
+  file:
+    name: /path/to/your/application.log
       </pre>
+    </div>
+
+    <div class="feature-subsection">
+      <h3>Enhanced Log Viewer</h3>
+      <p>
+        The Actuator Insights plugin includes a powerful log viewer with advanced features:
+      </p>
+      <div class="feature-details feature-card-modern">
+        <div class="feature-text">
+          <ul class="feature-list">
+            <li><strong>Dual-direction Pagination</strong> - Load older logs at the top and newer logs at the bottom</li>
+            <li><strong>Flexible Log Ordering</strong> - Toggle between newest-first and oldest-first views</li>
+            <li><strong>Real-time Search Highlighting</strong> - Instantly highlights search terms as you type</li>
+            <li><strong>Advanced Filtering</strong> - Filter logs by log level (ERROR, WARN, INFO, DEBUG, TRACE)</li>
+            <li><strong>Auto-scroll Functionality</strong> - Automatically scrolls to the newest logs when they arrive</li>
+            <li><strong>One-click Download</strong> - Download the complete log file with a single click</li>
+            <li><strong>Auto-refresh Capability</strong> - Keep logs updated with configurable refresh intervals</li>
+          </ul>
+        </div>
+        <div class="image-placeholder">
+          <div class="placeholder-text">Log Viewer Screenshot</div>
+        </div>
+      </div>
     </div>
   </div>
 

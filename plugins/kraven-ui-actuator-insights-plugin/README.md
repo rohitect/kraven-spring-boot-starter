@@ -11,7 +11,7 @@ A powerful Spring Boot Actuator visualization and monitoring plugin for Kraven U
 - **Comprehensive thread analysis** with state distribution, deadlock detection, and thread pool insights
 - **Advanced environment visualization** with property source exploration and search highlighting
 - **Auto-configuration analysis** with detailed conditions evaluation reporting
-- **Application log streaming** with advanced filtering, search, and real-time updates
+- **Enhanced log viewer** with advanced filtering, search highlighting, auto-scroll, and dual-direction pagination
 - **Customizable dashboard** with various visualization options and auto-refresh controls
 
 ## 🔧 Installation
@@ -210,11 +210,25 @@ management.endpoints.web.exposure.include=logfile
 logging.file.name=/path/to/your/application.log
 ```
 
+### Log Viewer
+
+The enhanced log viewer provides a powerful interface for viewing and analyzing your application logs:
+
+- **Dual-direction pagination** - Load older logs at the top and newer logs at the bottom
+- **Flexible log ordering** - Toggle between newest-first and oldest-first views
+- **Real-time search highlighting** - Instantly highlights search terms as you type
+- **Advanced filtering** - Filter logs by log level (ERROR, WARN, INFO, DEBUG, TRACE)
+- **Auto-scroll functionality** - Automatically scrolls to the newest logs when they arrive
+- **One-click download** - Download the complete log file with a single click
+- **Auto-refresh capability** - Keep logs updated with configurable refresh intervals
+- **Responsive design** - Optimized for both desktop and mobile viewing
+
 This feature is particularly useful when:
 - Monitoring application behavior in real-time
 - Troubleshooting issues by analyzing log patterns
 - Identifying errors and warnings in your application
 - Sharing log files with team members for collaborative debugging
+- Tracking application startup and shutdown sequences
 
 ## 🔍 Auto-Detection
 

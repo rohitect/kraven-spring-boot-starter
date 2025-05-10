@@ -189,7 +189,7 @@ kraven.ui.plugin.mock-server.enable-dynamic-responses=true</code></pre>
     <h2 id="actuator-insights-plugin">Actuator Insights Plugin</h2>
     <p>
       The Actuator Insights Plugin provides a powerful visualization and monitoring layer for Spring Boot Actuator endpoints, making it easy to monitor
-      and manage your application's health, metrics, configuration, and thread activity.
+      and manage your application's health, metrics, configuration, thread activity, and application logs.
     </p>
 
     <div class="feature-details">
@@ -202,7 +202,7 @@ kraven.ui.plugin.mock-server.enable-dynamic-responses=true</code></pre>
           <li><strong>Advanced Environment Visualization</strong> - Property source exploration with search highlighting</li>
           <li><strong>Historical Data Analysis</strong> - Track metrics over time with trend visualization</li>
           <li><strong>Auto-Configuration Analysis</strong> - Understand why Spring Boot auto-configurations were applied or skipped</li>
-          <li><strong>Application Log Viewer</strong> - Stream and analyze application logs with advanced filtering and search</li>
+          <li><strong>Enhanced Log Viewer</strong> - Advanced log viewer with search highlighting, dual-direction pagination, and auto-scroll functionality</li>
           <li><strong>Tab-based Interface</strong> - Health & Status, Metrics & Performance, Environment & Config, Beans & Dependencies, Thread Analysis, Conditions Report, Application Logs</li>
         </ul>
 
@@ -235,7 +235,11 @@ kraven.plugins.actuator-insights.sensitive-data.sensitive-patterns=password,pass
 # Spring Boot Actuator configuration (recommended)
 management.endpoints.web.exposure.include=*
 management.endpoint.health.show-details=always
-management.endpoint.env.show-values=always  # For Spring Boot 3 to show environment values</code></pre>
+management.endpoint.env.show-values=always  # For Spring Boot 3 to show environment values
+
+# To enable the log viewer
+management.endpoints.web.exposure.include=logfile  # Include this if not using "*" above
+logging.file.name=/path/to/your/application.log</code></pre>
         </div>
       </div>
       <div class="image-placeholder">
