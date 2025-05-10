@@ -1,5 +1,30 @@
 // Analysis Tab
 .thread-analysis-view {
+  /* Calculate height based on parent height */
+  height: 100%;
+  overflow-y: auto; /* Make this container scrollable vertically */
+  overflow-x: hidden; /* Hide horizontal scrollbar */
+  padding-right: 0.5rem;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05); /* Add subtle inset shadow to indicate scrollable area */
+
+  /* Custom scrollbar styling */
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(var(--primary-color-rgb), 0.3);
+    border-radius: 4px;
+
+    &:hover {
+      background: rgba(var(--primary-color-rgb), 0.5);
+    }
+  }
   .analysis-header {
     display: flex;
     justify-content: space-between;

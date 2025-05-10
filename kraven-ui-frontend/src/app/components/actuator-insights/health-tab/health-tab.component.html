@@ -28,7 +28,7 @@
     <!-- Health Status Logs -->
     <div class="health-logs-container" *ngIf="!isLoading">
       <div class="logs-header">
-        <h3>Health Status Logs</h3>
+        <h3>Health Status Logs ({{ healthHistory.length }} entries)</h3>
         <div class="logs-controls">
           <button class="logs-control-button" (click)="clearLogs()" title="Clear logs">
             <i class="fas fa-trash-alt"></i>
@@ -42,11 +42,11 @@
           <p>No health status logs available yet. Logs will appear as health checks are performed.</p>
         </div>
 
-        <div class="log-entry-single-line" *ngFor="let item of healthHistory" [ngClass]="getStatusClass(item.status)">
+        <div class="log-entry-single-line" *ngFor="let item of healthHistory.slice().reverse(); let i = index" [ngClass]="getStatusClass(item.status)">
           <div class="log-status">
             <i class="fas" [ngClass]="getStatusIcon(item.status)"></i>
           </div>
-          <div class="log-status-text">{{ item.status }}</div>
+          <div class="log-status-text">{{ item.status }} ({{ healthHistory.length - i }})</div>
           <div class="log-components" *ngIf="item.details?.components">
             {{ getComponentsSummary(item.details.components) }}
           </div>

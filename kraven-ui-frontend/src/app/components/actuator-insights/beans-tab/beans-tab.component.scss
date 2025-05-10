@@ -1,7 +1,17 @@
 .beans-tab-container {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: calc(100vh - 108px - 2rem); /* 60px header + 48px tabs + 2rem padding */
+  width: 100%;
+  overflow: hidden; /* Prevent the container from scrolling */
+  position: relative; /* For absolute positioning of children */
+  flex: 1; /* Take up all available space */
+  box-sizing: border-box; /* Include padding in height calculation */
+
+  /* Define CSS variables for the heights of fixed elements */
+  --tab-header-height: 3.5rem;
+  --secondary-tabs-height: 3.5rem;
+  --margin-spacing: 2rem; /* Account for margins between elements */
 
   /* Global class for solid backgrounds */
   .solid-bg {
@@ -164,8 +174,9 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
-    height: 90%;
+    overflow: hidden; /* Prevent the tab content from scrolling */
+    position: relative; /* Needed for proper positioning of scrollable content */
+    height: calc(100% - var(--tab-header-height)); /* Adjust height to account for header */
 
     .loading-indicator {
       display: flex;
@@ -186,6 +197,7 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      height: 100%; /* Take full height of parent */
 
       .search-container {
         margin-bottom: 1rem;
@@ -261,6 +273,8 @@
           top: 0;
           z-index: 10;
           flex-shrink: 0; /* Prevent tabs from shrinking */
+          height: var(--secondary-tabs-height);
+          align-items: center;
 
           .secondary-tab {
             padding: 0.75rem 1.5rem;
@@ -294,6 +308,7 @@
           flex-direction: column;
           overflow: hidden;
           position: relative;
+          height: calc(100% - var(--secondary-tabs-height)); /* Adjust height to account for secondary tabs */
 
           .beans-stats {
             display: flex;
@@ -321,10 +336,34 @@
 
           .beans-table-container {
             flex: 1;
-            overflow: auto;
+            /* Calculate height based on parent height minus the heights of fixed elements */
+            height: calc(100% - 60px); /* 60px for the beans-stats section */
+            overflow-y: auto; /* Make this container scrollable vertically */
+            overflow-x: hidden; /* Hide horizontal scrollbar */
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05); /* Add subtle inset shadow to indicate scrollable area */
+
+            /* Custom scrollbar styling */
+            &::-webkit-scrollbar {
+              width: 8px;
+            }
+
+            &::-webkit-scrollbar-track {
+              background: rgba(0, 0, 0, 0.05);
+              border-radius: 4px;
+            }
+
+            &::-webkit-scrollbar-thumb {
+              background: rgba(var(--primary-color-rgb), 0.3);
+              border-radius: 4px;
+
+              &:hover {
+                background: rgba(var(--primary-color-rgb), 0.5);
+              }
+            }
 
             .beans-table {
               width: 100%;
+              table-layout: fixed; /* Fixed width columns */
               border-collapse: collapse;
 
               th {
@@ -336,6 +375,15 @@
                 font-weight: 600;
                 border-bottom: 1px solid var(--border-color);
                 cursor: pointer;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap; /* Keep headers on a single line */
+
+                /* Match column widths with td elements */
+                &:nth-child(1) { width: 35%; } /* Bean Name */
+                &:nth-child(2) { width: 35%; } /* Type */
+                &:nth-child(3) { width: 15%; } /* Scope */
+                &:nth-child(4) { width: 15%; } /* Dependencies */
 
                 i {
                   margin-left: 0.5rem;
@@ -367,18 +415,24 @@
               td {
                 padding: 0.75rem 1rem;
                 border-bottom: 1px solid var(--border-color);
+                word-wrap: break-word; /* Enable text wrapping */
+                overflow-wrap: break-word; /* Modern browsers */
+                white-space: normal; /* Allow text to wrap */
 
                 &.bean-name {
                   font-weight: 500;
+                  width: 35%; /* Fixed width for bean name column */
                 }
 
                 &.bean-type {
                   color: var(--text-muted-color);
                   font-family: monospace;
                   font-size: 0.9rem;
+                  width: 35%; /* Fixed width for bean type column */
                 }
 
                 &.bean-scope {
+                  width: 15%; /* Fixed width for bean scope column */
                   .scope-badge {
                     display: inline-block;
                     padding: 0.25rem 0.5rem;
@@ -416,6 +470,7 @@
                 &.bean-dependencies {
                   color: var(--text-muted-color);
                   font-size: 0.9rem;
+                  width: 15%; /* Fixed width for dependencies column */
                 }
               }
 
@@ -443,10 +498,29 @@
             background-color: var(--card-bg-color);
             border-left: 2px solid var(--border-color);
             box-shadow: -8px 0 30px rgba(0, 0, 0, 0.25);
-            overflow-y: auto;
+            overflow-y: auto; /* Make this container scrollable vertically */
             z-index: 100;
             animation: slideInRight 0.3s ease-out;
             backdrop-filter: blur(5px);
+
+            /* Custom scrollbar styling */
+            &::-webkit-scrollbar {
+              width: 8px;
+            }
+
+            &::-webkit-scrollbar-track {
+              background: rgba(0, 0, 0, 0.05);
+              border-radius: 4px;
+            }
+
+            &::-webkit-scrollbar-thumb {
+              background: rgba(var(--primary-color-rgb), 0.3);
+              border-radius: 4px;
+
+              &:hover {
+                background: rgba(var(--primary-color-rgb), 0.5);
+              }
+            }
 
             &::before {
               content: '';
@@ -1282,12 +1356,31 @@
           .graph-container {
             flex: 1;
             position: relative;
-            overflow: hidden;
+            overflow: auto; /* Make this container scrollable */
             display: flex;
             justify-content: center;
             align-items: center;
-            height: calc(100% - 50px); /* Subtract the height of the controls panel */
-            min-height: 500px; /* Ensure minimum height */
+            height: calc(100% - 50px - var(--secondary-tabs-height)); /* Subtract the height of the controls panel and secondary tabs */
+            min-height: 300px; /* Ensure minimum height */
+
+            /* Custom scrollbar styling */
+            &::-webkit-scrollbar {
+              width: 8px;
+            }
+
+            &::-webkit-scrollbar-track {
+              background: rgba(0, 0, 0, 0.05);
+              border-radius: 4px;
+            }
+
+            &::-webkit-scrollbar-thumb {
+              background: rgba(var(--primary-color-rgb), 0.3);
+              border-radius: 4px;
+
+              &:hover {
+                background: rgba(var(--primary-color-rgb), 0.5);
+              }
+            }
 
             .graph-placeholder {
               position: absolute;

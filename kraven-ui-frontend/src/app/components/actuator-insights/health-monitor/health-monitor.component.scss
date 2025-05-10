@@ -1,13 +1,17 @@
 .health-monitor {
   display: flex;
   flex-direction: column;
-  
+  height: 100%; /* Take full height of parent */
+  overflow: hidden; /* Prevent this container from scrolling */
+
   .overall-status {
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 1.5rem;
-    
+    flex-shrink: 0; /* Prevent this container from shrinking */
+    height: 180px; /* Fixed height */
+
     .status-indicator {
       display: flex;
       flex-direction: column;
@@ -17,67 +21,90 @@
       width: 120px;
       height: 120px;
       justify-content: center;
-      
+
       i {
         font-size: 3rem;
         margin-bottom: 0.5rem;
       }
-      
+
       .status-text {
         font-weight: 600;
         font-size: 1.2rem;
       }
-      
+
       &.status-up {
         background-color: rgba(40, 167, 69, 0.1);
         color: #28a745;
       }
-      
+
       &.status-down {
         background-color: rgba(220, 53, 69, 0.1);
         color: #dc3545;
       }
-      
+
       &.status-out-of-service {
         background-color: rgba(255, 193, 7, 0.1);
         color: #ffc107;
       }
-      
+
       &.status-unknown {
         background-color: rgba(108, 117, 125, 0.1);
         color: #6c757d;
       }
     }
   }
-  
+
   .components-list {
     margin-top: 1rem;
-    
+    flex: 1;
+    overflow-y: auto; /* Make this container scrollable vertically */
+    overflow-x: hidden; /* Hide horizontal scrollbar */
+    padding-right: 0.5rem;
+
+    /* Custom scrollbar styling */
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.05);
+      border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: rgba(var(--primary-color-rgb), 0.3);
+      border-radius: 4px;
+
+      &:hover {
+        background: rgba(var(--primary-color-rgb), 0.5);
+      }
+    }
+
     h3 {
       margin-top: 0;
       margin-bottom: 1rem;
       font-size: 1.1rem;
       font-weight: 600;
     }
-    
+
     .component-item {
       background-color: var(--card-bg-color);
       border: 1px solid var(--border-color);
       border-radius: 4px;
       margin-bottom: 0.75rem;
       overflow: hidden;
-      
+
       .component-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         padding: 0.75rem;
         background-color: var(--card-header-bg-color);
-        
+
         .component-name {
           font-weight: 500;
         }
-        
+
         .component-status {
           display: flex;
           align-items: center;
@@ -85,53 +112,53 @@
           padding: 0.25rem 0.75rem;
           border-radius: 16px;
           font-size: 0.85rem;
-          
+
           i {
             font-size: 0.9rem;
           }
-          
+
           &.status-up {
             background-color: rgba(40, 167, 69, 0.1);
             color: #28a745;
           }
-          
+
           &.status-down {
             background-color: rgba(220, 53, 69, 0.1);
             color: #dc3545;
           }
-          
+
           &.status-out-of-service {
             background-color: rgba(255, 193, 7, 0.1);
             color: #ffc107;
           }
-          
+
           &.status-unknown {
             background-color: rgba(108, 117, 125, 0.1);
             color: #6c757d;
           }
         }
       }
-      
+
       .component-details {
         padding: 0.75rem;
         background-color: var(--card-bg-color);
         border-top: 1px solid var(--border-color);
-        
+
         .detail-item {
           display: flex;
           margin-bottom: 0.5rem;
           font-size: 0.9rem;
-          
+
           &:last-child {
             margin-bottom: 0;
           }
-          
+
           .detail-name {
             font-weight: 500;
             margin-right: 0.5rem;
             min-width: 100px;
           }
-          
+
           .detail-value {
             word-break: break-word;
           }
@@ -139,7 +166,7 @@
       }
     }
   }
-  
+
   .no-health-data {
     display: flex;
     justify-content: center;

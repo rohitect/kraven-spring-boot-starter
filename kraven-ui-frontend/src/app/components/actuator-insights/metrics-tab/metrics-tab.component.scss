@@ -1,34 +1,45 @@
 .metrics-tab-container {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  
+  height: calc(100vh - 108px - 2rem); /* 60px header + 48px tabs + 2rem padding */
+  width: 100%;
+  overflow: hidden; /* Prevent the container from scrolling */
+  position: relative; /* For absolute positioning of children */
+  flex: 1; /* Take up all available space */
+  box-sizing: border-box; /* Include padding in height calculation */
+
+  /* Define CSS variables for the heights of fixed elements */
+  --tab-header-height: 3.5rem;
+  --metrics-filter-height: 3.5rem; /* Search box + margin */
+  --key-metrics-height: 12rem; /* Key metrics section + margin */
+  --margin-spacing: 2rem; /* Account for margins between elements */
+
   .tab-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1rem;
-    
+
     h2 {
       margin: 0;
       font-size: 1.5rem;
       font-weight: 600;
     }
-    
+
     .tab-controls {
       display: flex;
       align-items: center;
-      
+
       .refresh-control {
         display: flex;
         align-items: center;
         margin-right: 1rem;
-        
+
         label {
           margin-right: 0.5rem;
           color: var(--text-muted-color);
         }
-        
+
         input {
           width: 60px;
           padding: 0.25rem 0.5rem;
@@ -38,13 +49,13 @@
           color: var(--text-color);
           text-align: center;
         }
-        
+
         span {
           margin-left: 0.5rem;
           color: var(--text-muted-color);
         }
       }
-      
+
       .refresh-button {
         display: flex;
         align-items: center;
@@ -55,22 +66,26 @@
         color: var(--text-color);
         cursor: pointer;
         transition: background-color 0.2s ease;
-        
+
         i {
           margin-right: 0.5rem;
         }
-        
+
         &:hover {
           background-color: var(--button-hover-bg-color);
         }
       }
     }
   }
-  
+
   .tab-content {
     flex: 1;
-    overflow: auto;
-    
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Prevent the tab content from scrolling */
+    position: relative; /* Needed for proper positioning of scrollable content */
+    height: calc(100% - var(--tab-header-height)); /* Adjust height to account for header */
+
     .loading-indicator {
       display: flex;
       flex-direction: column;
@@ -78,61 +93,113 @@
       justify-content: center;
       padding: 2rem;
       color: var(--text-muted-color);
-      
+
       i {
         font-size: 2rem;
         margin-bottom: 1rem;
       }
     }
-    
+
     .metrics-viewer-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto; /* Make this container scrollable vertically */
+      overflow-x: hidden; /* Hide horizontal scrollbar */
+      padding-right: 0.5rem;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05); /* Add subtle inset shadow to indicate scrollable area */
       margin-bottom: 2rem;
+
+      /* Custom scrollbar styling */
+      &::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 4px;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: rgba(var(--primary-color-rgb), 0.3);
+        border-radius: 4px;
+
+        &:hover {
+          background: rgba(var(--primary-color-rgb), 0.5);
+        }
+      }
     }
-    
+
     .metric-history-container {
       margin-top: 2rem;
-      
+      flex-shrink: 0; /* Prevent this container from shrinking */
+      max-height: 400px; /* Limit the height */
+      overflow: hidden; /* Prevent this container from scrolling */
+
       h3 {
         margin-top: 0;
         margin-bottom: 1rem;
         font-size: 1.2rem;
         font-weight: 600;
+        flex-shrink: 0; /* Prevent header from shrinking */
       }
-      
+
       .metric-chart {
         background-color: var(--card-bg-color);
         border-radius: 8px;
         padding: 1.5rem;
-        
+        overflow-y: auto; /* Make this container scrollable vertically */
+        overflow-x: hidden; /* Hide horizontal scrollbar */
+        max-height: 350px; /* Set a max height to ensure scrolling */
+
+        /* Custom scrollbar styling */
+        &::-webkit-scrollbar {
+          width: 8px;
+        }
+
+        &::-webkit-scrollbar-track {
+          background: rgba(0, 0, 0, 0.05);
+          border-radius: 4px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+          background: rgba(var(--primary-color-rgb), 0.3);
+          border-radius: 4px;
+
+          &:hover {
+            background: rgba(var(--primary-color-rgb), 0.5);
+          }
+        }
+
         .chart-container {
           height: 200px;
           position: relative;
           margin-bottom: 2rem;
-          
+
           .chart-bars {
             display: flex;
             align-items: flex-end;
             height: 100%;
             gap: 4px;
-            
+
             .chart-bar {
               flex: 1;
               background-color: var(--primary-color);
               border-radius: 4px 4px 0 0;
               min-height: 2px;
               transition: height 0.3s ease;
-              
+
               &:hover {
                 background-color: var(--primary-hover-color);
               }
             }
           }
-          
+
           .chart-labels {
             display: flex;
             margin-top: 0.5rem;
             gap: 4px;
-            
+
             .chart-label {
               flex: 1;
               font-size: 0.7rem;
@@ -148,24 +215,24 @@
             }
           }
         }
-        
+
         .chart-legend {
           display: flex;
           justify-content: space-around;
           flex-wrap: wrap;
           gap: 1rem;
-          
+
           .legend-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            
+
             .legend-label {
               font-size: 0.85rem;
               color: var(--text-muted-color);
               margin-bottom: 0.25rem;
             }
-            
+
             .legend-value {
               font-size: 1.1rem;
               font-weight: 600;
@@ -174,7 +241,7 @@
         }
       }
     }
-    
+
     .no-data-message {
       display: flex;
       flex-direction: column;
@@ -183,20 +250,20 @@
       padding: 3rem;
       color: var(--text-muted-color);
       text-align: center;
-      
+
       i {
         font-size: 3rem;
         margin-bottom: 1rem;
         color: var(--warning-color);
       }
-      
+
       h3 {
         margin-top: 0;
         margin-bottom: 0.5rem;
         font-size: 1.2rem;
         font-weight: 600;
       }
-      
+
       p {
         margin: 0;
         max-width: 400px;

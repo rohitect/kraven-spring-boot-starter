@@ -1,7 +1,19 @@
 .health-tab-container {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: calc(100vh - 108px - 2rem); /* 60px header + 48px tabs + 2rem padding */
+  width: 100%;
+  overflow: hidden; /* Prevent the container from scrolling */
+  position: relative; /* For absolute positioning of children */
+  flex: 1; /* Take up all available space */
+  box-sizing: border-box; /* Include padding in height calculation */
+
+  /* Define CSS variables for the heights of fixed elements */
+  --tab-header-height: 3.5rem;
+  --health-monitor-height: 15rem; /* Health monitor section + margin */
+  --logs-header-height: 3.5rem; /* Logs header height */
+  --margin-spacing: 2rem; /* Account for margins between elements */
+  --logs-container-height: 300px; /* Fixed height for logs container */
 
   .tab-header {
     display: flex;
@@ -71,7 +83,9 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: hidden; /* Prevent the tab content from scrolling */
+    position: relative; /* Needed for proper positioning of scrollable content */
+    height: calc(100% - var(--tab-header-height)); /* Adjust height to account for header */
 
     .loading-indicator {
       display: flex;
@@ -89,17 +103,22 @@
 
     .health-monitor-container {
       margin-bottom: 2rem;
+      flex-shrink: 0; /* Prevent this container from shrinking */
+      height: var(--health-monitor-height); /* Fixed height */
     }
 
     .health-logs-container {
       margin-top: 2rem;
       background-color: var(--card-bg-color);
       border-radius: 8px;
+      border: 1px solid var(--border-color);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      flex: 1;
+      flex: 0 0 auto; /* Don't grow or shrink */
+      min-height: 200px; /* Ensure a minimum height */
+      height: var(--logs-container-height); /* Use fixed height */
 
       .logs-header {
         display: flex;
@@ -108,6 +127,8 @@
         padding: 1rem;
         background-color: var(--card-header-bg-color);
         border-bottom: 1px solid var(--border-color);
+        flex-shrink: 0; /* Prevent header from shrinking */
+        height: var(--logs-header-height); /* Fixed height */
 
         h3 {
           margin: 0;
@@ -144,8 +165,32 @@
 
       .logs-container {
         flex: 1;
-        overflow-y: auto;
+        overflow-y: auto; /* Make this container scrollable vertically */
+        overflow-x: hidden; /* Hide horizontal scrollbar */
+        height: calc(100% - var(--logs-header-height)); /* Calculate height based on parent minus header */
         min-height: 0; /* Important for flex containers to respect child overflow */
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05); /* Add subtle inset shadow to indicate scrollable area */
+        background-color: var(--card-bg-color); /* Ensure background color is set */
+        border-top: 1px solid var(--border-color); /* Add border to separate from header */
+
+        /* Custom scrollbar styling */
+        &::-webkit-scrollbar {
+          width: 8px;
+        }
+
+        &::-webkit-scrollbar-track {
+          background: rgba(0, 0, 0, 0.05);
+          border-radius: 4px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+          background: rgba(var(--primary-color-rgb), 0.3);
+          border-radius: 4px;
+
+          &:hover {
+            background: rgba(var(--primary-color-rgb), 0.5);
+          }
+        }
 
         .no-logs-message {
           padding: 1.5rem;
@@ -164,6 +209,7 @@
           padding: 0.75rem 1rem;
           border-bottom: 1px solid var(--border-color);
           transition: background-color 0.2s ease;
+          background-color: var(--card-bg-color); /* Ensure background color is set */
 
           &:last-child {
             border-bottom: none;

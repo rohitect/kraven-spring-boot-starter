@@ -1,7 +1,17 @@
 .threads-tab-container {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: calc(100vh - 108px - 2rem); /* 60px header + 48px tabs + 2rem padding */
+  width: 100%;
+  overflow: hidden; /* Prevent the container from scrolling */
+  position: relative; /* For absolute positioning of children */
+  flex: 1; /* Take up all available space */
+  box-sizing: border-box; /* Include padding in height calculation */
+
+  /* Define CSS variables for the heights of fixed elements */
+  --tab-header-height: 3.5rem;
+  --secondary-tabs-height: 3.5rem;
+  --margin-spacing: 2rem; /* Account for margins between elements */
 
   .tab-header {
     display: flex;
@@ -72,6 +82,8 @@
     z-index: 10;
     background-color: var(--card-bg-color);
     flex-shrink: 0; /* Prevent tabs from shrinking */
+    height: var(--secondary-tabs-height);
+    align-items: center;
 
     .tab {
       padding: 0.75rem 1.5rem;
@@ -111,13 +123,40 @@
 
   .tab-content {
     flex: 1;
-    overflow-y: auto;
+    overflow: hidden; /* Prevent the tab content from scrolling */
     padding-bottom: 1rem;
+    position: relative; /* Needed for proper positioning of scrollable content */
+    height: calc(100% - var(--tab-header-height) - var(--secondary-tabs-height)); /* Adjust height to account for header and tabs */
 
     .thread-overview {
       display: flex;
       flex-direction: column;
       gap: 1.5rem;
+      /* Calculate height based on parent height */
+      height: 100%;
+      overflow-y: auto; /* Make this container scrollable vertically */
+      overflow-x: hidden; /* Hide horizontal scrollbar */
+      padding-right: 0.5rem;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05); /* Add subtle inset shadow to indicate scrollable area */
+
+      /* Custom scrollbar styling */
+      &::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 4px;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: rgba(var(--primary-color-rgb), 0.3);
+        border-radius: 4px;
+
+        &:hover {
+          background: rgba(var(--primary-color-rgb), 0.5);
+        }
+      }
 
       .thread-summary {
         display: grid;
@@ -392,7 +431,8 @@
         background-color: var(--card-bg-color);
         border-radius: 8px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        overflow: hidden;
+        /* Allow content to be visible for scrolling */
+        overflow: visible;
 
         .thread-list-header {
           padding: 1rem;
@@ -476,8 +516,9 @@
         }
 
         .thread-list {
-          max-height: 500px;
-          overflow-y: auto;
+          /* Remove max-height constraint to allow full expansion within the scrollable container */
+          height: auto;
+          overflow-y: visible; /* Let parent handle scrolling */
 
           .thread-list-empty {
             padding: 2rem;
@@ -563,6 +604,31 @@
     }
 
     .thread-details-view, .thread-stacktrace-view {
+      /* Calculate height based on parent height */
+      height: 100%;
+      overflow-y: auto; /* Make this container scrollable vertically */
+      overflow-x: hidden; /* Hide horizontal scrollbar */
+      padding-right: 0.5rem;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05); /* Add subtle inset shadow to indicate scrollable area */
+
+      /* Custom scrollbar styling */
+      &::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 4px;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: rgba(var(--primary-color-rgb), 0.3);
+        border-radius: 4px;
+
+        &:hover {
+          background: rgba(var(--primary-color-rgb), 0.5);
+        }
+      }
       .no-thread-selected {
         display: flex;
         flex-direction: column;
@@ -736,9 +802,34 @@
     }
 
     .thread-states-view {
+      /* Calculate height based on parent height */
+      height: 100%;
+      overflow-y: auto; /* Make this container scrollable vertically */
+      overflow-x: hidden; /* Hide horizontal scrollbar */
+      padding-right: 0.5rem;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05); /* Add subtle inset shadow to indicate scrollable area */
+
       display: flex;
       flex-direction: column;
-      height: 100%;
+
+      /* Custom scrollbar styling */
+      &::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 4px;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: rgba(var(--primary-color-rgb), 0.3);
+        border-radius: 4px;
+
+        &:hover {
+          background: rgba(var(--primary-color-rgb), 0.5);
+        }
+      }
 
       .thread-states-header {
         margin-bottom: 1.5rem;
@@ -804,6 +895,7 @@
       .thread-states-grid-container {
         flex: 1;
         overflow: hidden;
+        height: 100%;
 
         .thread-states-grid {
           display: grid;
@@ -821,7 +913,7 @@
             display: flex;
             flex-direction: column;
             height: 100%;
-            min-height: 250px;
+            /* Remove fixed min-height to allow more flexible layout */
 
             .state-card-header {
               padding: 1rem;

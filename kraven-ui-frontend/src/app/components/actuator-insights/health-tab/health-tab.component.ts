@@ -66,7 +66,7 @@ export class HealthTabComponent implements OnInit, OnDestroy {
       next: (history) => {
         this.healthHistory = history || [];
         // Log the history for debugging
-        // console.log('Health history loaded:', this.healthHistory);
+        console.log('Health history loaded:', this.healthHistory);
       },
       error: (error) => {
         console.error('Error loading health history:', error);
