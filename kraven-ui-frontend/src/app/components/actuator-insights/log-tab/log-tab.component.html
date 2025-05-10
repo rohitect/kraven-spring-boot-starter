@@ -37,7 +37,6 @@
   <div class="pagination-info" *ngIf="logfileAvailable && !isLoading">
     <div class="file-info">
       <span>Log file size: {{ (logfileSize / 1024 / 1024).toFixed(2) }} MB</span>
-      <span>Showing {{ currentPosition }} to {{ Math.min(currentPosition + pageSize, logfileSize) }} bytes</span>
       <span class="sort-direction-indicator">
         <i class="fas" [ngClass]="{'fa-sort-amount-down': newestLogsFirst, 'fa-sort-amount-up': !newestLogsFirst}"></i>
         {{ newestLogsFirst ? 'Newest logs first' : 'Oldest logs first (newest at bottom)' }}

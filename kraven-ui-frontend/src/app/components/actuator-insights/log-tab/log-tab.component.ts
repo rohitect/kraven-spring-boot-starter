@@ -17,6 +17,9 @@ import { HighlightSearchPipe } from '../../../pipes/highlight-search.pipe';
 export class LogTabComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('logContainer') logContainer!: ElementRef;
 
+  // Make Math available to the template
+  Math = Math;
+
   logContent: string = '';
   isLoading: boolean = true;
   logfileAvailable: boolean = false;
@@ -45,9 +48,6 @@ export class LogTabComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private refreshSubscription?: Subscription;
   private autoScrollEnabled: boolean = true;
-
-  // Make Math available to the template
-  Math = Math;
 
   constructor(
     private actuatorDataService: ActuatorDataService,
@@ -159,45 +159,54 @@ export class LogTabComponent implements OnInit, OnDestroy, AfterViewInit {
       scrollHeight = container.scrollHeight;
     }
 
-    this.actuatorDataService.getLogfileRange(newStart, newEnd).subscribe({
-      next: (content) => {
-        const lines = content.split('\n');
-        let processedContent = '';
+    // Get the latest logfile size to ensure we have the most up-to-date information
+    this.actuatorDataService.getLogfileSize().subscribe(size => {
+      if (size > 0) {
+        this.logfileSize = size;
 
-        if (this.newestLogsFirst) {
-          // Reverse the new content for newest-first display
-          lines.reverse();
-          processedContent = lines.join('\n');
-          // Append the new content to the existing content (older logs go at the bottom)
-          this.logContent = this.logContent + '\n' + processedContent;
-        } else {
-          // For oldest-first display, prepend the content (older logs go at the top)
-          processedContent = lines.join('\n');
-          // Prepend the new content to the existing content
-          this.logContent = processedContent + '\n' + this.logContent;
+        this.actuatorDataService.getLogfileRange(newStart, newEnd).subscribe({
+          next: (content) => {
+            const lines = content.split('\n');
+            let processedContent = '';
 
-          // When loading more content in oldest-first mode, we need to maintain the scroll position
-          // so the user doesn't lose their place
-          setTimeout(() => {
-            if (this.logContainer) {
-              const container = this.logContainer.nativeElement;
-              const newScrollHeight = container.scrollHeight;
-              // Adjust scroll position to account for the new content
-              container.scrollTop = scrollTop + (newScrollHeight - scrollHeight);
+            if (this.newestLogsFirst) {
+              // Reverse the new content for newest-first display
+              lines.reverse();
+              processedContent = lines.join('\n');
+              // Append the new content to the existing content (older logs go at the bottom)
+              this.logContent = this.logContent + '\n' + processedContent;
+            } else {
+              // For oldest-first display, prepend the content (older logs go at the top)
+              processedContent = lines.join('\n');
+              // Prepend the new content to the existing content
+              this.logContent = processedContent + '\n' + this.logContent;
+
+              // When loading more content in oldest-first mode, we need to maintain the scroll position
+              // so the user doesn't lose their place
+              setTimeout(() => {
+                if (this.logContainer) {
+                  const container = this.logContainer.nativeElement;
+                  const newScrollHeight = container.scrollHeight;
+                  // Adjust scroll position to account for the new content
+                  container.scrollTop = scrollTop + (newScrollHeight - scrollHeight);
+                }
+              }, 100);
             }
-          }, 100);
-        }
 
-        // Update the current position
-        this.currentPosition = newStart;
+            // Update the current position
+            this.currentPosition = newStart;
 
-        // Check if there's more content to load
-        this.hasMoreContent = newStart > 0;
+            // Check if there's more content to load
+            this.hasMoreContent = newStart > 0;
 
-        this.isLoadingMore = false;
-      },
-      error: (error) => {
-        console.error('Error loading more content:', error);
+            this.isLoadingMore = false;
+          },
+          error: (error) => {
+            console.error('Error loading more content:', error);
+            this.isLoadingMore = false;
+          }
+        });
+      } else {
         this.isLoadingMore = false;
       }
     });
@@ -404,6 +413,9 @@ export class LogTabComponent implements OnInit, OnDestroy, AfterViewInit {
 
               // Update the last fetched position
               this.lastFetchedPosition = end;
+
+              // Update the displayed byte range - we're now showing from the original position to the end
+              // We don't change currentPosition here because we're appending to the end, not prepending to the beginning
 
               // Scroll to the bottom to show the new content
               setTimeout(() => this.scrollToBottom(), 100);
