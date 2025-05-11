@@ -187,7 +187,13 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
     // Set up scroll handler if not already set
     if (!this.scrollHandler && this.tocItems.length > 0) {
       this.scrollHandler = () => this.checkActiveSection();
-      window.addEventListener('scroll', this.scrollHandler);
+
+      // Get the markdown-content element which is the scrollable container
+      const scrollableContainer = document.querySelector('.markdown-content') as HTMLElement;
+
+      if (scrollableContainer) {
+        scrollableContainer.addEventListener('scroll', this.scrollHandler);
+      }
     }
   }
 
@@ -201,7 +207,12 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
 
     // Remove scroll event listener
     if (this.scrollHandler) {
-      window.removeEventListener('scroll', this.scrollHandler);
+      const scrollableContainer = document.querySelector('.markdown-content') as HTMLElement;
+
+      if (scrollableContainer) {
+        scrollableContainer.removeEventListener('scroll', this.scrollHandler);
+      }
+
       this.scrollHandler = null;
     }
   }
@@ -254,6 +265,14 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
     const contentElement = this.markdownContent.nativeElement;
     const headings = this.tocItems.map(item => contentElement.querySelector(`#${item.id}`));
 
+    // Get the scrollable container (markdown-content)
+    const scrollableContainer = document.querySelector('.markdown-content') as HTMLElement;
+
+    if (!scrollableContainer) {
+      console.error('Could not find the scrollable container');
+      return;
+    }
+
     // Find the first heading that's in the viewport or above it
     let activeId = '';
 
@@ -262,9 +281,15 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
       if (!heading) continue;
 
       const rect = heading.getBoundingClientRect();
+      const containerRect = scrollableContainer.getBoundingClientRect();
 
-      // If the heading is at the top of the viewport or above it
-      if (rect.top <= 100) {
+      // Calculate the position relative to the scrollable container
+      const relativeTop = rect.top - containerRect.top;
+
+      // If the heading is at the top of the viewport or above it but still in view
+      // We use a threshold of 100px to account for padding and to make the active section
+      // update a bit before the heading reaches the top of the container
+      if (relativeTop <= 100) {
         activeId = this.tocItems[i].id;
       } else {
         // If we've found a heading below the viewport, stop
@@ -284,71 +309,52 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
   scrollToSection(sectionId: string, event: Event): void {
     event.preventDefault();
 
-    // console.log(`Attempting to scroll to section: ${sectionId}`);
-
-    // Try to find the element by ID
-    const element = document.getElementById(sectionId);
-
-    // Get the middle pane element which is the scrollable container
-    const middlePaneElement = document.querySelector('.middle-pane') as HTMLElement;
-
-    if (!middlePaneElement) {
-      console.error('Could not find the middle pane element');
+    // Find the element within the markdown content
+    const markdownContentElement = this.markdownContent?.nativeElement;
+    if (!markdownContentElement) {
+      console.error('Markdown content element not found');
       return;
     }
 
-    if (element) {
-      // console.log(`Found element with ID: ${sectionId}`);
+    // Try to find the element by ID within the markdown content
+    const element = markdownContentElement.querySelector(`#${sectionId}`);
 
-      // Define header offset for scrolling
-      const headerOffset = 80; // Adjust this value based on your header height
-
-      // Get the position of the element relative to the middle pane
-      const middlePaneRect = middlePaneElement.getBoundingClientRect();
-      const elementRect = element.getBoundingClientRect();
-
-      // Calculate the scroll position within the middle pane
-      const scrollTop = elementRect.top - middlePaneRect.top + middlePaneElement.scrollTop - headerOffset;
-
-      // console.log(`Scrolling middle pane to position: ${scrollTop}`);
-
-      // Scroll the middle pane to the element
-      middlePaneElement.scrollTo({
-        top: scrollTop,
-        behavior: 'smooth'
-      });
-
-      // Update active section
-      this.activeSection = sectionId;
-    } else {
-      console.error(`Element with ID ${sectionId} not found`);
-
-      // Try to find the element using a query selector with the ID
-      const elementBySelector = document.querySelector(`#${sectionId}`);
-      if (elementBySelector) {
-        // console.log(`Found element with selector #${sectionId}`);
-
-        // Get the position of the element relative to the middle pane
-        const middlePaneRect = middlePaneElement.getBoundingClientRect();
-        const elementRect = elementBySelector.getBoundingClientRect();
-
-        // Calculate the scroll position within the middle pane
-        const scrollTop = elementRect.top - middlePaneRect.top + middlePaneElement.scrollTop - 80;
-
-        // console.log(`Scrolling middle pane to position: ${scrollTop}`);
-
-        // Scroll the middle pane to the element
-        middlePaneElement.scrollTo({
-          top: scrollTop,
-          behavior: 'smooth'
-        });
-
-        // Update active section
-        this.activeSection = sectionId;
-      } else {
-        console.error(`Element with selector #${sectionId} not found either`);
-      }
+    if (!element) {
+      console.error(`Element with ID ${sectionId} not found in markdown content`);
+      return;
     }
+
+    // Get the scrollable container (markdown-content or middle-pane-content)
+    const scrollableContainer = document.querySelector('.markdown-content') as HTMLElement;
+
+    if (!scrollableContainer) {
+      console.error('Could not find the scrollable container');
+      return;
+    }
+
+    // Define header offset for scrolling
+    const headerOffset = 100; // Adjust this value based on your header height and desired padding
+
+    // Calculate the scroll position
+    // For the markdown-content container, we need to calculate the position relative to the container
+    const containerRect = scrollableContainer.getBoundingClientRect();
+    const elementRect = element.getBoundingClientRect();
+
+    // Calculate the scroll position within the scrollable container
+    // This is the element's position relative to the top of the container plus the current scroll position
+    const scrollTop = elementRect.top - containerRect.top + scrollableContainer.scrollTop - headerOffset;
+
+    // Scroll the container to the element
+    scrollableContainer.scrollTo({
+      top: scrollTop,
+      behavior: 'smooth'
+    });
+
+    // Update active section
+    this.activeSection = sectionId;
+
+    // Log for debugging
+    console.log(`Scrolling to section ${sectionId} at position ${scrollTop}`);
   }
 
 

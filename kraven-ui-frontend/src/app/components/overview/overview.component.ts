@@ -49,6 +49,10 @@ export class OverviewComponent implements OnInit, OnDestroy {
   refreshInterval: any;
   lastRefreshedTime: Date = new Date();
 
+  // Scroll-related properties
+  showBackToTop = false;
+  readonly SCROLL_THRESHOLD = 300; // Show back-to-top button after scrolling this many pixels
+
   // Auto-refresh options
   refreshOptions = [
     { value: 0, label: 'No auto-refresh' },
@@ -498,6 +502,28 @@ export class OverviewComponent implements OnInit, OnDestroy {
    */
   formatDateTime(date: Date): string {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  }
+
+  /**
+   * Handles scroll events in the overview container
+   * @param event The scroll event
+   */
+  onContainerScroll(event: Event): void {
+    const scrollableContainer = event.target as HTMLElement;
+    this.showBackToTop = scrollableContainer.scrollTop > this.SCROLL_THRESHOLD;
+  }
+
+  /**
+   * Scrolls back to the top of the overview container
+   */
+  scrollToTop(): void {
+    const scrollableContainer = document.getElementById('overview-container');
+    if (scrollableContainer) {
+      scrollableContainer.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
   }
 
   /**

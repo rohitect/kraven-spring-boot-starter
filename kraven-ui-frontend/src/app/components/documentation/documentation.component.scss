@@ -363,10 +363,22 @@
 .middle-pane {
   flex: 1;
   height: 100%;
-  overflow-y: auto;
   background-color: var(--background-primary);
   position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.middle-pane-content {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
   scroll-behavior: smooth;
+  height: 100%; /* Ensure it takes full height */
 
   &::-webkit-scrollbar {
     width: 8px;
@@ -384,12 +396,6 @@
       background-color: rgba(var(--text-color-rgb), 0.25);
     }
   }
-}
-
-.middle-pane-content {
-  padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
 }
 
 .file-header {
@@ -497,6 +503,10 @@
   display: flex;
   gap: 2rem;
   animation: fadeIn 0.6s ease-out;
+  width: 100%;
+  flex: 1;
+  height: 100%; /* Ensure the container takes full height */
+  overflow: hidden; /* Prevent container from scrolling */
 }
 
 .table-of-contents {
@@ -511,6 +521,7 @@
   border-radius: 12px;
   padding: 1.25rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  height: fit-content; /* Adjust height to fit content */
 
   &::-webkit-scrollbar {
     width: 4px;
@@ -618,7 +629,11 @@
   border-radius: 12px;
   padding: 2rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-  margin-bottom: 2rem;
+  overflow-y: auto;
+  min-height: 300px; /* Minimum height */
+  max-height: calc(100vh - 200px); /* Set a max height to ensure scrolling */
+  display: flex;
+  flex-direction: column;
 
   h1, h2, h3, h4, h5, h6 {
     margin-top: 2em;

@@ -1,4 +1,4 @@
-<div class="overview-container">
+<div class="overview-container" (scroll)="onContainerScroll($event)" id="overview-container">
   <div class="overview-header">
     <h1>Application Overview</h1>
     <div class="actions">
@@ -662,4 +662,11 @@
     [items]="metricDetails"
     (close)="closeMetricDetailsPopup()"
   ></app-metric-details-popup>
+
+  <!-- Back to Top Button -->
+  <button *ngIf="showBackToTop" class="back-to-top-button" (click)="scrollToTop()">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m18 15-6-6-6 6"/>
+    </svg>
+  </button>
 </div>
