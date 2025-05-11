@@ -1,17 +1,19 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterModule, ParamMap } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { DocumentationService, DocumentationGroup, DocumentationFile, BusinessFlowTag } from '../../services/documentation.service';
 import { ThemeService } from '../../services/theme.service';
+
 import { trigger, transition, style, animate } from '@angular/animations';
 import { MarkdownComponent } from '../markdown/markdown.component';
+import { DocumentationSearchComponent } from '../documentation-search/documentation-search.component';
 
 @Component({
   selector: 'app-documentation',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, MarkdownComponent],
+  imports: [CommonModule, FormsModule, RouterModule, MarkdownComponent, DocumentationSearchComponent],
   templateUrl: './documentation.component.html',
   styleUrls: ['./documentation.component.scss'],
   animations: [
@@ -1001,84 +1003,109 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
       return;
     }
 
-    // Create the print document
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>${this.selectedFile.title}</title>
-        <style>
-          body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-          }
-          h1, h2, h3, h4, h5, h6 {
-            margin-top: 1.5em;
-            margin-bottom: 0.5em;
-          }
-          p {
-            margin: 1em 0;
-          }
-          pre {
-            background-color: #f5f5f5;
-            padding: 10px;
-            border-radius: 4px;
-            overflow-x: auto;
-          }
-          code {
-            font-family: monospace;
-            background-color: #f5f5f5;
-            padding: 2px 4px;
-            border-radius: 3px;
-          }
-          table {
-            border-collapse: collapse;
-            width: 100%;
-            margin: 1em 0;
-          }
-          th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-          }
-          th {
-            background-color: #f5f5f5;
-          }
-          img {
-            max-width: 100%;
-          }
-          .business-flow-tag {
-            display: none; /* Hide business flow tags in print */
-          }
-          @media print {
-            body {
-              font-size: 12pt;
-            }
-          }
-        </style>
-      </head>
-      <body>
-        <h1>${this.selectedFile.title}</h1>
-        <div class="content">
-          ${markdownContent.innerHTML}
-        </div>
-        <script>
-          // Print and close after the content is loaded
-          window.onload = function() {
-            setTimeout(function() {
-              window.print();
-              window.close();
-            }, 500);
-          };
-        </script>
-      </body>
-      </html>
-    `);
+    // Create the print document using modern approach without document.write
+    const printDoc = printWindow.document;
 
-    printWindow.document.close();
+    // Create a new HTML document structure
+    printDoc.documentElement.innerHTML = '';
+
+    // Create and append the head element
+    const head = printDoc.createElement('head');
+
+    // Set the title
+    const title = printDoc.createElement('title');
+    title.textContent = this.selectedFile.title;
+    head.appendChild(title);
+
+    // Add the styles
+    const style = printDoc.createElement('style');
+    style.textContent = `
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      h1, h2, h3, h4, h5, h6 {
+        margin-top: 1.5em;
+        margin-bottom: 0.5em;
+      }
+      p {
+        margin: 1em 0;
+      }
+      pre {
+        background-color: #f5f5f5;
+        padding: 10px;
+        border-radius: 4px;
+        overflow-x: auto;
+      }
+      code {
+        font-family: monospace;
+        background-color: #f5f5f5;
+        padding: 2px 4px;
+        border-radius: 3px;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 1em 0;
+      }
+      th, td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+      th {
+        background-color: #f5f5f5;
+      }
+      img {
+        max-width: 100%;
+      }
+      .business-flow-tag {
+        display: none; /* Hide business flow tags in print */
+      }
+      .copy-code-button, .heading-anchor, .code-language-label {
+        display: none; /* Hide interactive elements in print */
+      }
+      @media print {
+        body {
+          font-size: 12pt;
+        }
+      }
+    `;
+    head.appendChild(style);
+
+    // Create and append the body element
+    const body = printDoc.createElement('body');
+
+    // Add the title heading
+    const h1 = printDoc.createElement('h1');
+    h1.textContent = this.selectedFile.title;
+    body.appendChild(h1);
+
+    // Add the content container
+    const contentDiv = printDoc.createElement('div');
+    contentDiv.className = 'content';
+    contentDiv.innerHTML = markdownContent.innerHTML;
+    body.appendChild(contentDiv);
+
+    // Add the print script
+    const script = printDoc.createElement('script');
+    script.textContent = `
+      // Print and close after the content is loaded
+      window.onload = function() {
+        setTimeout(function() {
+          window.print();
+          window.close();
+        }, 500);
+      };
+    `;
+    body.appendChild(script);
+
+    // Append the head and body to the document
+    printDoc.documentElement.appendChild(head);
+    printDoc.documentElement.appendChild(body);
   }
 }

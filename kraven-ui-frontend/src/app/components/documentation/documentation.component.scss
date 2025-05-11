@@ -3,6 +3,7 @@
   height: 100vh; /* Use viewport height */
   width: 100%;
   overflow: hidden;
+  position: relative; /* For absolute positioning of search button */
 }
 
 /* Left Pane Styles */
@@ -370,7 +371,7 @@
 }
 
 .middle-pane-content {
-  padding: 2rem;
+  padding: 0rem 2rem 0rem 2rem;
   max-width: 1200px;
   margin: 0 auto;
   flex: 1;
@@ -378,6 +379,7 @@
   flex-direction: column;
   overflow-y: auto;
   scroll-behavior: smooth;
+  padding-top: 3rem; /* Add space for the search button */
 
   &::-webkit-scrollbar {
     width: 8px;
@@ -505,6 +507,7 @@
   width: 100%;
   flex: 1;
   margin-bottom: 2rem; /* Add some bottom margin */
+  position: relative; /* For proper positioning of elements */
 }
 
 .table-of-contents {
@@ -629,6 +632,7 @@
   overflow-y: auto;
   min-height: 300px; /* Minimum height */
   max-height: calc(100vh - 200px); /* Maximum height based on viewport */
+  scroll-behavior: smooth; /* Ensure smooth scrolling to anchors */
 
   h1, h2, h3, h4, h5, h6 {
     margin-top: 2em;
