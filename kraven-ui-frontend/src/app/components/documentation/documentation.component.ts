@@ -1003,109 +1003,166 @@ export class DocumentationComponent implements OnInit, OnDestroy, AfterViewCheck
       return;
     }
 
-    // Create the print document using modern approach without document.write
-    const printDoc = printWindow.document;
+    try {
+      // Get the print window document
+      const printDoc = printWindow.document;
 
-    // Create a new HTML document structure
-    printDoc.documentElement.innerHTML = '';
+      // Create a new HTML document structure
+      // First, clear the document
+      while (printDoc.body.firstChild) {
+        printDoc.body.removeChild(printDoc.body.firstChild);
+      }
+      while (printDoc.head.firstChild) {
+        printDoc.head.removeChild(printDoc.head.firstChild);
+      }
 
-    // Create and append the head element
-    const head = printDoc.createElement('head');
+      // Add meta charset
+      const meta = printDoc.createElement('meta');
+      meta.setAttribute('charset', 'utf-8');
+      printDoc.head.appendChild(meta);
 
-    // Set the title
-    const title = printDoc.createElement('title');
-    title.textContent = this.selectedFile.title;
-    head.appendChild(title);
+      // Set the title
+      const title = printDoc.createElement('title');
+      title.textContent = this.selectedFile.title;
+      printDoc.head.appendChild(title);
 
-    // Add the styles
-    const style = printDoc.createElement('style');
-    style.textContent = `
-      body {
-        font-family: Arial, sans-serif;
-        line-height: 1.6;
-        color: #333;
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 20px;
-      }
-      h1, h2, h3, h4, h5, h6 {
-        margin-top: 1.5em;
-        margin-bottom: 0.5em;
-      }
-      p {
-        margin: 1em 0;
-      }
-      pre {
-        background-color: #f5f5f5;
-        padding: 10px;
-        border-radius: 4px;
-        overflow-x: auto;
-      }
-      code {
-        font-family: monospace;
-        background-color: #f5f5f5;
-        padding: 2px 4px;
-        border-radius: 3px;
-      }
-      table {
-        border-collapse: collapse;
-        width: 100%;
-        margin: 1em 0;
-      }
-      th, td {
-        border: 1px solid #ddd;
-        padding: 8px;
-        text-align: left;
-      }
-      th {
-        background-color: #f5f5f5;
-      }
-      img {
-        max-width: 100%;
-      }
-      .business-flow-tag {
-        display: none; /* Hide business flow tags in print */
-      }
-      .copy-code-button, .heading-anchor, .code-language-label {
-        display: none; /* Hide interactive elements in print */
-      }
-      @media print {
+      // Add the styles
+      const style = printDoc.createElement('style');
+      style.textContent = `
         body {
-          font-size: 12pt;
+          font-family: Arial, sans-serif;
+          line-height: 1.6;
+          color: #333;
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 0;
         }
-      }
-    `;
-    head.appendChild(style);
+        h1, h2, h3, h4, h5, h6 {
+          margin-top: 1em;
+          margin-bottom: 0.5em;
+          page-break-after: avoid;
+        }
+        h1 {
+          margin-top: 0;
+          padding-top: 0;
+        }
+        p {
+          margin: 0.5em 0;
+        }
+        pre {
+          background-color: #f5f5f5;
+          padding: 10px;
+          border-radius: 4px;
+          overflow-x: auto;
+          page-break-inside: avoid;
+        }
+        code {
+          font-family: monospace;
+          background-color: #f5f5f5;
+          padding: 2px 4px;
+          border-radius: 3px;
+        }
+        table {
+          border-collapse: collapse;
+          width: 100%;
+          margin: 1em 0;
+          page-break-inside: avoid;
+        }
+        th, td {
+          border: 1px solid #ddd;
+          padding: 8px;
+          text-align: left;
+        }
+        th {
+          background-color: #f5f5f5;
+        }
+        img {
+          max-width: 100%;
+          page-break-inside: avoid;
+        }
+        .business-flow-tag {
+          display: none; /* Hide business flow tags in print */
+        }
+        .copy-code-button, .heading-anchor, .code-language-label {
+          display: none; /* Hide interactive elements in print */
+        }
+        /* Remove any extra spacing */
+        .content {
+          margin: 0;
+          padding: 0;
+        }
+        /* Fix for markdown content spacing */
+        .markdown-container, .markdown-content {
+          margin: 0;
+          padding: 0;
+        }
+        @media print {
+          body {
+            font-size: 12pt;
+            margin: 0;
+            padding: 0;
+          }
+          @page {
+            margin: 1cm;
+          }
+          /* Force page breaks where needed */
+          h1, h2 {
+            page-break-before: auto;
+            page-break-after: avoid;
+          }
+          pre, table, figure {
+            page-break-inside: avoid;
+          }
+        }
+      `;
+      printDoc.head.appendChild(style);
 
-    // Create and append the body element
-    const body = printDoc.createElement('body');
+      // Add the title heading
+      const h1 = printDoc.createElement('h1');
+      h1.textContent = this.selectedFile.title;
+      h1.style.marginTop = '0';
+      h1.style.paddingTop = '0';
+      printDoc.body.appendChild(h1);
 
-    // Add the title heading
-    const h1 = printDoc.createElement('h1');
-    h1.textContent = this.selectedFile.title;
-    body.appendChild(h1);
+      // Add the content container
+      const contentDiv = printDoc.createElement('div');
+      contentDiv.className = 'content';
+      contentDiv.innerHTML = this.cleanContentForPrinting(markdownContent.innerHTML);
+      printDoc.body.appendChild(contentDiv);
 
-    // Add the content container
-    const contentDiv = printDoc.createElement('div');
-    contentDiv.className = 'content';
-    contentDiv.innerHTML = markdownContent.innerHTML;
-    body.appendChild(contentDiv);
+      // Add the print script
+      const script = printDoc.createElement('script');
+      script.textContent = `
+        window.onload = function() {
+          setTimeout(function() {
+            window.print();
+            setTimeout(function() {
+              window.close();
+            }, 1000);
+          }, 800);
+        };
+      `;
+      printDoc.body.appendChild(script);
+    } catch (error) {
+      console.error('Error creating print document:', error);
+      printWindow.close();
+    }
+  }
 
-    // Add the print script
-    const script = printDoc.createElement('script');
-    script.textContent = `
-      // Print and close after the content is loaded
-      window.onload = function() {
-        setTimeout(function() {
-          window.print();
-          window.close();
-        }, 500);
-      };
-    `;
-    body.appendChild(script);
+  /**
+   * Cleans HTML content for printing by removing elements that might cause extra spacing
+   */
+  private cleanContentForPrinting(content: string): string {
+    // Remove any empty paragraphs or divs that might cause extra spacing
+    let cleanedContent = content.replace(/<p>\s*<\/p>/g, '');
+    cleanedContent = cleanedContent.replace(/<div>\s*<\/div>/g, '');
 
-    // Append the head and body to the document
-    printDoc.documentElement.appendChild(head);
-    printDoc.documentElement.appendChild(body);
+    // Remove any elements with class="header-anchor" which might add spacing
+    cleanedContent = cleanedContent.replace(/<a[^>]*class="header-anchor"[^>]*>.*?<\/a>/g, '');
+
+    // Remove any other elements that might cause spacing issues
+    cleanedContent = cleanedContent.replace(/<span[^>]*>\s*<\/span>/g, '');
+
+    return cleanedContent;
   }
 }
