@@ -61,18 +61,18 @@
 
       <!-- Left Sidebar: API Endpoints List and History -->
       <div class="left-sidebar">
-        <!-- API Title Button -->
-        <div class="api-title-button" (click)="showApiInfo()" *ngIf="apiDocsConfig.showApiInfo">
-          <div class="api-title-content">
+        <!-- API Title Button with Kraven UI Toggle -->
+        <div class="api-title-button">
+          <div class="api-title-content" (click)="showApiInfo()" *ngIf="apiDocsConfig.showApiInfo">
             <h3 class="sidebar-api-title">{{ apiDocs.info?.title || 'API Documentation' }}</h3>
             <span class="api-version-badge" *ngIf="apiDocs.info?.version">v{{ apiDocs.info.version }}</span>
           </div>
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="info-icon">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="16" x2="12" y2="12"></line>
-            <line x1="12" y1="8" x2="12.01" y2="8"></line>
-          </svg>
+          <div class="toggle-container" (click)="toggleKravenEndpoints(); $event.stopPropagation();" title="Toggle Kraven UI Endpoints">
+            <div class="toggle-switch" [class.active]="showKravenEndpoints">
+              <div class="toggle-slider"></div>
+            </div>
+            <!-- <span class="toggle-label">Kraven UI</span> -->
+          </div>
         </div>
 
         <!-- Sidebar Tabs -->
@@ -150,7 +150,9 @@
               </div>
               <div *ngIf="tag.isExpanded" class="category-items">
                 <div *ngFor="let endpoint of tag.endpoints" class="endpoint-item"
-                  [class.active]="isEndpointActive(endpoint)" (click)="selectEndpoint(endpoint)">
+                  [class.active]="isEndpointActive(endpoint)"
+                  [class.kraven-library-endpoint]="endpoint.path.startsWith('/kraven/api')"
+                  (click)="selectEndpoint(endpoint)">
                   <span class="method-badge" [ngStyle]="{
                       'background-color': endpoint.method.type === 'GET' ? '#dbeafe' :
                                        endpoint.method.type === 'POST' ? '#dcfce7' :
@@ -851,7 +853,10 @@
                 <h4 class="results-title">Found {{ docSearchResults.length }} matching endpoints</h4>
               </div>
               <div class="search-results-list">
-                <div *ngFor="let result of docSearchResults" class="search-result-item" (click)="navigateToEndpoint(result.endpoint)" [class.deprecated]="result.endpoint.method.operation.deprecated">
+                <div *ngFor="let result of docSearchResults" class="search-result-item"
+                  (click)="navigateToEndpoint(result.endpoint)"
+                  [class.deprecated]="result.endpoint.method.operation.deprecated"
+                  [class.kraven-library-endpoint]="result.endpoint.path.startsWith('/kraven/api')">
                   <div class="result-header">
                     <div class="result-header-left">
                       <span class="method-badge" [ngStyle]="{
@@ -977,8 +982,18 @@
             </div>
           </div>
 
+          <!-- Kraven UI Toggle for Documentation Tab -->
+          <div class="kraven-toggle-container">
+            <div class="toggle-button-wrapper" (click)="toggleKravenEndpoints()" title="Toggle Kraven UI Endpoints">
+              <div class="toggle-switch" [class.active]="showKravenEndpoints">
+                <div class="toggle-slider"></div>
+              </div>
+              <span class="toggle-label">Kraven UI</span>
+            </div>
+          </div>
+
           <!-- Initial State (when no search is performed) -->
-          <div *ngIf="docSearchTags.length === 0" class="documentation-initial-state">
+          <!-- <div *ngIf="docSearchTags.length === 0" class="documentation-initial-state">
             <div class="initial-state-content">
               <i class="fas fa-search initial-state-icon fa-3x"></i>
               <h3 class="initial-state-title">Search API Documentation</h3>
@@ -995,7 +1010,7 @@
                 </div>
               </div>
             </div>
-          </div>
+          </div> -->
         </div>
       </div>
     </div> <!-- End of secondary-tabs-container -->

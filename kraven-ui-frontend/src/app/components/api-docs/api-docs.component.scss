@@ -172,7 +172,6 @@
   padding: 1rem;
   background-color: var(--primary-color, #4990e2);
   color: white;
-  cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -190,12 +189,72 @@
     transition: transform 0.8s ease;
   }
 
+  .api-title-content {
+    cursor: pointer;
+    flex: 1;
+
+    &:hover {
+      & + .toggle-container::before {
+        transform: translateX(100%);
+      }
+    }
+  }
+
   &:hover {
     background-color: var(--primary-hover-color, #3a7bc8);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 
     &::before {
       transform: translateX(100%);
+    }
+  }
+
+  .toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 36px;
+      height: 20px;
+      border-radius: 10px;
+      background-color: rgba(255, 255, 255, 0.3);
+      transition: all 0.3s ease;
+
+      &.active {
+        background-color: #6c5ce7;
+      }
+
+      .toggle-slider {
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background-color: white;
+        transition: all 0.3s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      }
+
+      &.active .toggle-slider {
+        left: calc(100% - 18px);
+      }
+    }
+
+    .toggle-label {
+      font-size: 0.75rem;
+      font-weight: 500;
     }
   }
 }
@@ -499,6 +558,29 @@
     background-color: rgba(73, 144, 226, 0.1);
     border-left-color: var(--primary-color, #4990e2);
     font-weight: 500;
+  }
+
+  &.kraven-library-endpoint {
+    position: relative;
+
+    &::before {
+      content: 'Kraven UI';
+      position: absolute;
+      top: 0;
+      right: 0;
+      font-size: 0.6rem;
+      padding: 0.1rem 0.3rem;
+      background-color: #6c5ce7;
+      color: white;
+      border-radius: 0 0.25rem 0 0.25rem;
+      font-weight: 600;
+      opacity: 0.9;
+      z-index: 1;
+    }
+
+    &:hover::before {
+      opacity: 1;
+    }
   }
 
   .security-icon {
@@ -1089,6 +1171,29 @@
     }
   }
 
+  &.kraven-library-endpoint {
+    position: relative;
+
+    &::before {
+      content: 'Kraven UI';
+      position: absolute;
+      top: 0;
+      right: 0;
+      font-size: 0.7rem;
+      padding: 0.2rem 0.4rem;
+      background-color: #6c5ce7;
+      color: white;
+      border-radius: 0 0.5rem 0 0.5rem;
+      font-weight: 600;
+      opacity: 0.9;
+      z-index: 1;
+    }
+
+    &:hover::before {
+      opacity: 1;
+    }
+  }
+
   &:last-child {
     margin-bottom: 0;
   }
@@ -1377,6 +1482,64 @@
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+// Kraven UI Toggle for Documentation Tab
+.kraven-toggle-container {
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color);
+
+  .toggle-button-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    background-color: var(--muted-color);
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: var(--muted-hover-color);
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 36px;
+      height: 20px;
+      border-radius: 10px;
+      background-color: var(--border-color);
+      transition: all 0.3s ease;
+
+      &.active {
+        background-color: #6c5ce7;
+      }
+
+      .toggle-slider {
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background-color: white;
+        transition: all 0.3s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      }
+
+      &.active .toggle-slider {
+        left: calc(100% - 18px);
+      }
+    }
+
+    .toggle-label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--foreground-color);
+    }
   }
 }
 

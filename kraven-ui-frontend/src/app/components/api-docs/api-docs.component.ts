@@ -1,6 +1,6 @@
-import { Component, OnInit, HostListener, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, HostListener, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ApiDocsService } from '../../services/api-docs.service';
 import { ConfigService } from '../../services/config.service';
@@ -138,6 +138,9 @@ export class ApiDocsComponent implements OnInit {
   // Left sidebar state
   leftSidebarActiveTab: 'endpoints' | 'history' | 'favorites' = 'endpoints'; // Default to endpoints tab
 
+  // Kraven UI endpoints toggle state
+  showKravenEndpoints: boolean = false; // Default to hiding Kraven UI endpoints
+
   // Documentation search state
   docSearchTags: Array<{text: string, color: string}> = [];
   docSearchResults: Array<{
@@ -247,6 +250,11 @@ export class ApiDocsComponent implements OnInit {
               color: '' // Empty string as we're using CSS for color
             };
           });
+      }
+
+      // Check for Kraven UI endpoints toggle state
+      if (params['showKravenEndpoints'] === 'true') {
+        this.showKravenEndpoints = true;
       }
 
       // We'll trigger the search after API docs are loaded if we have tags or search query
@@ -456,6 +464,9 @@ export class ApiDocsComponent implements OnInit {
           // Ensure API info is shown by default
           this.showingApiInfo = true;
           this.selectedEndpoint = null;
+
+          // Apply Kraven UI endpoints filter
+          this.filterEndpoints();
 
           // Check if we're using sample data but don't set an error
           // Just log it for debugging purposes
@@ -1477,6 +1488,31 @@ export class ApiDocsComponent implements OnInit {
   }
 
   /**
+   * Toggle showing Kraven UI endpoints
+   */
+  toggleKravenEndpoints(): void {
+    this.showKravenEndpoints = !this.showKravenEndpoints;
+
+    // Update URL query parameters to persist the toggle state
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        ...this.route.snapshot.queryParams,
+        showKravenEndpoints: this.showKravenEndpoints ? 'true' : null
+      },
+      queryParamsHandling: 'merge'
+    });
+
+    // Refilter endpoints to apply the new toggle state
+    this.filterEndpoints();
+
+    // If we're in the documentation tab and have search results, update them
+    if (this.secondaryTabActiveTab === 'documentation' && this.docSearchTags.length > 0) {
+      this.searchDocumentation();
+    }
+  }
+
+  /**
    * Check if an endpoint is active
    */
   isEndpointActive(endpoint: any): boolean {
@@ -2321,6 +2357,13 @@ export class ApiDocsComponent implements OnInit {
       queryParams.tags = null;
     }
 
+    // Add Kraven UI endpoints toggle state
+    if (this.showKravenEndpoints) {
+      queryParams.showKravenEndpoints = 'true';
+    } else {
+      queryParams.showKravenEndpoints = null; // Remove from URL if false
+    }
+
     // Get the current URL and preserve any existing path
     const urlTree = this.router.createUrlTree([], {
       queryParams: queryParams,
@@ -2417,18 +2460,34 @@ export class ApiDocsComponent implements OnInit {
   }
 
   /**
-   * Filter endpoints based on search query
+   * Filter endpoints based on search query and Kraven UI toggle state
    */
   filterEndpoints(): void {
+    // First, filter out Kraven UI endpoints if showKravenEndpoints is false
+    let baseEndpoints = this.tags.map(tag => {
+      // Filter endpoints based on Kraven UI toggle
+      const filteredByKraven = tag.endpoints.filter(endpoint => {
+        // If showKravenEndpoints is true, include all endpoints
+        // Otherwise, exclude endpoints that start with '/kraven/api'
+        return this.showKravenEndpoints || !endpoint.path.startsWith('/kraven/api');
+      });
+
+      return {
+        ...tag,
+        endpoints: filteredByKraven
+      };
+    }).filter(tag => tag.endpoints.length > 0); // Only include tags with endpoints
+
+    // If there's no search query, use the Kraven-filtered tags
     if (!this.searchQuery.trim()) {
-      this.filteredTags = [...this.tags];
+      this.filteredTags = baseEndpoints;
       return;
     }
 
     const query = this.searchQuery.toLowerCase().trim();
 
-    this.filteredTags = this.tags.map(tag => {
-      // Filter endpoints within this tag
+    this.filteredTags = baseEndpoints.map(tag => {
+      // Filter endpoints within this tag by search query
       const filteredEndpoints = tag.endpoints.filter(endpoint => {
         const path = endpoint.path.toLowerCase();
         const method = endpoint.method.type.toLowerCase();
@@ -2579,6 +2638,11 @@ export class ApiDocsComponent implements OnInit {
       // Search through all tags and endpoints
       this.tags.forEach(tag => {
         tag.endpoints.forEach(endpoint => {
+          // Skip Kraven UI endpoints if toggle is off
+          if (!this.showKravenEndpoints && endpoint.path.startsWith('/kraven/api')) {
+            return;
+          }
+
           const path = endpoint.path.toLowerCase();
           const method = endpoint.method.type.toLowerCase();
           const summary = (endpoint.method.operation.summary || '').toLowerCase();
