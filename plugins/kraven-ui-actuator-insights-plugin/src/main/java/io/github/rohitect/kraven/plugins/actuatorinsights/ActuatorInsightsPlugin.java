@@ -63,13 +63,16 @@ public class ActuatorInsightsPlugin implements KravenUIPlugin {
         // Get services from the application context
         ApplicationContext applicationContext = context.getApplicationContext();
         detectionService = applicationContext.getBean(ActuatorDetectionService.class);
-        context.registerService(detectionService);
+        // Don't register the service again as it's already a Spring bean
+        // context.registerService(detectionService);
 
         dataCollectionService = applicationContext.getBean(ActuatorDataCollectionService.class);
-        context.registerService(dataCollectionService);
+        // Don't register the service again as it's already a Spring bean
+        // context.registerService(dataCollectionService);
 
         threadDumpAnalysisService = applicationContext.getBean(ThreadDumpAnalysisService.class);
-        context.registerService(threadDumpAnalysisService);
+        // Don't register the service again as it's already a Spring bean
+        // context.registerService(threadDumpAnalysisService);
 
         // Register controllers
         context.registerController(new ActuatorInsightsController(

@@ -190,7 +190,7 @@ public class ActuatorDataCollectionService {
         String serverPort = environment.getProperty("server.port", "8080");
 
         // Construct the base URL with the actual port
-        String baseUrl = "http://localhost:" + serverPort;
+        String baseUrl = "http://127.0.0.1:" + serverPort;
         if (!baseUrl.endsWith("/")) {
             baseUrl = baseUrl + "/";
         }
@@ -486,7 +486,8 @@ public class ActuatorDataCollectionService {
                     if (measurements != null && !measurements.isEmpty()) {
                         Map<String, Object> measurement = measurements.get(0);
                         if (measurement.containsKey("value")) {
-                            value = ((Number) measurement.get("value")).doubleValue();
+                            Object valueObj = measurement.get("value");
+                            value = convertToDouble(valueObj);
                         }
                     }
 
@@ -842,6 +843,7 @@ public class ActuatorDataCollectionService {
             headers.set("Expires", "0");
 
             org.springframework.http.HttpEntity<?> requestEntity = new org.springframework.http.HttpEntity<>(headers);
+            log.info("logfileUrl : {}",logfileUrl);
 
             ResponseEntity<String> response = restTemplate.exchange(
                 logfileUrl,
@@ -855,6 +857,7 @@ public class ActuatorDataCollectionService {
             dataCache.put("logfileAvailable", available);
             return available;
         } catch (RestClientException e) {
+            log.error(e.getMessage());
             // Update the cache
             dataCache.put("logfileAvailable", false);
             return false;
@@ -956,11 +959,12 @@ public class ActuatorDataCollectionService {
      */
     public long getLogfileSize() {
         if (!isLogfileAvailable()) {
+            log.info("No Logfile Available.");
             return 0;
         }
 
         String logfileUrl = getLogfileUrl();
-        log.debug("Getting logfile size from: {}", logfileUrl);
+        log.info("Getting logfile size from: {}", logfileUrl);
 
         try {
             // Approach 1: Try a HEAD request to get the Content-Length header
@@ -1060,5 +1064,34 @@ public class ActuatorDataCollectionService {
             log.warn("Failed to parse duration: {}. Using default duration.", durationStr);
             return defaultDuration;
         }
+    }
+
+    /**
+     * Convert an object to Double, handling both Number and String types.
+     *
+     * @param value the value to convert
+     * @return the converted Double value, or null if conversion fails
+     */
+    private Double convertToDouble(Object value) {
+        if (value == null) {
+            return null;
+        }
+
+        if (value instanceof Number) {
+            return ((Number) value).doubleValue();
+        }
+
+        if (value instanceof String) {
+            String stringValue = (String) value;
+            try {
+                return Double.parseDouble(stringValue);
+            } catch (NumberFormatException e) {
+                log.debug("Failed to parse string value '{}' as double: {}", stringValue, e.getMessage());
+                return null;
+            }
+        }
+
+        log.debug("Cannot convert value of type {} to Double: {}", value.getClass().getSimpleName(), value);
+        return null;
     }
 }

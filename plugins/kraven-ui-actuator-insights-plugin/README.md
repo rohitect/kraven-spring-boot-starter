@@ -113,6 +113,8 @@ In Spring Boot 3, all environment property values are masked by default in the `
 ```yaml
 management:
   endpoint:
+    web.exposure.include: "*"
+    metrics.enabled: true
     env:
       show-values: always
 ```

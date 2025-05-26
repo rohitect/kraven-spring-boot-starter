@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 /**
  * Configuration class for the Kafka plugin.
@@ -48,13 +49,15 @@ public class KafkaPluginConfiguration {
      * @param applicationContext the application context
      * @param listenerScanner the Kafka listener scanner
      * @param config the Kafka plugin configuration
+     * @param environment the Spring environment
      * @return the KafkaAdminService
      */
     @Bean
-    public KafkaAdminService kafkaAdminService(ApplicationContext applicationContext, 
+    public KafkaAdminService kafkaAdminService(ApplicationContext applicationContext,
                                               KafkaListenerScanner listenerScanner,
-                                              KafkaPluginConfig config) {
-        KafkaAdminService service = new KafkaAdminService(applicationContext, listenerScanner, config);
+                                              KafkaPluginConfig config,
+                                              Environment environment) {
+        KafkaAdminService service = new KafkaAdminService(applicationContext, listenerScanner, config, environment);
         log.debug("Created KafkaAdminService bean");
         return service;
     }

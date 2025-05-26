@@ -6,10 +6,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.*;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.Node;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.TopicPartitionInfo;
 import org.apache.kafka.common.config.ConfigResource;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.env.Environment;
 import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.stereotype.Service;
 
@@ -28,14 +30,75 @@ public class KafkaAdminService {
     private final ApplicationContext applicationContext;
     private final KafkaListenerScanner kafkaListenerScanner;
     private final KafkaPluginConfig config;
+    private final Environment environment;
 
     public KafkaAdminService(ApplicationContext applicationContext,
                              KafkaListenerScanner kafkaListenerScanner,
-                             KafkaPluginConfig config) {
+                             KafkaPluginConfig config,
+                             Environment environment) {
         this.applicationContext = applicationContext;
         this.kafkaListenerScanner = kafkaListenerScanner;
         this.config = config;
+        this.environment = environment;
         log.info("KafkaAdminService initialized");
+    }
+
+    /**
+     * Get the bootstrap servers from application properties.
+     * Tries multiple property sources in order of preference.
+     *
+     * @return the bootstrap servers configuration
+     */
+    private String getBootstrapServersFromProperties() {
+
+        String bootstrapServers = null;
+
+        // Try standard Spring Boot Kafka property first
+        bootstrapServers = environment.getProperty("spring.kafka.bootstrap-servers");
+        if (bootstrapServers != null && !bootstrapServers.trim().isEmpty()) {
+            log.debug("Found bootstrap servers from spring.kafka.bootstrap-servers: {}", bootstrapServers);
+            return bootstrapServers;
+        }
+
+        bootstrapServers = environment.getProperty("spring.kafka.bootstrapAddress");
+        if (bootstrapServers != null && !bootstrapServers.trim().isEmpty()) {
+            log.debug("Found bootstrap servers from spring.kafka.bootstrapAddress: {}", bootstrapServers);
+            return bootstrapServers;
+        }
+
+        // Try producer-specific property
+        bootstrapServers = environment.getProperty("spring.kafka.producer.bootstrap-servers");
+        if (bootstrapServers != null && !bootstrapServers.trim().isEmpty()) {
+            log.debug("Found bootstrap servers from spring.kafka.producer.bootstrap-servers: {}", bootstrapServers);
+            return bootstrapServers;
+        }
+        bootstrapServers = environment.getProperty("spring.kafka.producer.bootstrapAddress");
+        if (bootstrapServers != null && !bootstrapServers.trim().isEmpty()) {
+            log.debug("Found bootstrap servers from spring.kafka.producer.bootstrapAddress: {}", bootstrapServers);
+            return bootstrapServers;
+        }
+
+        // Try consumer-specific property
+        bootstrapServers = environment.getProperty("spring.kafka.consumer.bootstrap-servers");
+        if (bootstrapServers != null && !bootstrapServers.trim().isEmpty()) {
+            log.debug("Found bootstrap servers from spring.kafka.consumer.bootstrap-servers: {}", bootstrapServers);
+            return bootstrapServers;
+        }
+        bootstrapServers = environment.getProperty("spring.kafka.consumer.bootstrapAddress");
+        if (bootstrapServers != null && !bootstrapServers.trim().isEmpty()) {
+            log.debug("Found bootstrap servers from spring.kafka.consumer.bootstrapAddress: {}", bootstrapServers);
+            return bootstrapServers;
+        }
+
+        // Try legacy property names
+        bootstrapServers = environment.getProperty("spring.kafka.bootstrapServers");
+        if (bootstrapServers != null && !bootstrapServers.trim().isEmpty()) {
+            log.debug("Found bootstrap servers from spring.kafka.bootstrapServers: {}", bootstrapServers);
+            return bootstrapServers;
+        }
+
+        log.debug("No bootstrap servers found in application properties");
+        return null;
     }
 
     /**
@@ -44,7 +107,7 @@ public class KafkaAdminService {
      * @return Kafka cluster information
      */
     public KafkaClusterInfo getClusterInfo() {
-        log.debug("Getting Kafka cluster info");
+        log.info("Getting Kafka cluster info");
         KafkaClusterInfo clusterInfo = new KafkaClusterInfo();
 
         try {
@@ -55,9 +118,18 @@ public class KafkaAdminService {
                 return clusterInfo;
             }
 
-            // Get bootstrap servers
-            String bootstrapServers = kafkaAdmin.getConfigurationProperties()
-                    .getOrDefault("bootstrap.servers", "").toString();
+            // Get bootstrap servers from application properties first, then fall back to KafkaAdmin
+            String bootstrapServers = getBootstrapServersFromProperties();
+            if (bootstrapServers == null || bootstrapServers.trim().isEmpty()) {
+                // Fall back to KafkaAdmin configuration
+                bootstrapServers = kafkaAdmin.getConfigurationProperties()
+                        .getOrDefault("bootstrap.servers", "").toString();
+                log.debug("Using bootstrap servers from KafkaAdmin configuration: {}", bootstrapServers);
+            } else {
+                log.debug("Using bootstrap servers from application properties: {}", bootstrapServers);
+            }
+
+            log.info("Bootstrap servers: {}", bootstrapServers);
             clusterInfo.setBootstrapServers(bootstrapServers);
 
             // Create AdminClient
