@@ -3,6 +3,28 @@
 // Main content styles
 main {
   margin-top: 0; // No margin needed as header is in the layout component
+  height: 100%;
+  overflow-y: auto; // Enable vertical scrolling
+  overflow-x: hidden; // Hide horizontal scrollbar
+
+  /* Custom scrollbar styling */
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(var(--primary-color-rgb), 0.3);
+    border-radius: 4px;
+
+    &:hover {
+      background: rgba(var(--primary-color-rgb), 0.5);
+    }
+  }
 }
 
 // Card icon styles

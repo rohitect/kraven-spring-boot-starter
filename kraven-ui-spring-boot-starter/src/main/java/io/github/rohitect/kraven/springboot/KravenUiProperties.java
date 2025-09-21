@@ -113,11 +113,7 @@ public class KravenUiProperties {
      */
     @Data
     public static class Layout {
-        /**
-         * The layout type to use.
-         * Possible values: three-pane, two-pane, single-pane
-         */
-        private String type = "three-pane";
+        // Layout configuration removed as it's not in use
     }
 
     /**

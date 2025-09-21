@@ -16,3 +16,10 @@
   display: flex; /* Ensure child components can use flex layout */
   flex-direction: column; /* Stack children vertically */
 }
+
+// Ensure router-outlet content takes full height
+:host ::ng-deep router-outlet + * {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}

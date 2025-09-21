@@ -303,8 +303,8 @@ export class FeignClientExplorerComponent implements OnInit {
     this.responseData = null;
     this.paramValues = {};
 
-    // Update the URL
-    this.router.navigate(['/feign-clients', client.name]);
+    // Update the URL using className for uniqueness
+    this.router.navigate(['/feign-clients', client.className || client.name]);
 
     // Expand all methods by default
     if (client.methods) {

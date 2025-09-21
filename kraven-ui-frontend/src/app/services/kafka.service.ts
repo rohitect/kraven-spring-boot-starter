@@ -5,11 +5,12 @@ import { map } from 'rxjs/operators';
 import { ConfigService } from './config.service';
 
 export interface KafkaMessage {
-  id: string;
-  content: string;
-  timestamp: string;
-  metadata?: string;
-  topic?: string;
+  key?: string;
+  value: any;
+  headers?: { [key: string]: string };
+  partition?: number;
+  offset?: number;
+  timestamp?: number;
 }
 
 export interface TopicSetting {
@@ -229,9 +230,10 @@ export class KafkaService {
 
   /**
    * Sends a message to Kafka.
-   * @param message The message to send, including topic, content, and optional metadata
+   * @param topicName The name of the topic to send the message to
+   * @param message The message to send, containing key, value, and optional headers
    */
-  sendMessage(message: KafkaMessage): Observable<KafkaMessage> {
+  sendMessage(topicName: string, message: KafkaMessage): Observable<KafkaMessage> {
     if (!this.enabled) {
       console.warn('Kafka service is disabled');
       return new Observable(observer => observer.error('Kafka service is disabled'));
@@ -243,7 +245,7 @@ export class KafkaService {
     }
 
     // Use the correct endpoint from the API path
-    return this.http.post<KafkaMessage>(`${this.apiPath}/topics/${message.topic || 'default'}/messages`, message);
+    return this.http.post<KafkaMessage>(`${this.apiPath}/topics/${topicName}/messages`, message);
   }
 
   /**

@@ -113,12 +113,6 @@ public class KravenUiEnhancedProperties {
     @Data
     public static class Layout {
         /**
-         * The layout type to use.
-         * Possible values: three-pane, two-pane, single-pane
-         */
-        private String type = "three-pane";
-
-        /**
          * Whether to show the sidebar by default.
          */
         private boolean showSidebar = true;

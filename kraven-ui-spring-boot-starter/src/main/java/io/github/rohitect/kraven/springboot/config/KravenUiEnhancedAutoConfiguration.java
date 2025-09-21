@@ -106,7 +106,7 @@ public class KravenUiEnhancedAutoConfiguration {
 
         // Copy layout properties
         KravenUiProperties.Layout layout = new KravenUiProperties.Layout();
-        layout.setType(enhancedProperties.getLayout().getType());
+        // Layout type removed as it's not in use
         properties.setLayout(layout);
 
         // Copy theme properties

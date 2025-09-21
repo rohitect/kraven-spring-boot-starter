@@ -278,6 +278,41 @@ build_actuator_insights_plugin() {
   echo "Actuator Insights plugin build and bundle completed."
 }
 
+# Function to build and bundle the Plugin SDK
+build_plugin_sdk() {
+  echo ""
+  echo "====================================================="
+  echo "Building Plugin SDK..."
+  echo "====================================================="
+
+  # Check if bundle-plugin-sdk.sh exists in the plugin SDK directory and execute it
+  if [ -f "kraven-ui-plugin-sdk/bundle-plugin-sdk.sh" ]; then
+    echo "Executing bundle-plugin-sdk.sh..."
+    chmod +x kraven-ui-plugin-sdk/bundle-plugin-sdk.sh
+
+    # Create a modified version of the script that skips the prompt
+    TMP_SCRIPT="./tmp_bundle_plugin_sdk.sh"
+    cp kraven-ui-plugin-sdk/bundle-plugin-sdk.sh "$TMP_SCRIPT"
+
+    # Remove the prompt section from the script if it exists
+    sed -i.bak '/Would you like to open the Central Portal upload page now/,/^fi$/d' "$TMP_SCRIPT"
+
+    # Execute the modified script
+    chmod +x "$TMP_SCRIPT"
+    "$TMP_SCRIPT"
+
+    # Clean up
+    rm -f "$TMP_SCRIPT" "$TMP_SCRIPT.bak"
+  else
+    echo "No bundle script found for Plugin SDK. Building manually..."
+    cd kraven-ui-plugin-sdk
+    mvn clean package
+    cd ..
+  fi
+
+  echo "Plugin SDK build and bundle completed."
+}
+
 # Function to collect all bundles from dist directories
 collect_bundles() {
   echo ""
@@ -331,6 +366,9 @@ cleanup_existing_bundles
 
 # Build and bundle the main project
 build_main_project
+
+# Build and bundle the Plugin SDK
+build_plugin_sdk
 
 # Build and bundle the plugins
 build_kafka_plugin

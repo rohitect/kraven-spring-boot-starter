@@ -130,7 +130,7 @@ This is a multi-module Maven project with the following modules:
 - **kraven-ui-spring-boot-starter**: Spring Boot starter (for the lazy developers among us)
 - **kraven-ui-plugin-sdk**: Plugin SDK for developing custom plugins (extensibility FTW)
 - **plugins/kraven-ui-kafka-plugin**: Kafka management plugin (because Kafka deserves special treatment)
-- **kraven-ui-example**: Example application (for when the docs inevitably fail you)
+
 
 ## 🚨 Compatibility Notes
 
@@ -157,8 +157,7 @@ Kraven UI comes with the following plugins:
 |--------|-------------|----------|--------------|
 | **Kafka** | Comprehensive Kafka management | Topic management, message production/consumption, streaming, consumer groups, listener discovery | [Kafka Plugin README](plugins/kraven-ui-kafka-plugin/README.md) |
 | **Mock Server** | Integration testing & development tool | Mock API responses for testing and development, request validation, scenario management | [Mock Server Plugin README](plugins/kraven-ui-mock-server-plugin/README.md) |
-| **Database Explorer** | Database management | Table browsing, query execution, schema visualization | Coming soon |
-| **GraphQL** | GraphQL support | Schema exploration, query builder, mutation testing | Coming soon |
+| **Actuator Insights** | Spring Boot Actuator integration | Enhanced metrics, health checks, application insights | [Actuator Insights Plugin README](plugins/kraven-ui-actuator-insights-plugin/README.md) |
 
 ## 🏗️ Development Status
 
@@ -191,7 +190,7 @@ Add the following dependency to your Spring Boot application's `pom.xml` (copy-p
 <dependency>
     <groupId>io.github.rohitect</groupId>
     <artifactId>kraven-ui</artifactId>
-    <version>1.0.4</version>
+    <version>1.1.0</version>
 </dependency>
 ```
 
@@ -213,8 +212,7 @@ Add configuration to your `application.properties` or `application.yml` file (cu
 
 ```properties
 # Kraven UI Configuration
-kraven.ui.path=/kraven
-kraven.ui.layout.type=three-pane
+kraven.ui.enabled=true
 kraven.ui.cache.enabled=true  # Set to false if you have Redis or other cache manager conflicts
 
 # SpringDoc OpenAPI Configuration
@@ -224,7 +222,7 @@ springdoc.swagger-ui.enabled=false  # Ditch Swagger UI, you've upgraded
 
 #### 4. Run Your Application
 
-Start your Spring Boot application and navigate to the configured path (e.g., `http://localhost:8080/kraven`). Prepare to be amazed... or at least mildly impressed.
+Start your Spring Boot application and navigate to `http://localhost:8080/kraven/ui`. Prepare to be amazed... or at least mildly impressed.
 
 ## ⚙️ Configuration Options (For Control Freaks)
 
@@ -235,10 +233,8 @@ Kraven UI offers a powerful configuration system that supports both application 
 ```properties
 # Basic configuration
 kraven.ui.enabled=true
-kraven.ui.path=/kraven
 
 # Layout configuration
-kraven.ui.layout.type=three-pane
 kraven.ui.layout.middle-pane-width=600
 kraven.ui.layout.right-pane-width=400
 
@@ -279,7 +275,7 @@ kraven.ui.metrics.heap-dump-enabled=false
 You can also configure Kraven UI using the `KRAVEN_UI_CONFIG` environment variable with a JSON string:
 
 ```bash
-export KRAVEN_UI_CONFIG='{"path":"/api-docs","theme":{"darkPrimaryColor":"#ff5722","darkSecondaryColor":"#607d8b","darkBackgroundColor":"#121212","lightPrimaryColor":"#2196f3","lightSecondaryColor":"#ff9800","lightBackgroundColor":"#ffffff","defaultTheme":"dark"},"kafka":{"messageLimit":200},"metrics":{"refreshIntervalMs":10000,"autoRefreshEnabled":true,"threadDumpEnabled":true,"heapDumpEnabled":false}}'
+export KRAVEN_UI_CONFIG='{"theme":{"darkPrimaryColor":"#ff5722","darkSecondaryColor":"#607d8b","darkBackgroundColor":"#121212","lightPrimaryColor":"#2196f3","lightSecondaryColor":"#ff9800","lightBackgroundColor":"#ffffff","defaultTheme":"dark"},"kafka":{"messageLimit":200},"metrics":{"refreshIntervalMs":10000,"autoRefreshEnabled":true,"threadDumpEnabled":true,"heapDumpEnabled":false}}'
 ```
 
 For a complete list of all configuration options, see the [Configuration Guide](CONFIGURATION.md).
@@ -345,6 +341,98 @@ Create and organize beautiful documentation for your service:
 - **Refresh On Demand**: Update documentation as your application evolves
 - **Syntax Highlighting**: Beautiful code highlighting for code blocks
 - **Customizable**: Configure documentation path, features, and appearance
+
+#### 📁 Getting Started with Documentation
+
+To get started with the Documentation Hub, create a documentation folder structure in your Spring Boot project:
+
+```
+src/main/resources/kraven-docs/
+├── overview/
+│   ├── getting-started.md
+│   ├── architecture.md
+│   └── deployment.md
+├── api/
+│   ├── user-management.md
+│   ├── authentication.md
+│   └── data-models.md
+├── guides/
+│   ├── integration-guide.md
+│   ├── troubleshooting.md
+│   └── best-practices.md
+└── diagrams/
+    ├── system-architecture.md
+    └── data-flow.md
+```
+
+**Example Documentation File** (`src/main/resources/kraven-docs/overview/getting-started.md`):
+
+```markdown
+# Getting Started
+
+Welcome to our API documentation! This guide will help you get up and running quickly.
+
+## Quick Start
+
+1. **Authentication**: All API calls require authentication
+2. **Base URL**: `https://api.example.com/v1`
+3. **Content Type**: All requests should use `application/json`
+
+## System Architecture
+
+```mermaid
+graph TD
+    A[Client Application] --> B[API Gateway]
+    B --> C[Authentication Service]
+    B --> D[User Service]
+    B --> E[Data Service]
+    D --> F[Database]
+    E --> F
+```
+
+## Business Flow Example
+
+This example shows how user registration flows through the system:
+
+```
+@flow:user-registration
+@layer:controller -> UserController.registerUser()
+@layer:service -> UserService.createUser()
+@layer:repository -> UserRepository.save()
+@layer:database -> PostgreSQL
+```
+
+## Code Example
+
+```java
+@RestController
+@RequestMapping("/api/v1/users")
+public class UserController {
+
+    @PostMapping
+    public ResponseEntity<User> createUser(@RequestBody CreateUserRequest request) {
+        User user = userService.createUser(request);
+        return ResponseEntity.ok(user);
+    }
+}
+```
+
+## Next Steps
+
+- Check out the [API Reference](../api/user-management.md)
+- Learn about [Authentication](../api/authentication.md)
+- Review [Best Practices](../guides/best-practices.md)
+```
+
+**Configuration in `application.properties`**:
+
+```properties
+# Enable Documentation Hub
+kraven.ui.documentation.enabled=true
+kraven.ui.documentation.path=classpath:kraven-docs/
+kraven.ui.documentation.mermaid-enabled=true
+kraven.ui.documentation.business-flow-tags-enabled=true
+```
 
 ## 📋 Example: Supercharge Your Spring Boot Development with Kraven UI
 
@@ -444,8 +532,6 @@ springdoc.swagger-ui.enabled=false
 
 # Kraven UI configuration
 kraven.ui.enabled=true
-kraven.ui.path=/kraven
-kraven.ui.layout.type=three-pane
 
 # Theme configuration
 kraven.ui.theme.dark-primary-color=#1976d2
@@ -485,7 +571,7 @@ kraven.ui.documentation.business-flow-tags-enabled=true
 
 ### 4. Run the Application
 
-Start your Spring Boot application and navigate to `http://localhost:8080/kraven` to see your API documentation with Kraven UI.
+Start your Spring Boot application and navigate to `http://localhost:8080/kraven/ui` to see your API documentation with Kraven UI.
 
 **Congratulations!** You've just transformed your development environment into a productivity powerhouse. Now you can:
 

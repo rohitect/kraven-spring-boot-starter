@@ -33,19 +33,19 @@
         <div class="tabs-container">
           <div
             class="tab"
-            [class.active]="secondaryTabActiveTab === 'documentation'"
-            (click)="setSecondaryTab('documentation')"
-          >
-            <i class="fas fa-book"></i>
-            <span class="tab-label">Documentation</span>
-          </div>
-          <div
-            class="tab"
             [class.active]="secondaryTabActiveTab === 'playground'"
             (click)="setSecondaryTab('playground')"
           >
             <i class="fas fa-code"></i>
             <span class="tab-label">Playground</span>
+          </div>
+          <div
+            class="tab"
+            [class.active]="secondaryTabActiveTab === 'documentation'"
+            (click)="setSecondaryTab('documentation')"
+          >
+            <i class="fas fa-book"></i>
+            <span class="tab-label">Documentation</span>
           </div>
         </div>
 
@@ -60,18 +60,40 @@
         <div class="three-pane-layout">
 
       <!-- Left Sidebar: API Endpoints List and History -->
-      <div class="left-sidebar">
+      <div class="left-sidebar"
+           [style.width.px]="leftSidebarWidth">
         <!-- API Title Button with Kraven UI Toggle -->
         <div class="api-title-button">
           <div class="api-title-content" (click)="showApiInfo()" *ngIf="apiDocsConfig.showApiInfo">
             <h3 class="sidebar-api-title">{{ apiDocs.info?.title || 'API Documentation' }}</h3>
             <span class="api-version-badge" *ngIf="apiDocs.info?.version">v{{ apiDocs.info.version }}</span>
           </div>
-          <div class="toggle-container" (click)="toggleKravenEndpoints(); $event.stopPropagation();" title="Toggle Kraven UI Endpoints">
-            <div class="toggle-switch" [class.active]="showKravenEndpoints">
-              <div class="toggle-slider"></div>
+          <div class="dropdown-container" (click)="toggleOptionsDropdown(); $event.stopPropagation();" title="API Display Options">
+            <div class="three-dots-menu">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="1"></circle>
+                <circle cx="12" cy="5" r="1"></circle>
+                <circle cx="12" cy="19" r="1"></circle>
+              </svg>
             </div>
-            <!-- <span class="toggle-label">Kraven UI</span> -->
+
+            <!-- Dropdown Menu -->
+            <div class="dropdown-menu" [class.show]="showDropdown" (click)="$event.stopPropagation();">
+              <div class="dropdown-item">
+                <label class="dropdown-toggle">
+                  <input type="checkbox" [checked]="showKravenEndpoints" (change)="toggleKravenEndpoints()">
+                  <span class="toggle-slider"></span>
+                  <span class="toggle-text">Show Kraven UI APIs</span>
+                </label>
+              </div>
+              <div class="dropdown-item">
+                <label class="dropdown-toggle">
+                  <input type="checkbox" [checked]="showShortApiNames" (change)="toggleShortApiNames()">
+                  <span class="toggle-slider"></span>
+                  <span class="toggle-text">Show short API names</span>
+                </label>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -152,6 +174,7 @@
                 <div *ngFor="let endpoint of tag.endpoints" class="endpoint-item"
                   [class.active]="isEndpointActive(endpoint)"
                   [class.kraven-library-endpoint]="endpoint.path.startsWith('/kraven/api')"
+                  [title]="endpoint.method.type + ' ' + endpoint.path"
                   (click)="selectEndpoint(endpoint)">
                   <span class="method-badge" [ngStyle]="{
                       'background-color': endpoint.method.type === 'GET' ? '#dbeafe' :
@@ -167,7 +190,7 @@
                     }">
                     {{ endpoint.method.type }}
                   </span>
-                  <span class="endpoint-summary">{{ endpoint.method.operation.summary || endpoint.path }}</span>
+                  <span class="endpoint-summary">{{ getEndpointDisplayName(endpoint) }}</span>
                   <svg *ngIf="endpoint.method.operation.security && endpoint.method.operation.security.length > 0"
                     xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -204,8 +227,17 @@
         </div>
       </div>
 
+      <!-- Resize Handle -->
+      <div class="resize-handle"
+           [style.left.px]="leftSidebarWidth"
+           (mousedown)="startResize($event)"
+           title="Drag to resize sidebar">
+      </div>
+
       <!-- Center Pane: API Details -->
-      <div style="width: calc(100% - 300px); margin-left: 300px; display: flex; flex-direction: column; align-items: flex-start;">
+      <div [style.width]="'calc(100% - ' + (leftSidebarWidth + 4) + 'px)'"
+           [style.margin-left.px]="leftSidebarWidth + 4"
+           style="display: flex; flex-direction: column; align-items: flex-start;">
         <!-- Tab Bar -->
         <app-api-tab-bar
           style="width: 100%"

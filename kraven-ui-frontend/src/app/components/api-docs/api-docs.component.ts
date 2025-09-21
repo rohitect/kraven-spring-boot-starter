@@ -133,13 +133,23 @@ export class ApiDocsComponent implements OnInit {
   rightPaneCollapsed = false; // Default to expanded
 
   // Secondary tabs state for API Playground
-  secondaryTabActiveTab: 'playground' | 'documentation' = 'documentation'; // Default to documentation tab
+  secondaryTabActiveTab: 'playground' | 'documentation' = 'playground'; // Default to playground tab
 
   // Left sidebar state
   leftSidebarActiveTab: 'endpoints' | 'history' | 'favorites' = 'endpoints'; // Default to endpoints tab
 
   // Kraven UI endpoints toggle state
   showKravenEndpoints: boolean = false; // Default to hiding Kraven UI endpoints
+
+  // API display options
+  showShortApiNames: boolean = false; // Default to showing full API names
+  showDropdown: boolean = false; // Dropdown menu state
+
+  // Sidebar resizing state
+  leftSidebarWidth: number = 330; // Default width
+  isResizing: boolean = false;
+  minSidebarWidth: number = 200;
+  maxSidebarWidth: number = 600;
 
   // Documentation search state
   docSearchTags: Array<{text: string, color: string}> = [];
@@ -255,6 +265,11 @@ export class ApiDocsComponent implements OnInit {
       // Check for Kraven UI endpoints toggle state
       if (params['showKravenEndpoints'] === 'true') {
         this.showKravenEndpoints = true;
+      }
+
+      // Check for short API names toggle state
+      if (params['shortNames'] === 'true') {
+        this.showShortApiNames = true;
       }
 
       // We'll trigger the search after API docs are loaded if we have tags or search query
@@ -474,9 +489,12 @@ export class ApiDocsComponent implements OnInit {
             console.log('Using sample API data for demonstration purposes.');
           }
 
-          // Only trigger search if we have search tags (not just a query)
-          if (this.docSearchTags.length > 0 && this.secondaryTabActiveTab === 'documentation') {
-            this.searchDocumentation();
+          // Trigger search for documentation tab after tags are populated
+          if (this.secondaryTabActiveTab === 'documentation') {
+            // Use setTimeout to ensure tags are fully populated
+            setTimeout(() => {
+              this.searchDocumentation();
+            }, 0);
           }
 
           resolve();
@@ -581,6 +599,7 @@ export class ApiDocsComponent implements OnInit {
     // Close all dropdowns
     this.showMainDropdown = false;
     this.showExportMainDropdown = false;
+    this.showDropdown = false;
 
     this.paths.forEach(path => {
       path.showDropdown = false;
@@ -1513,6 +1532,52 @@ export class ApiDocsComponent implements OnInit {
   }
 
   /**
+   * Toggle showing short API names
+   */
+  toggleShortApiNames(): void {
+    this.showShortApiNames = !this.showShortApiNames;
+
+    // Update URL query parameters to persist the toggle state
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        ...this.route.snapshot.queryParams,
+        shortNames: this.showShortApiNames ? 'true' : null
+      },
+      queryParamsHandling: 'merge'
+    });
+  }
+
+  /**
+   * Toggle options dropdown menu visibility
+   */
+  toggleOptionsDropdown(): void {
+    this.showDropdown = !this.showDropdown;
+  }
+
+  /**
+   * Get the display name for an endpoint based on the short names toggle
+   */
+  getEndpointDisplayName(endpoint: any): string {
+    const summary = endpoint.method.operation.summary;
+    const path = endpoint.path;
+
+    if (summary) {
+      return summary;
+    }
+
+    if (this.showShortApiNames && path) {
+      // Show only the last 2 parts of the path with .../ prefix
+      const pathParts = path.split('/').filter((part: string) => part.length > 0);
+      if (pathParts.length > 2) {
+        return '.../' + pathParts.slice(-2).join('/');
+      }
+    }
+
+    return path;
+  }
+
+  /**
    * Check if an endpoint is active
    */
   isEndpointActive(endpoint: any): boolean {
@@ -2330,11 +2395,14 @@ export class ApiDocsComponent implements OnInit {
     // Update the URL query parameter to persist the tab selection
     this.updateUrlQueryParams();
 
-    // If switching back to documentation tab, restore the previous search state
-    if (tab === 'documentation' && previousTab === 'playground' && previousTags.length > 0) {
-      this.docSearchTags = previousTags;
+    // If switching to documentation tab, trigger search
+    if (tab === 'documentation') {
+      if (previousTab === 'playground' && previousTags.length > 0) {
+        // Restore previous search state
+        this.docSearchTags = previousTags;
+      }
 
-      // Trigger search with the restored tags
+      // Always trigger search (shows all items if no tags)
       this.searchDocumentation();
     }
   }
@@ -2618,9 +2686,36 @@ export class ApiDocsComponent implements OnInit {
     // Always update URL with tags (or lack thereof)
     this.updateUrlQueryParams();
 
-    // Only perform search if we have tags
+    // If no tags, show all endpoints
     if (this.docSearchTags.length === 0) {
-      // Make sure loading state is cleared
+      // Show all endpoints from all tags
+      const allResults: Array<{tagName: string, endpoint: any, score: number, matchedTags: number}> = [];
+
+      this.tags.forEach(tag => {
+        tag.endpoints.forEach(endpoint => {
+          // Skip Kraven UI endpoints if toggle is off
+          if (!this.showKravenEndpoints && endpoint.path.startsWith('/kraven/api')) {
+            return;
+          }
+
+          allResults.push({
+            tagName: tag.name,
+            endpoint,
+            score: 1, // Default score for all items
+            matchedTags: 0
+          });
+        });
+      });
+
+      // Sort by tag name and then by endpoint path for consistent ordering
+      allResults.sort((a, b) => {
+        if (a.tagName !== b.tagName) {
+          return a.tagName.localeCompare(b.tagName);
+        }
+        return a.endpoint.path.localeCompare(b.endpoint.path);
+      });
+
+      this.docSearchResults = allResults;
       this.docSearchLoading = false;
       return;
     }
@@ -2789,5 +2884,48 @@ export class ApiDocsComponent implements OnInit {
       return false;
     }
     return Array.isArray(this.responseSamples[code]);
+  }
+
+  /**
+   * Start resizing the left sidebar
+   */
+  startResize(event: MouseEvent): void {
+    event.preventDefault();
+    this.isResizing = true;
+
+    // Add event listeners for mouse move and mouse up
+    document.addEventListener('mousemove', this.onMouseMove.bind(this));
+    document.addEventListener('mouseup', this.onMouseUp.bind(this));
+
+    // Add a class to the body to prevent text selection during resize
+    document.body.classList.add('resizing');
+  }
+
+  /**
+   * Handle mouse move during resize
+   */
+  private onMouseMove(event: MouseEvent): void {
+    if (!this.isResizing) return;
+
+    const newWidth = event.clientX;
+
+    // Constrain the width within min and max bounds
+    if (newWidth >= this.minSidebarWidth && newWidth <= this.maxSidebarWidth) {
+      this.leftSidebarWidth = newWidth;
+    }
+  }
+
+  /**
+   * Handle mouse up to stop resizing
+   */
+  private onMouseUp(): void {
+    this.isResizing = false;
+
+    // Remove event listeners
+    document.removeEventListener('mousemove', this.onMouseMove.bind(this));
+    document.removeEventListener('mouseup', this.onMouseUp.bind(this));
+
+    // Remove the resizing class from body
+    document.body.classList.remove('resizing');
   }
 }

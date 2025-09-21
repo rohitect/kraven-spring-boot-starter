@@ -75,8 +75,8 @@
 
 // Define variables at the component level as well
 .feign-client-container {
-  --sidebar-width: 280px;
-  --right-pane-width: 500px;
+  --sidebar-width: 320px;
+  --right-pane-width: 450px;
   --middle-pane-width: calc(100% - var(--sidebar-width) - var(--right-pane-width));
 }
 
@@ -123,19 +123,7 @@
   overflow: hidden; /* Prevent scrolling on the container */
   position: relative;
 
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-image: radial-gradient(var(--primary-color-light, rgba(59, 130, 246, 0.05)) 1px, transparent 1px);
-    background-size: 20px 20px;
-    opacity: 0.5;
-    pointer-events: none;
-    z-index: 0;
-  }
+  // Remove dotted background pattern to match API playground
 
   & > * {
     position: relative;
@@ -739,6 +727,7 @@
   flex-shrink: 0;
   flex-grow: 0; /* Prevent growing */
   position: relative; /* Add position relative */
+  background-color: var(--background-color);
 }
 
 // Middle Pane Content

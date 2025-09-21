@@ -23,7 +23,7 @@ interface KravenConfig {
     customJsPath?: string;
   };
   layout: {
-    type: string;
+    // Layout type removed as it's not in use
   };
   apiDocs?: {
     enabled: boolean;
@@ -96,7 +96,7 @@ export class ConfigService {
       customJsPath: ''
     },
     layout: {
-      type: 'three-pane'
+      // Layout type removed as it's not in use
     },
     apiDocs: {
       enabled: true,

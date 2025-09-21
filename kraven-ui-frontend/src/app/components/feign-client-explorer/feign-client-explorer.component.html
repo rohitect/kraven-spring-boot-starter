@@ -97,7 +97,7 @@
             <div
               *ngFor="let client of recentlyUsedClients"
               class="client-item"
-              [class.active]="selectedClient?.name === client.name"
+              [class.active]="selectedClient?.className === client.className"
               (click)="selectClient(client)"
             >
               <div class="client-icon">
@@ -148,7 +148,7 @@
             <div
               *ngFor="let client of filteredClients"
               class="client-item"
-              [class.active]="selectedClient?.name === client.name"
+              [class.active]="selectedClient?.className === client.className"
               (click)="selectClient(client)"
             >
               <div class="client-icon">
@@ -172,7 +172,7 @@
             <div
               *ngFor="let client of filteredClients"
               class="client-card"
-              [class.active]="selectedClient?.name === client.name"
+              [class.active]="selectedClient?.className === client.className"
               (click)="selectClient(client)"
             >
               <div class="client-card-icon">

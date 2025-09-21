@@ -149,7 +149,7 @@ public class KafkaManagementController {
             log.warn("Message production is disabled. Rejecting request for topic: {}", name);
             throw new org.springframework.web.server.ResponseStatusException(
                     org.springframework.http.HttpStatus.FORBIDDEN,
-                    "Message production is disabled in the configuration. To enable it, set 'kraven.plugins.kafka.message-production-enabled=true' in your application properties.");
+                    "Message production is disabled in the configuration. To enable it, set 'kraven.plugins.kafka.messageProductionEnabled=true' in your application properties.");
         }
 
         try {
@@ -174,7 +174,7 @@ public class KafkaManagementController {
             log.warn("Streaming is disabled. Rejecting SSE request for topic: {}", name);
             throw new org.springframework.web.server.ResponseStatusException(
                     org.springframework.http.HttpStatus.FORBIDDEN,
-                    "Streaming is disabled in the configuration. To enable it, set 'kraven.plugins.kafka.streaming-enabled=true' in your application properties.");
+                    "Streaming is disabled in the configuration. To enable it, set 'kraven.plugins.kafka.streamingEnabled=true' in your application properties.");
         }
 
         // Create emitter with timeout

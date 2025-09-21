@@ -152,7 +152,7 @@ public class KravenUiConfigurationInitializer implements ApplicationListener<App
         log.info("  Path: {}", properties.getNormalizedPath());
         log.info("  Version: {}", properties.getVersion());
         log.info("  Enhanced Mode: {}", properties.getEnhanced().isEnabled());
-        log.info("  Layout Type: {}", properties.getLayout().getType());
+        // Layout type removed as it's not in use
         log.info("  Theme: Default={}, SystemPreference={}",
                 properties.getTheme().getDefaultTheme(),
                 properties.getTheme().isRespectSystemPreference());
@@ -228,7 +228,6 @@ public class KravenUiConfigurationInitializer implements ApplicationListener<App
 
             // Layout configuration
             Map<String, Object> layout = new HashMap<>();
-            layout.put("type", properties.getLayout().getType());
             layout.put("showSidebar", properties.getLayout().isShowSidebar());
             layout.put("middlePaneWidth", properties.getLayout().getMiddlePaneWidth());
             layout.put("rightPaneWidth", properties.getLayout().getRightPaneWidth());

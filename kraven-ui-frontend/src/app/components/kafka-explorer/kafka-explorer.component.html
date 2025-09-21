@@ -353,12 +353,15 @@
                       </div>
                     </div>
 
-                    <div *ngFor="let message of filteredMessages" class="message-card"
-                      [class.expanded]="isMessageExpanded(message.id)">
-                      <div class="message-header" (click)="toggleMessageExpanded(message.id)">
-                        <div class="message-id">ID: {{ message.id }}</div>
+                    <div *ngFor="let message of filteredMessages; let i = index" class="message-card"
+                      [class.expanded]="isMessageExpanded(i)">
+                      <div class="message-header" (click)="toggleMessageExpanded(i)">
+                        <div class="message-id">
+                          <span *ngIf="message.key">Key: {{ message.key }}</span>
+                          <span *ngIf="!message.key">Message {{ i + 1 }}</span>
+                        </div>
                         <div class="message-actions">
-                          <div class="message-timestamp">{{ formatTimestamp(message.timestamp) }}</div>
+                          <div class="message-timestamp" *ngIf="message.timestamp">{{ formatTimestamp(message.timestamp) }}</div>
                           <button class="btn-icon copy-content-btn"
                             (click)="copyMessageContentToClipboard(message, $event)" title="Copy content to clipboard">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
@@ -381,49 +384,60 @@
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                               fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                               stroke-linejoin="round">
-                              <polyline *ngIf="!isMessageExpanded(message.id)" points="6 9 12 15 18 9"></polyline>
-                              <polyline *ngIf="isMessageExpanded(message.id)" points="18 15 12 9 6 15"></polyline>
+                              <polyline *ngIf="!isMessageExpanded(i)" points="6 9 12 15 18 9"></polyline>
+                              <polyline *ngIf="isMessageExpanded(i)" points="18 15 12 9 6 15"></polyline>
                             </svg>
                           </button>
                         </div>
                       </div>
 
-                      <div class="message-preview" *ngIf="!isMessageExpanded(message.id)">
-                        <div class="message-content-preview">{{ message.content.length > 100 ?
-                          message.content.substring(0, 100) + '...' : message.content }}</div>
+                      <div class="message-preview" *ngIf="!isMessageExpanded(i)">
+                        <div class="message-content-preview">
+                          {{ formatMessageContent(message.value).length > 100 ?
+                             formatMessageContent(message.value).substring(0, 100) + '...' :
+                             formatMessageContent(message.value) }}
+                        </div>
                       </div>
 
-                      <div class="message-details" *ngIf="isMessageExpanded(message.id)">
+                      <div class="message-details" *ngIf="isMessageExpanded(i)">
+                        <div class="message-section" *ngIf="message.key">
+                          <div class="message-section-header">Key</div>
+                          <div class="message-key">
+                            <span class="tag info">{{ message.key }}</span>
+                          </div>
+                        </div>
+
                         <div class="message-section">
-                          <div class="message-section-header">Content</div>
+                          <div class="message-section-header">Value</div>
                           <pre class="message-content"
-                            [class.json-content]="isJsonContent(message.content)">{{ formatMessageContent(message.content) }}</pre>
+                            [class.json-content]="isJsonContent(message.value)">{{ formatMessageContent(message.value) }}</pre>
                         </div>
 
-                        <div class="message-section" *ngIf="message.metadata">
-                          <div class="message-section-header">Metadata</div>
-                          <div class="message-metadata">
-                            <span class="tag info">{{ message.metadata }}</span>
+                        <div class="message-section" *ngIf="message.headers && getObjectKeys(message.headers).length > 0">
+                          <div class="message-section-header">Headers</div>
+                          <div class="message-headers">
+                            <div *ngFor="let header of message.headers | keyvalue" class="header-item">
+                              <span class="header-key">{{ header.key }}:</span>
+                              <span class="header-value">{{ header.value }}</span>
+                            </div>
                           </div>
                         </div>
 
-                        <div class="message-section">
-                          <div class="message-section-header">Details</div>
-                          <div class="message-detail-grid">
-                            <div class="message-detail-item">
-                              <span class="message-detail-label">Message ID</span>
-                              <span class="message-detail-value">{{ message.id }}</span>
-                            </div>
-                            <div class="message-detail-item">
-                              <span class="message-detail-label">Timestamp</span>
-                              <span class="message-detail-value">{{ formatTimestamp(message.timestamp) }}</span>
-                            </div>
-                            <div class="message-detail-item" *ngIf="message.metadata">
-                              <span class="message-detail-label">Metadata</span>
-                              <span class="message-detail-value">{{ message.metadata }}</span>
-                            </div>
+                        <div class="message-section" *ngIf="message.partition !== undefined">
+                          <div class="message-section-header">Partition</div>
+                          <div class="message-partition">
+                            <span class="tag secondary">{{ message.partition }}</span>
                           </div>
                         </div>
+
+                        <div class="message-section" *ngIf="message.offset !== undefined">
+                          <div class="message-section-header">Offset</div>
+                          <div class="message-offset">
+                            <span class="tag secondary">{{ message.offset }}</span>
+                          </div>
+                        </div>
+
+
                       </div>
                     </div>
 
@@ -694,22 +708,51 @@
               </div>
               <div class="form-section-content">
                 <div class="form-group">
-                  <label for="messageContent">Message Content</label>
+                  <label for="messageKey">Message Key (Optional)</label>
+                  <input id="messageKey" type="text" class="form-control" [(ngModel)]="newMessage.key"
+                    placeholder="Enter message key">
+                </div>
+
+                <div class="form-group">
+                  <label for="messageValue">Message Value</label>
                   <div class="code-editor-container">
-                    <textarea id="messageContent" class="form-control code-editor" [(ngModel)]="newMessage.content"
-                      rows="8" placeholder="Enter message content (JSON or plain text)"></textarea>
+                    <textarea id="messageValue" class="form-control code-editor" [(ngModel)]="newMessage.value"
+                      rows="8" placeholder="Enter message value (JSON or plain text)"></textarea>
                   </div>
                 </div>
+
                 <div class="form-group">
-                  <label for="messageMetadata">Metadata (Optional)</label>
-                  <input id="messageMetadata" type="text" class="form-control" [(ngModel)]="newMessage.metadata"
-                    placeholder="Enter metadata">
+                  <label>Headers (Optional)</label>
+                  <div class="headers-container">
+                    <div class="header-entry" *ngFor="let header of headerEntries; let i = index">
+                      <input type="text" class="form-control header-key" [(ngModel)]="header.key"
+                        placeholder="Header key">
+                      <input type="text" class="form-control header-value" [(ngModel)]="header.value"
+                        placeholder="Header value">
+                      <button type="button" class="btn-icon remove-header-btn" (click)="removeHeaderEntry(i)"
+                        title="Remove header">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <line x1="18" y1="6" x2="6" y2="18"></line>
+                          <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                      </button>
+                    </div>
+                    <button type="button" class="btn btn-secondary add-header-btn" (click)="addHeaderEntry()">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                      </svg>
+                      Add Header
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
 
             <div class="form-actions">
-              <button class="btn btn-primary send-btn" (click)="sendMessage()" [disabled]="!newMessage.content">
+              <button class="btn btn-primary send-btn" (click)="sendMessage()" [disabled]="!newMessage.value">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                   class="icon-left">

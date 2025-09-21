@@ -42,11 +42,11 @@ public class KravenUiIndexController {
     @Value("${server.servlet.context-path:}")
     private String contextPath;
 
-    @Value("${springdoc.swagger-ui.url:}")
-    private String swaggerUiUrl;
+    @Value("${springdoc.swagger-ui.path:}")
+    private String swaggerUiPath;
 
-    @Value("${springdoc.api-docs.url:}")
-    private String apiDocsUrl;
+    @Value("${springdoc.api-docs.path:}")
+    private String apiDocsPath;
 
     // Map of file extensions to MIME types
     private static final Map<String, MediaType> MIME_TYPES = new HashMap<>();
@@ -389,11 +389,11 @@ public class KravenUiIndexController {
 
         // Add Swagger/OpenAPI URL if configured
         String apiUrl = null;
-        if (swaggerUiUrl != null && !swaggerUiUrl.isEmpty()) {
-            apiUrl = swaggerUiUrl;
+        if (swaggerUiPath != null && !swaggerUiPath.isEmpty()) {
+            apiUrl = swaggerUiPath;
             log.debug("Using springdoc.swagger-ui.url: {}", apiUrl);
-        } else if (apiDocsUrl != null && !apiDocsUrl.isEmpty()) {
-            apiUrl = apiDocsUrl;
+        } else if (apiDocsPath != null && !apiDocsPath.isEmpty()) {
+            apiUrl = apiDocsPath;
             log.debug("Using springdoc.api-docs.url: {}", apiUrl);
         }
 

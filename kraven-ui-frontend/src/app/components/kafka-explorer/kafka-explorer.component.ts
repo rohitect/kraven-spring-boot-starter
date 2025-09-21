@@ -61,18 +61,19 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
 
   // Message sending
   newMessage: KafkaMessage = {
-    id: '',
-    content: '',
-    timestamp: new Date().toISOString(),
-    metadata: '',
-    topic: ''
+    key: '',
+    value: '',
+    headers: {}
   };
+
+  // UI helper properties for headers
+  headerEntries: { key: string; value: string }[] = [];
 
   // Received messages
   receivedMessages: KafkaMessage[] = [];
   filteredMessages: KafkaMessage[] = [];
   loadingMessages = false;
-  expandedMessageIds: Set<string> = new Set<string>();
+  expandedMessageIndices: Set<number> = new Set<number>();
   messageFilter: string = '';
 
   // Live streaming properties
@@ -482,17 +483,21 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
 
     const filterLower = this.messageFilter.toLowerCase();
     this.filteredMessages = sourceMessages.filter(message => {
-      // Check if the content contains the filter text
-      if (message.content && message.content.toLowerCase().includes(filterLower)) {
+      // Check if the value contains the filter text
+      if (message.value && typeof message.value === 'string' && message.value.toLowerCase().includes(filterLower)) {
         return true;
       }
-      // Check if the ID contains the filter text
-      if (message.id && message.id.toLowerCase().includes(filterLower)) {
+      // Check if the key contains the filter text
+      if (message.key && message.key.toLowerCase().includes(filterLower)) {
         return true;
       }
-      // Check if the metadata contains the filter text
-      if (message.metadata && message.metadata.toLowerCase().includes(filterLower)) {
-        return true;
+      // Check if any header contains the filter text
+      if (message.headers) {
+        for (const [key, value] of Object.entries(message.headers)) {
+          if (key.toLowerCase().includes(filterLower) || value.toLowerCase().includes(filterLower)) {
+            return true;
+          }
+        }
       }
       return false;
     });
@@ -510,7 +515,7 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
    * Sends a message to Kafka.
    */
   sendMessage(): void {
-    if (!this.newMessage.content) {
+    if (!this.newMessage.value) {
       return;
     }
 
@@ -521,24 +526,36 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Ensure the topic is set to the selected topic
-    if (this.selectedTopic && (!this.newMessage.topic || this.newMessage.topic.trim() === '')) {
-      this.newMessage.topic = this.selectedTopic.name;
+    if (!this.selectedTopic) {
+      console.warn('No topic selected');
+      alert('Please select a topic first');
+      return;
     }
 
-    this.newMessage.timestamp = new Date().toISOString();
+    // Build headers from header entries
+    const headers: { [key: string]: string } = {};
+    this.headerEntries.forEach(entry => {
+      if (entry.key && entry.value) {
+        headers[entry.key] = entry.value;
+      }
+    });
 
-    this.kafkaService.sendMessage(this.newMessage).subscribe({
+    // Prepare the message payload
+    const messagePayload: KafkaMessage = {
+      value: this.newMessage.value,
+      ...(this.newMessage.key && { key: this.newMessage.key }),
+      ...(Object.keys(headers).length > 0 && { headers })
+    };
+
+    this.kafkaService.sendMessage(this.selectedTopic.name, messagePayload).subscribe({
       next: (response) => {
-        // Clear the form but keep the topic
-        const currentTopic = this.newMessage.topic;
+        // Clear the form
         this.newMessage = {
-          id: '',
-          content: '',
-          timestamp: new Date().toISOString(),
-          metadata: '',
-          topic: currentTopic // Preserve the topic for the next message
+          key: '',
+          value: '',
+          headers: {}
         };
+        this.headerEntries = [];
 
         // Reload received messages after a short delay
         setTimeout(() => this.loadReceivedMessages(), 1000);
@@ -775,37 +792,37 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
   /**
    * Formats a timestamp for display.
    */
-  formatTimestamp(timestamp: string): string {
+  formatTimestamp(timestamp: number | string): string {
     if (!timestamp) return '';
 
     try {
       const date = new Date(timestamp);
       return date.toLocaleString();
     } catch (e) {
-      return timestamp;
+      return String(timestamp);
     }
   }
 
   /**
    * Toggles the expanded state of a message.
    */
-  toggleMessageExpanded(messageId: string, event?: Event): void {
+  toggleMessageExpanded(messageIndex: number, event?: Event): void {
     if (event) {
       event.stopPropagation();
     }
 
-    if (this.expandedMessageIds.has(messageId)) {
-      this.expandedMessageIds.delete(messageId);
+    if (this.expandedMessageIndices.has(messageIndex)) {
+      this.expandedMessageIndices.delete(messageIndex);
     } else {
-      this.expandedMessageIds.add(messageId);
+      this.expandedMessageIndices.add(messageIndex);
     }
   }
 
   /**
    * Checks if a message is expanded.
    */
-  isMessageExpanded(messageId: string): boolean {
-    return this.expandedMessageIds.has(messageId);
+  isMessageExpanded(messageIndex: number): boolean {
+    return this.expandedMessageIndices.has(messageIndex);
   }
 
   /**
@@ -817,42 +834,49 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Formats message content for display, attempting to parse JSON if possible.
-   * If the content is JSON, it extracts and displays only the content value.
+   * Formats message value for display, attempting to parse JSON if possible.
    */
-  formatMessageContent(content: string): string {
-    try {
-      // Try to parse as JSON
-      const parsed = JSON.parse(content);
-
-      // If the parsed object has a 'content' property, extract and display only that
-      if (parsed && typeof parsed === 'object' && parsed.content !== undefined) {
-        // If the content value is itself a JSON object, pretty-print it
-        if (typeof parsed.content === 'object') {
-          return JSON.stringify(parsed.content, null, 2);
-        }
-        // Otherwise return the content value as is
-        return parsed.content;
-      }
-
-      // If no content property, pretty-print the entire JSON
-      return JSON.stringify(parsed, null, 2);
-    } catch (e) {
-      // If not valid JSON, return as is
-      return content;
+  formatMessageContent(value: any): string {
+    if (value === undefined || value === null) {
+      return '';
     }
+
+    // If value is already a string, try to parse as JSON for pretty printing
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        return JSON.stringify(parsed, null, 2);
+      } catch (e) {
+        // If not valid JSON, return as is
+        return value;
+      }
+    }
+
+    // If value is an object, pretty-print it
+    if (typeof value === 'object') {
+      return JSON.stringify(value, null, 2);
+    }
+
+    // For other types, convert to string
+    return String(value);
   }
 
   /**
-   * Checks if message content is valid JSON.
+   * Checks if message value is valid JSON.
    */
-  isJsonContent(content: string): boolean {
-    try {
-      JSON.parse(content);
+  isJsonContent(value: any): boolean {
+    if (typeof value === 'object') {
       return true;
-    } catch (e) {
-      return false;
     }
+    if (typeof value === 'string') {
+      try {
+        JSON.parse(value);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+    return false;
   }
 
   /**
@@ -1035,11 +1059,21 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
    * Shows the right pane for producing messages
    */
   showProduceMessagePane(): void {
-    // Set the topic in the newMessage object to the selected topic's name
-    if (this.selectedTopic) {
-      this.newMessage.topic = this.selectedTopic.name;
-    }
     this.showRightPane = true;
+  }
+
+  /**
+   * Adds a new header entry
+   */
+  addHeaderEntry(): void {
+    this.headerEntries.push({ key: '', value: '' });
+  }
+
+  /**
+   * Removes a header entry at the specified index
+   */
+  removeHeaderEntry(index: number): void {
+    this.headerEntries.splice(index, 1);
   }
 
   /**
@@ -1071,34 +1105,25 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
 
   /**
    * Extracts the actual content from a message
-   * If the message content is JSON and has a content field, returns only that content
-   * Otherwise returns the original content
+   * Returns the message value as a string
    */
   extractMessageContent(message: KafkaMessage): string {
-    if (!message || !message.content) {
+    if (!message || message.value === undefined || message.value === null) {
       return '';
     }
 
-    try {
-      // Try to parse as JSON
-      const parsed = JSON.parse(message.content);
-
-      // If the parsed object has a 'content' property, extract only that
-      if (parsed && typeof parsed === 'object' && parsed.content !== undefined) {
-        // If the content value is itself a JSON object, stringify it
-        if (typeof parsed.content === 'object') {
-          return JSON.stringify(parsed.content);
-        }
-        // Otherwise return the content value as is
-        return parsed.content;
-      }
-
-      // If no content property, return the original content
-      return message.content;
-    } catch (e) {
-      // If not valid JSON, return as is
-      return message.content;
+    // If value is already a string, return it
+    if (typeof message.value === 'string') {
+      return message.value;
     }
+
+    // If value is an object, stringify it
+    if (typeof message.value === 'object') {
+      return JSON.stringify(message.value, null, 2);
+    }
+
+    // For other types, convert to string
+    return String(message.value);
   }
 
   /**
@@ -1128,11 +1153,26 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
     // Prevent the click from toggling the message expansion
     event.stopPropagation();
 
-    // Extract the actual content and copy it to the new message
-    this.newMessage.content = this.extractMessageContent(message);
-    this.newMessage.metadata = ''; // Don't copy metadata
+    // Copy the message data to the new message
+    this.newMessage.key = message.key || '';
+    this.newMessage.value = message.value || '';
+
+    // Copy headers if they exist
+    this.headerEntries = [];
+    if (message.headers) {
+      Object.entries(message.headers).forEach(([key, value]) => {
+        this.headerEntries.push({ key, value });
+      });
+    }
 
     // Show the produce message pane
     this.showProduceMessagePane();
+  }
+
+  /**
+   * Helper method to get Object.keys for template use
+   */
+  getObjectKeys(obj: any): string[] {
+    return Object.keys(obj || {});
   }
 }
