@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ConfigService } from './services/config.service';
 import { ThemeService } from './services/theme.service';
+import { KeyboardShortcutsService } from './services/keyboard-shortcuts.service';
 
 @Component({
   selector: 'app-root',
@@ -11,10 +12,11 @@ import { ThemeService } from './services/theme.service';
   template: `<router-outlet></router-outlet>`,
   styles: []
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
   constructor(
     private configService: ConfigService,
-    private themeService: ThemeService
+    private themeService: ThemeService,
+    private keyboardShortcuts: KeyboardShortcutsService
   ) {}
 
   ngOnInit(): void {
@@ -63,6 +65,14 @@ export class AppComponent implements OnInit {
     this.themeService.theme$.subscribe(theme => {
       this.applyThemeColors(theme);
     });
+
+    // Initialize keyboard shortcuts
+    this.keyboardShortcuts.initialize();
+  }
+
+  ngOnDestroy(): void {
+    // Clean up keyboard shortcuts
+    this.keyboardShortcuts.destroy();
   }
 
 

@@ -1,0 +1,177 @@
+<div class="shortcuts-dialog-overlay" (click)="closeDialog()">
+  <div class="shortcuts-dialog" (click)="$event.stopPropagation()">
+    <div class="dialog-header">
+      <h2>Keyboard Shortcuts</h2>
+      <button class="close-button" (click)="closeDialog()" aria-label="Close">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <div class="dialog-content">
+      <!-- General Shortcuts -->
+      <div class="shortcuts-section">
+        <h3>General</h3>
+        <div class="shortcuts-list">
+          <div class="shortcut-item">
+            <div class="shortcut-keys">
+              <kbd>{{ isMac ? 'Cmd' : 'Ctrl' }}</kbd>
+              <span>+</span>
+              <kbd>]</kbd>
+            </div>
+            <div class="shortcut-description">Navigate through tabs (forward)</div>
+          </div>
+          <div class="shortcut-item">
+            <div class="shortcut-keys">
+              <kbd>{{ isMac ? 'Cmd' : 'Ctrl' }}</kbd>
+              <span>+</span>
+              <kbd>[</kbd>
+            </div>
+            <div class="shortcut-description">Navigate through tabs (backward)</div>
+          </div>
+          <div class="shortcut-item">
+            <div class="shortcut-keys">
+              <kbd>{{ isMac ? 'Cmd' : 'Ctrl' }}</kbd>
+              <span>+</span>
+              <kbd>{{ isMac ? 'Option' : 'Alt' }}</kbd>
+              <span>+</span>
+              <kbd>1-5</kbd>
+            </div>
+            <div class="shortcut-description">Switch to specific tab</div>
+          </div>
+          <div class="shortcut-item">
+            <div class="shortcut-keys">
+              <kbd>{{ isMac ? 'Cmd' : 'Ctrl' }}</kbd>
+              <span>+</span>
+              <kbd>{{ isMac ? 'Option' : 'Alt' }}</kbd>
+              <span>+</span>
+              <kbd>S</kbd>
+            </div>
+            <div class="shortcut-description">Open Settings</div>
+          </div>
+          <div class="shortcut-item">
+            <div class="shortcut-keys">
+              <kbd>{{ isMac ? 'Cmd' : 'Ctrl' }}</kbd>
+              <span>+</span>
+              <kbd>{{ isMac ? 'Option' : 'Alt' }}</kbd>
+              <span>+</span>
+              <kbd>T</kbd>
+            </div>
+            <div class="shortcut-description">Toggle Theme</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab-specific shortcuts -->
+      <div class="shortcuts-section" *ngIf="currentRoute">
+        <h3>{{ getTabName(currentRoute) }} Shortcuts</h3>
+        <div class="shortcuts-list">
+          <ng-container [ngSwitch]="currentRoute">
+            <!-- API Playground shortcuts -->
+            <ng-container *ngSwitchCase="'/api-docs'">
+              <div class="shortcut-item">
+                <div class="shortcut-keys">
+                  <kbd>/</kbd>
+                </div>
+                <div class="shortcut-description">Focus search input</div>
+              </div>
+              <div class="shortcut-item">
+                <div class="shortcut-keys">
+                  <kbd>Esc</kbd>
+                </div>
+                <div class="shortcut-description">Clear search / Close panels</div>
+              </div>
+            </ng-container>
+
+            <!-- Kafka shortcuts -->
+            <ng-container *ngSwitchCase="'/kafka'">
+              <div class="shortcut-item">
+                <div class="shortcut-keys">
+                  <kbd>{{ isMac ? 'Cmd' : 'Ctrl' }}</kbd>
+                  <span>+</span>
+                  <kbd>Enter</kbd>
+                </div>
+                <div class="shortcut-description">Send message</div>
+              </div>
+            </ng-container>
+
+            <!-- External Clients shortcuts -->
+            <ng-container *ngSwitchCase="'/feign-clients'">
+              <div class="shortcut-item">
+                <div class="shortcut-keys">
+                  <kbd>/</kbd>
+                </div>
+                <div class="shortcut-description">Focus search input</div>
+              </div>
+              <div class="shortcut-item">
+                <div class="shortcut-keys">
+                  <kbd>Esc</kbd>
+                </div>
+                <div class="shortcut-description">Clear search</div>
+              </div>
+            </ng-container>
+
+            <!-- Default message for tabs without specific shortcuts -->
+            <ng-container *ngSwitchDefault>
+              <div class="no-shortcuts">
+                <span>No specific shortcuts available for this tab</span>
+              </div>
+            </ng-container>
+          </ng-container>
+        </div>
+      </div>
+
+      <!-- Tab Navigation Reference -->
+      <div class="shortcuts-section">
+        <h3>Tab Navigation Reference</h3>
+        <div class="tab-reference">
+          <div class="tab-ref-item">
+            <kbd>{{ isMac ? 'Cmd' : 'Ctrl' }}</kbd>
+            <span>+</span>
+            <kbd>{{ isMac ? 'Option' : 'Alt' }}</kbd>
+            <span>+</span>
+            <kbd>1</kbd>
+            <span class="tab-name">Home</span>
+          </div>
+          <div class="tab-ref-item">
+            <kbd>{{ isMac ? 'Cmd' : 'Ctrl' }}</kbd>
+            <span>+</span>
+            <kbd>{{ isMac ? 'Option' : 'Alt' }}</kbd>
+            <span>+</span>
+            <kbd>2</kbd>
+            <span class="tab-name">Overview</span>
+          </div>
+          <div class="tab-ref-item">
+            <kbd>{{ isMac ? 'Cmd' : 'Ctrl' }}</kbd>
+            <span>+</span>
+            <kbd>{{ isMac ? 'Option' : 'Alt' }}</kbd>
+            <span>+</span>
+            <kbd>3</kbd>
+            <span class="tab-name">API Playground</span>
+          </div>
+          <div class="tab-ref-item">
+            <kbd>{{ isMac ? 'Cmd' : 'Ctrl' }}</kbd>
+            <span>+</span>
+            <kbd>{{ isMac ? 'Option' : 'Alt' }}</kbd>
+            <span>+</span>
+            <kbd>4</kbd>
+            <span class="tab-name">External Clients</span>
+          </div>
+          <div class="tab-ref-item">
+            <kbd>{{ isMac ? 'Cmd' : 'Ctrl' }}</kbd>
+            <span>+</span>
+            <kbd>{{ isMac ? 'Option' : 'Alt' }}</kbd>
+            <span>+</span>
+            <kbd>5</kbd>
+            <span class="tab-name">Documentation</span>
+          </div>
+        </div>
+        <div class="note">
+          <p><strong>Note:</strong> Plugin tabs (Kafka, Mock Server, Actuator Insights) can be accessed using the forward/backward navigation shortcuts.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -4,6 +4,8 @@ import { RouterLink, Router } from '@angular/router';
 import { ThemeService } from '../../../services/theme.service';
 import { PluginService } from '../../../services/plugin.service';
 import { PluginRegistryService, PluginStatus } from '../../../services/plugin-registry.service';
+import { KeyboardShortcutsService } from '../../../services/keyboard-shortcuts.service';
+import { ShortcutsDialogComponent } from '../shortcuts-dialog/shortcuts-dialog.component';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -11,7 +13,8 @@ import { Subscription } from 'rxjs';
   standalone: true,
   imports: [
     CommonModule,
-    RouterLink
+    RouterLink,
+    ShortcutsDialogComponent
   ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss'],
@@ -22,13 +25,15 @@ export class HeaderComponent implements OnInit, OnDestroy {
   showKafka = false;
   showMockServer = false;
   showActuatorInsights = false;
+  showShortcuts = false;
   private subscriptions: Subscription[] = [];
 
   constructor(
     private themeService: ThemeService,
-    private router: Router,
+    public router: Router,
     private pluginService: PluginService,
-    private pluginRegistry: PluginRegistryService
+    private pluginRegistry: PluginRegistryService,
+    private keyboardShortcuts: KeyboardShortcutsService
   ) {}
 
   ngOnInit(): void {
@@ -135,5 +140,19 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
     // Trigger a check
     this.pluginRegistry.checkPluginReady('actuator-insights').subscribe();
+  }
+
+  /**
+   * Show the shortcuts dialog
+   */
+  showShortcutsDialog(): void {
+    this.showShortcuts = true;
+  }
+
+  /**
+   * Hide the shortcuts dialog
+   */
+  hideShortcutsDialog(): void {
+    this.showShortcuts = false;
   }
 }

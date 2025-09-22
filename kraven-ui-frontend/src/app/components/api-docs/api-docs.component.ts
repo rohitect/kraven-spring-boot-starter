@@ -612,6 +612,43 @@ export class ApiDocsComponent implements OnInit {
   }
 
   /**
+   * Handle keyboard shortcuts
+   */
+  @HostListener('document:keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent): void {
+    // Ignore if user is typing in an input field
+    const activeElement = document.activeElement;
+    const isInputFocused = activeElement && (
+      activeElement.tagName.toLowerCase() === 'input' ||
+      activeElement.tagName.toLowerCase() === 'textarea' ||
+      activeElement.getAttribute('contenteditable') === 'true'
+    );
+
+    // Focus search input when '/' is pressed
+    if (event.key === '/' && !isInputFocused) {
+      event.preventDefault();
+      this.focusSearchInput();
+      return;
+    }
+
+    // Clear search and close panels when 'Escape' is pressed
+    if (event.key === 'Escape') {
+      if (this.searchQuery) {
+        this.searchQuery = '';
+        this.filterEndpoints();
+      }
+      if (this.docSearchTags.length > 0) {
+        this.docSearchTags = [];
+        this.searchDocumentation();
+      }
+      // Close right pane if open
+      if (!this.rightPaneCollapsed) {
+        this.toggleRightPane();
+      }
+    }
+  }
+
+  /**
    * Toggle main dropdown menu
    */
   toggleMainDropdown(event: Event): void {
@@ -2525,6 +2562,18 @@ export class ApiDocsComponent implements OnInit {
         console.error('Error deleting API call from history:', err);
       }
     });
+  }
+
+  /**
+   * Focus the search input field
+   */
+  focusSearchInput(): void {
+    // Try to find and focus the search input
+    const searchInput = document.querySelector('.search-input') as HTMLInputElement;
+    if (searchInput) {
+      searchInput.focus();
+      searchInput.select();
+    }
   }
 
   /**

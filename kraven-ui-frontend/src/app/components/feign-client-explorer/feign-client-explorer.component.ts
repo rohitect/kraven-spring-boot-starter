@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -122,6 +122,47 @@ export class FeignClientExplorerComponent implements OnInit {
     const savedViewMode = localStorage.getItem('feignClientViewMode');
     if (savedViewMode === 'list' || savedViewMode === 'card') {
       this.viewMode = savedViewMode;
+    }
+  }
+
+  /**
+   * Handle keyboard shortcuts
+   */
+  @HostListener('document:keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent): void {
+    // Ignore if user is typing in an input field
+    const activeElement = document.activeElement;
+    const isInputFocused = activeElement && (
+      activeElement.tagName.toLowerCase() === 'input' ||
+      activeElement.tagName.toLowerCase() === 'textarea' ||
+      activeElement.getAttribute('contenteditable') === 'true'
+    );
+
+    // Focus search input when '/' is pressed
+    if (event.key === '/' && !isInputFocused) {
+      event.preventDefault();
+      this.focusSearchInput();
+      return;
+    }
+
+    // Clear search when 'Escape' is pressed
+    if (event.key === 'Escape') {
+      if (this.searchQuery) {
+        this.searchQuery = '';
+        this.filterClients();
+      }
+    }
+  }
+
+  /**
+   * Focus the search input field
+   */
+  focusSearchInput(): void {
+    // Try to find and focus the search input
+    const searchInput = document.querySelector('.search-input') as HTMLInputElement;
+    if (searchInput) {
+      searchInput.focus();
+      searchInput.select();
     }
   }
 

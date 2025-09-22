@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -132,6 +132,24 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
 
     // Load Kafka cluster info and handle query parameters
     this.loadClusterInfoAndHandleParams();
+  }
+
+  /**
+   * Handle keyboard shortcuts
+   */
+  @HostListener('document:keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent): void {
+    // Check if Ctrl/Cmd + Enter is pressed to send message
+    const isCtrlOrCmd = event.ctrlKey || event.metaKey;
+
+    if (isCtrlOrCmd && event.key === 'Enter') {
+      event.preventDefault();
+      // Only send message if we're on topics tab, have a topic selected, and message production is enabled
+      if (this.activeTabIndex === 0 && this.selectedTopic && this.messageProductionEnabled) {
+        this.sendMessage();
+      }
+      return;
+    }
   }
 
   /**
