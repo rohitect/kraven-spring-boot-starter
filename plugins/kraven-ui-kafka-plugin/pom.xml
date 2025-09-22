@@ -6,7 +6,7 @@
 
     <groupId>io.github.rohitect</groupId>
     <artifactId>kraven-ui-kafka-plugin</artifactId>
-    <version>1.0.10</version>
+    <version>1.0.11</version>
     <packaging>jar</packaging>
 
     <name>Kraven UI Kafka Plugin</name>

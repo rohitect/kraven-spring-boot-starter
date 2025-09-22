@@ -10,10 +10,10 @@
         <a routerLink="/overview" [class.active]="isActive('/overview')">Overview</a>
         <a routerLink="/api-docs" [class.active]="isActive('/api-docs')">API Playground</a>
         <a routerLink="/feign-clients" [class.active]="isActive('/feign-clients')">External Clients</a>
+        <a routerLink="/documentation" [class.active]="isActive('/documentation')">Documentation</a>
         <a *ngIf="showKafka" routerLink="/kafka" [class.active]="isActive('/kafka')">Kafka</a>
         <a *ngIf="showMockServer" routerLink="/mock-server" [class.active]="isActive('/mock-server')">Mock Server</a>
         <a *ngIf="showActuatorInsights" routerLink="/actuator-insights" [class.active]="isActive('/actuator-insights')">Actuator Insights</a>
-        <a routerLink="/documentation" [class.active]="isActive('/documentation')">Documentation</a>
       </nav>
     </div>
     <div class="header-right">

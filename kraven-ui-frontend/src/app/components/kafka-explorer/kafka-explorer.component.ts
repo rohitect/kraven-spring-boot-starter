@@ -8,6 +8,14 @@ import { ThemeService } from '../../services/theme.service';
 import { trigger, transition, style, animate, state } from '@angular/animations';
 import { PluginLoaderComponent } from '../shared/plugin-loader/plugin-loader.component';
 
+// Interface for grouped topics
+export interface GroupedTopic {
+  mainTopic: KafkaTopic;
+  retryTopics: KafkaTopic[];
+  dltTopics: KafkaTopic[];
+  isExpanded?: boolean;
+}
+
 @Component({
   selector: 'app-kafka-explorer',
   standalone: true,
@@ -52,6 +60,7 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
   isDarkTheme = true;
   topicSearchQuery: string = '';
   filteredTopics: KafkaTopic[] = [];
+  groupedTopics: GroupedTopic[] = [];
 
   // Configuration options
   messageProductionEnabled = true;
@@ -98,6 +107,14 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
 
   // Right pane visibility
   showRightPane = false;
+
+  /**
+   * Determines if the right pane should be shown based on the active tab
+   */
+  get shouldShowRightPane(): boolean {
+    // Only show right pane for Topics tab (index 0) and when explicitly shown
+    return this.activeTabIndex === 0 && this.showRightPane && !!this.selectedTopic;
+  }
 
   constructor(
     private kafkaService: KafkaService,
@@ -205,9 +222,11 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
     // Initialize filtered topics with null check
     if (clusterInfo && clusterInfo.topics) {
       this.filteredTopics = [...clusterInfo.topics];
+      this.groupTopics();
     } else {
       console.warn('No topics found in cluster info or cluster info is null');
       this.filteredTopics = [];
+      this.groupedTopics = [];
     }
 
     // Handle tab selection from query params
@@ -603,6 +622,11 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
    * Selects a topic and loads its details and consumers.
    */
   selectTopic(topic: KafkaTopic): void {
+    // Avoid unnecessary operations if the same topic is already selected
+    if (this.selectedTopic && this.selectedTopic.name === topic.name) {
+      return;
+    }
+
     this.selectedTopic = topic;
     this.activeTopicTab = 'overview';
 
@@ -626,9 +650,11 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
       }
     });
 
-    // Load messages for this topic
-    const sortParam = this.messageViewMode === 'old' ? 'old' : 'new';
-    this.loadMessagesForTopic(topic.name, sortParam);
+    // Only load messages if we're on the messages tab
+    if (this.activeTopicTab === 'messages') {
+      const sortParam = this.messageViewMode === 'old' ? 'old' : 'new';
+      this.loadMessagesForTopic(topic.name, sortParam);
+    }
 
     // Update query parameters
     this.updateQueryParams();
@@ -1102,16 +1128,157 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Groups topics by main topic, retry topics, and DLT topics
+   */
+  groupTopics(): void {
+    if (!this.clusterInfo || !this.clusterInfo.topics) {
+      this.groupedTopics = [];
+      return;
+    }
+
+    const topics = this.clusterInfo.topics;
+    const grouped = new Map<string, GroupedTopic>();
+    const processedTopics = new Set<string>();
+
+    // First pass: identify main topics and create groups
+    for (const topic of topics) {
+      if (processedTopics.has(topic.name)) continue;
+
+      // Check if this is a retry or DLT topic
+      const retryMatch = topic.name.match(/^(.+)-retry(-\d+)?$/);
+      const dltMatch = topic.name.match(/^(.+)-dlt$/);
+
+      if (retryMatch) {
+        // This is a retry topic
+        const mainTopicName = retryMatch[1];
+        if (!grouped.has(mainTopicName)) {
+          // Create a virtual main topic if it doesn't exist
+          const mainTopic = topics.find(t => t.name === mainTopicName);
+          if (mainTopic) {
+            grouped.set(mainTopicName, {
+              mainTopic: mainTopic,
+              retryTopics: [],
+              dltTopics: [],
+              isExpanded: false
+            });
+          } else {
+            // Create a placeholder main topic
+            grouped.set(mainTopicName, {
+              mainTopic: {
+                name: mainTopicName,
+                partitions: 0,
+                replicationFactor: 0,
+                internal: false,
+                partitionInfos: [],
+                segmentSize: 0,
+                segmentCount: 0,
+                cleanupPolicy: '',
+                messageCount: 0,
+                settings: []
+              } as KafkaTopic,
+              retryTopics: [],
+              dltTopics: [],
+              isExpanded: false
+            });
+          }
+        }
+        grouped.get(mainTopicName)!.retryTopics.push(topic);
+        processedTopics.add(topic.name);
+      } else if (dltMatch) {
+        // This is a DLT topic
+        const mainTopicName = dltMatch[1];
+        if (!grouped.has(mainTopicName)) {
+          // Create a virtual main topic if it doesn't exist
+          const mainTopic = topics.find(t => t.name === mainTopicName);
+          if (mainTopic) {
+            grouped.set(mainTopicName, {
+              mainTopic: mainTopic,
+              retryTopics: [],
+              dltTopics: [],
+              isExpanded: false
+            });
+          } else {
+            // Create a placeholder main topic
+            grouped.set(mainTopicName, {
+              mainTopic: {
+                name: mainTopicName,
+                partitions: 0,
+                replicationFactor: 0,
+                internal: false,
+                partitionInfos: [],
+                segmentSize: 0,
+                segmentCount: 0,
+                cleanupPolicy: '',
+                messageCount: 0,
+                settings: []
+              } as KafkaTopic,
+              retryTopics: [],
+              dltTopics: [],
+              isExpanded: false
+            });
+          }
+        }
+        grouped.get(mainTopicName)!.dltTopics.push(topic);
+        processedTopics.add(topic.name);
+      } else {
+        // This is a main topic
+        if (!grouped.has(topic.name)) {
+          grouped.set(topic.name, {
+            mainTopic: topic,
+            retryTopics: [],
+            dltTopics: [],
+            isExpanded: false
+          });
+        } else {
+          // Update the main topic if it was created as placeholder
+          grouped.get(topic.name)!.mainTopic = topic;
+        }
+        processedTopics.add(topic.name);
+      }
+    }
+
+    // Second pass: find retry and DLT topics for existing main topics
+    for (const topic of topics) {
+      if (processedTopics.has(topic.name)) continue;
+
+      for (const [mainTopicName, group] of grouped.entries()) {
+        if (topic.name.startsWith(mainTopicName + '-retry')) {
+          group.retryTopics.push(topic);
+          processedTopics.add(topic.name);
+          break;
+        } else if (topic.name === mainTopicName + '-dlt') {
+          group.dltTopics.push(topic);
+          processedTopics.add(topic.name);
+          break;
+        }
+      }
+    }
+
+    // Convert to array and sort
+    this.groupedTopics = Array.from(grouped.values()).sort((a, b) =>
+      a.mainTopic.name.localeCompare(b.mainTopic.name)
+    );
+
+    // Sort retry topics within each group
+    this.groupedTopics.forEach(group => {
+      group.retryTopics.sort((a, b) => a.name.localeCompare(b.name));
+      group.dltTopics.sort((a, b) => a.name.localeCompare(b.name));
+    });
+  }
+
+  /**
    * Filters topics based on the search query
    */
   filterTopics(): void {
     if (!this.clusterInfo || !this.clusterInfo.topics) {
       this.filteredTopics = [];
+      this.groupedTopics = [];
       return;
     }
 
     if (!this.topicSearchQuery || this.topicSearchQuery.trim() === '') {
       this.filteredTopics = [...this.clusterInfo.topics];
+      this.groupTopics();
       return;
     }
 
@@ -1119,6 +1286,42 @@ export class KafkaExplorerComponent implements OnInit, OnDestroy {
     this.filteredTopics = this.clusterInfo.topics.filter(topic =>
       topic && topic.name && topic.name.toLowerCase().includes(query)
     );
+
+    // Also filter grouped topics
+    this.groupedTopics = this.groupedTopics.filter(group => {
+      const mainMatches = group.mainTopic.name.toLowerCase().includes(query);
+      const retryMatches = group.retryTopics.some(t => t.name.toLowerCase().includes(query));
+      const dltMatches = group.dltTopics.some(t => t.name.toLowerCase().includes(query));
+      return mainMatches || retryMatches || dltMatches;
+    });
+  }
+
+  /**
+   * Toggles the expansion state of a grouped topic
+   */
+  toggleGroupExpansion(group: GroupedTopic): void {
+    group.isExpanded = !group.isExpanded;
+  }
+
+  /**
+   * TrackBy function for grouped topics to optimize rendering
+   */
+  trackByGroupedTopic(index: number, group: GroupedTopic): string {
+    return group.mainTopic.name;
+  }
+
+  /**
+   * TrackBy function for retry topics to optimize rendering
+   */
+  trackByRetryTopic(index: number, topic: KafkaTopic): string {
+    return topic.name;
+  }
+
+  /**
+   * TrackBy function for DLT topics to optimize rendering
+   */
+  trackByDltTopic(index: number, topic: KafkaTopic): string {
+    return topic.name;
   }
 
   /**

@@ -94,13 +94,73 @@
                 </div>
               </div>
               <div class="topic-list">
-                <div *ngFor="let topic of filteredTopics" class="topic-item" [class.active]="selectedTopic === topic"
-                  (click)="selectTopic(topic)">
-                  <div class="topic-name">{{ topic.name }}</div>
-                  <div class="topic-meta">
-                    <span class="tag info">{{ topic.partitions }} partition{{ topic.partitions > 1 ? 's' : '' }}</span>
-                    <span class="tag secondary">RF: {{ topic.replicationFactor }}</span>
-                    <span class="tag warning" *ngIf="topic.internal">Internal</span>
+                <!-- Grouped Topics View -->
+                <div *ngFor="let group of groupedTopics; trackBy: trackByGroupedTopic" class="topic-group">
+                  <!-- Main Topic -->
+                  <div class="topic-item main-topic"
+                       [class.active]="selectedTopic === group.mainTopic"
+                       [class.has-children]="group.retryTopics.length > 0 || group.dltTopics.length > 0"
+                       (click)="selectTopic(group.mainTopic)">
+                    <div class="topic-content">
+                      <div class="topic-name-container">
+                        <button *ngIf="group.retryTopics.length > 0 || group.dltTopics.length > 0"
+                                class="expand-toggle"
+                                (click)="toggleGroupExpansion(group); $event.stopPropagation()"
+                                [class.expanded]="group.isExpanded">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                          </svg>
+                        </button>
+                        <div class="topic-name">{{ group.mainTopic.name }}</div>
+                      </div>
+                      <div class="topic-meta">
+                        <span class="tag info">{{ group.mainTopic.partitions }} partition{{ group.mainTopic.partitions > 1 ? 's' : '' }}</span>
+                        <span class="tag secondary">RF: {{ group.mainTopic.replicationFactor }}</span>
+                        <span class="tag warning" *ngIf="group.mainTopic.internal">Internal</span>
+                        <span class="tag info" *ngIf="group.retryTopics.length > 0">{{ group.retryTopics.length }} retry</span>
+                        <span class="tag info" *ngIf="group.dltTopics.length > 0">{{ group.dltTopics.length }} DLT</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Child Topics (Retry and DLT) -->
+                  <div *ngIf="group.isExpanded" class="child-topics">
+                    <!-- Retry Topics -->
+                    <div *ngFor="let retryTopic of group.retryTopics; trackBy: trackByRetryTopic"
+                         class="topic-item child-topic retry-topic"
+                         [class.active]="selectedTopic === retryTopic"
+                         (click)="selectTopic(retryTopic)">
+                      <div class="topic-content">
+                        <div class="topic-name-container">
+                          <div class="child-indicator">↳</div>
+                          <div class="topic-name">{{ retryTopic.name }}</div>
+                          <div class="topic-type-badge retry">RETRY</div>
+                        </div>
+                        <div class="topic-meta">
+                          <span class="tag info">{{ retryTopic.partitions }} partition{{ retryTopic.partitions > 1 ? 's' : '' }}</span>
+                          <span class="tag secondary">RF: {{ retryTopic.replicationFactor }}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- DLT Topics -->
+                    <div *ngFor="let dltTopic of group.dltTopics; trackBy: trackByDltTopic"
+                         class="topic-item child-topic dlt-topic"
+                         [class.active]="selectedTopic === dltTopic"
+                         (click)="selectTopic(dltTopic)">
+                      <div class="topic-content">
+                        <div class="topic-name-container">
+                          <div class="child-indicator">↳</div>
+                          <div class="topic-name">{{ dltTopic.name }}</div>
+                          <div class="topic-type-badge dlt">DLT</div>
+                        </div>
+                        <div class="topic-meta">
+                          <span class="tag info">{{ dltTopic.partitions }} partition{{ dltTopic.partitions > 1 ? 's' : '' }}</span>
+                          <span class="tag secondary">RF: {{ dltTopic.replicationFactor }}</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -149,9 +209,10 @@
               <div class="listener-list">
                 <div *ngFor="let listener of clusterInfo?.listeners" class="listener-item"
                   [class.active]="selectedListener === listener" (click)="selectListener(listener)">
-                  <div class="listener-name">{{ listener.id || listener.methodName }}</div>
+                  <div class="listener-name">{{ listener.topics.join(', ') || 'No topics' }}</div>
                   <div class="listener-meta">
-                    <span class="tag info" *ngFor="let topic of listener.topics">{{ topic }}</span>
+                    <span class="tag secondary">{{ listener.methodName }}</span>
+                    <span class="tag info" *ngIf="listener.id">ID: {{ listener.id }}</span>
                   </div>
                 </div>
               </div>
@@ -174,7 +235,7 @@
       </div>
 
       <!-- Middle Pane -->
-      <div class="middle-pane">
+      <div class="middle-pane" [class.full-width]="!shouldShowRightPane">
         <div class="middle-pane-content">
           <!-- Topic Details -->
           <div *ngIf="activeTabIndex === 0 && selectedTopic" class="details-container" @slideInOut>
@@ -683,12 +744,12 @@
       </div>
 
       <!-- Right Pane -->
-      <div class="right-pane" *ngIf="showRightPane && selectedTopic">
+      <div class="right-pane" *ngIf="shouldShowRightPane">
         <div class="right-pane-header">
           <div class="right-pane-header-content">
             <div class="right-pane-header-title">
               <h3>Produce Message</h3>
-              <div class="topic-badge">{{ selectedTopic.name }}</div>
+              <div class="topic-badge">{{ selectedTopic?.name }}</div>
             </div>
             <button class="btn-icon close-btn" (click)="hideProduceMessagePane()" title="Close">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -704,7 +765,7 @@
           <div class="message-form">
             <div class="form-section">
               <div class="form-section-header">
-                <h4>Topic: {{ selectedTopic.name }}</h4>
+                <h4>Topic: {{ selectedTopic?.name }}</h4>
               </div>
               <div class="form-section-content">
                 <div class="form-group">

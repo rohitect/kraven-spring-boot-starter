@@ -6,10 +6,14 @@ if [ -z "$JAVA_HOME" ]; then
     if [ -x "/usr/libexec/java_home" ]; then
         export JAVA_HOME=$(/usr/libexec/java_home)
         echo "Set JAVA_HOME to $JAVA_HOME"
-    # Try specific path for this user's environment
-    elif [ -d "/opt/homebrew/Cellar/openjdk@21/21.0.6/libexec/openjdk.jdk/Contents/Home" ]; then
-        export JAVA_HOME="/opt/homebrew/Cellar/openjdk@21/21.0.6/libexec/openjdk.jdk/Contents/Home"
-        echo "Set JAVA_HOME to $JAVA_HOME"
+    # Try to find Java 21 in Homebrew installation
+    elif [ -d "/opt/homebrew/Cellar/openjdk@21" ]; then
+        # Find the latest version of Java 21
+        JAVA21_PATH=$(find /opt/homebrew/Cellar/openjdk@21 -name "openjdk.jdk" -type d | head -1)
+        if [ -n "$JAVA21_PATH" ]; then
+            export JAVA_HOME="$JAVA21_PATH/Contents/Home"
+            echo "Set JAVA_HOME to $JAVA_HOME"
+        fi
     # Try common locations on Linux
     elif [ -d "/usr/lib/jvm/java-17-openjdk" ]; then
         export JAVA_HOME="/usr/lib/jvm/java-17-openjdk"
@@ -63,7 +67,7 @@ fi
 
 # Get the current version from the parent POM
 echo "Retrieving current version from POM..."
-CURRENT_VERSION=$(JAVA_HOME="/opt/homebrew/Cellar/openjdk@21/21.0.6/libexec/openjdk.jdk/Contents/Home" $MVN_CMD help:evaluate -Dexpression=project.version -q -DforceStdout 2>/dev/null)
+CURRENT_VERSION=$($MVN_CMD help:evaluate -Dexpression=project.version -q -DforceStdout 2>/dev/null)
 
 # If Maven command failed, try to extract version directly from pom.xml
 if [ -z "$CURRENT_VERSION" ] || [[ $CURRENT_VERSION == *"ERROR"* ]]; then
@@ -129,8 +133,8 @@ echo "Updating project version to $NEW_VERSION"
 # Update the version in the parent POM
 echo "Running Maven to update version in POMs..."
 
-# Try with explicit environment variable
-JAVA_HOME="/opt/homebrew/Cellar/openjdk@21/21.0.6/libexec/openjdk.jdk/Contents/Home" $MVN_CMD versions:set -DnewVersion=$NEW_VERSION -DgenerateBackupPoms=false
+# Update version using Maven
+$MVN_CMD versions:set -DnewVersion=$NEW_VERSION -DgenerateBackupPoms=false
 
 # Check if Maven command was successful
 if [ $? -ne 0 ]; then
